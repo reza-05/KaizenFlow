@@ -19,7 +19,8 @@ import {
   Eye, 
   Check, 
   Subtitles,
-  Settings
+  Settings,
+  X
 } from 'lucide-react';
 import { VideoItem, StudyMode } from '@/types';
 
@@ -114,6 +115,46 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [verificationError, setVerificationError] = useState<string>('');
   const [isLocallyVerified, setIsLocallyVerified] = useState<boolean>(initialVerified);
 
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoTriggeredMilestonesRef = useRef<Set<number>>(new Set());
+
+  // Show floating checkpoint toast for exactly durationSec (default 10s) with countdown
+  const showMilestoneToast = useCallback((index: number, digit: string, durationSec: number = 10) => {
+    if (toastTimerRef.current) {
+      clearInterval(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+
+    setActiveFloatingToast({
+      index,
+      digit,
+      timeLeft: durationSec,
+    });
+
+    let remaining = durationSec;
+    toastTimerRef.current = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        if (toastTimerRef.current) {
+          clearInterval(toastTimerRef.current);
+          toastTimerRef.current = null;
+        }
+        setActiveFloatingToast(null);
+      } else {
+        setActiveFloatingToast(prev => (prev ? { ...prev, timeLeft: remaining } : null));
+      }
+    }, 1000);
+  }, []);
+
+  // Dismiss toast immediately (when user clicks cross 'X' button)
+  const dismissFloatingToast = useCallback(() => {
+    if (toastTimerRef.current) {
+      clearInterval(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    setActiveFloatingToast(null);
+  }, []);
+
   // Calibrate milestones across video length
   const generateMilestones = useCallback((totalDuration: number, existingDigits?: string[]): MilestoneDigit[] => {
     const d = Math.max(90, totalDuration);
@@ -172,6 +213,11 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     setVerificationError('');
     setCurrentTime(0);
     setMaxWatchedTime(initialVerified ? (video.durationSeconds || 1200) : 0);
+    if (toastTimerRef.current) {
+      clearInterval(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    autoTriggeredMilestonesRef.current.clear();
     setActiveFloatingToast(null);
     setHasStartedPlaying(false);
 
@@ -179,6 +225,15 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     setDuration(initialDur);
     setMilestones(generateMilestones(initialDur));
   }, [video.ytVideoId, playlistId, initialVerified, video.durationSeconds, generateMilestones]);
+
+  // Clean up toast timer on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearInterval(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   // Mount YT Player with controls: 0 (completely kills More videos, YT logo, and native seekbar)
   useEffect(() => {
@@ -316,25 +371,26 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           return Math.max(prevMax, current);
         });
 
-        // Dynamic Milestone Toast Triggering
+        // Dynamic Focus Checkpoint Toast Auto-Triggering (10s duration)
         milestones.forEach(m => {
-          // If current playhead enters the 25-second notification window
-          if (current >= m.triggerSecond && current <= m.triggerSecond + 25) {
-            if (!m.revealed) {
+          // If playback crosses this checkpoint (within 3 seconds):
+          if (current >= m.triggerSecond && current <= m.triggerSecond + 3) {
+            if (!autoTriggeredMilestonesRef.current.has(m.index)) {
+              autoTriggeredMilestonesRef.current.add(m.index);
               m.revealed = true;
+              showMilestoneToast(m.index, m.digit, 10);
             }
-            setActiveFloatingToast({
-              index: m.index,
-              digit: m.digit,
-              timeLeft: Math.max(1, (m.triggerSecond + 25) - current),
-            });
+          }
+          // If user rewinds well before this checkpoint, allow re-triggering upon replay
+          if (current < m.triggerSecond - 8) {
+            autoTriggeredMilestonesRef.current.delete(m.index);
           }
         });
       } catch {}
     }, 500);
 
     return () => clearInterval(syncInterval);
-  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, generateMilestones]);
+  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, generateMilestones, showMilestoneToast]);
 
   // Focus Trap (3-second grace period when leaving tab in Lecture Mode)
   useEffect(() => {
@@ -528,6 +584,18 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const isGateUnlocked = (maxWatchedTime >= requiredSeconds && maxWatchedTime > 15) || isLocallyVerified;
   const fullExpectedCode = milestones.map(m => m.digit).join('');
 
+  // User clicking #1, #2... jumps video back to that checkpoint and re-displays the 10-second code toast
+  const handleMilestoneClick = (m: MilestoneDigit) => {
+    if (!playerRef.current) return;
+    try {
+      playerRef.current.seekTo(m.triggerSecond, true);
+      setCurrentTime(m.triggerSecond);
+      showMilestoneToast(m.index, m.digit, 10);
+    } catch (err) {
+      console.error('Error jumping to checkpoint:', err);
+    }
+  };
+
   const handleVerifySubmission = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isGateUnlocked) {
@@ -551,7 +619,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         });
       } catch {}
     } else {
-      setVerificationError('Incorrect verification code. Please enter the 4 digits observed across the video milestones.');
+      setVerificationError('Incorrect code. Please enter the 4 digits collected at the checkpoints.');
     }
   };
 
@@ -635,31 +703,42 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </div>
         )}
 
-        {/* Floating Attention Milestone Toast (Appears dynamically across video milestones) */}
+        {/* Floating Focus Checkpoint Toast (Appears for 10s at checkpoints, dismissible via close button) */}
         {activeFloatingToast && !isLocallyVerified && (
-          <div className="absolute top-5 right-5 z-30 animate-float rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md p-4 shadow-2xl transition-all duration-300 min-w-[240px]">
-            <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-2">
-              <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#d97706]">
-                <KeyRound className="h-3.5 w-3.5" />
-                <span>Code Milestone #{activeFloatingToast.index} of 4</span>
-              </span>
-              <span className="font-mono text-[10px] text-[var(--text-muted)]">
-                {activeFloatingToast.timeLeft}s left
-              </span>
+          <div className="absolute top-5 right-5 z-30 animate-in fade-in slide-in-from-top-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md p-3.5 shadow-2xl transition-all duration-200 min-w-[260px] max-w-[320px]">
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                <KeyRound className="h-3.5 w-3.5 text-amber-500" />
+                <span>Focus Checkpoint {activeFloatingToast.index} of 4</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] text-[var(--text-muted)] bg-[var(--bg-surface-subtle)] px-1.5 py-0.5 rounded border border-[var(--border-subtle)]">
+                  {activeFloatingToast.timeLeft}s
+                </span>
+                <button
+                  type="button"
+                  onClick={dismissFloatingToast}
+                  title="Dismiss notification"
+                  aria-label="Dismiss checkpoint notification"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] rounded p-0.5 transition-colors cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--bg-surface-subtle)] border border-[var(--border-strong)]">
-                <span className="font-mono text-3xl font-extrabold text-[var(--text-primary)]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-strong)] shadow-xs">
+                <span className="font-mono text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
                   {activeFloatingToast.digit}
                 </span>
               </div>
               <div className="text-xs">
                 <p className="font-semibold text-[var(--text-primary)]">
-                  Digit #{activeFloatingToast.index} Collected!
+                  Remember this digit
                 </p>
-                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                  Save this digit for the final 4-digit code.
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-snug">
+                  Save it to verify lesson completion at the end.
                 </p>
               </div>
             </div>
@@ -674,7 +753,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             </div>
             <h3 className="text-lg font-bold text-white">Focus Session Paused</h3>
             <p className="text-xs text-zinc-300 max-w-sm mt-1">
-              You clicked outside the Kizen window. Return here to resume video playback and collect your attention milestones.
+              You clicked outside the Kizen window. Return here to resume video playback and focus checkpoints.
             </p>
             <button
               onClick={() => {
@@ -922,30 +1001,41 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4 text-[var(--text-secondary)]" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                Attention Milestones (Collect all 4 Digits)
+                Focus Checkpoints (4 Digits)
               </h3>
             </div>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              4 digits appear during this lecture. If you missed a digit, rewind back to that moment to see it again.
+              4 digits appear throughout the lesson. If you ever forget one, click any reached checkpoint (#1, #2...) below to jump back and view it.
             </p>
           </div>
 
-          {/* 4 Milestone Indicator Pills */}
+          {/* 4 Checkpoint Indicator Pills (Interactive Buttons) */}
           <div className="flex items-center gap-2">
             {milestones.map(m => {
               const hasTriggered = currentTime >= m.triggerSecond || maxWatchedTime >= m.triggerSecond;
-              return (
-                <div
+              return hasTriggered ? (
+                <button
                   key={m.index}
-                  title={`Milestone ${m.index}: appears around ${formatTime(m.triggerSecond)}`}
-                  className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-mono font-bold transition-all ${
-                    hasTriggered
-                      ? 'border-[#059669] bg-[#059669]/10 text-[#059669]'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-[var(--text-muted)]'
+                  type="button"
+                  onClick={() => handleMilestoneClick(m)}
+                  title={`Click to jump to Checkpoint #${m.index} (${formatTime(m.triggerSecond)}) and view digit`}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-xs ${
+                    activeFloatingToast?.index === m.index
+                      ? 'border-[#059669] bg-[#059669]/25 text-[#059669] ring-2 ring-[#059669]/40'
+                      : 'border-[#059669] bg-[#059669]/10 text-[#059669] hover:bg-[#059669]/20'
                   }`}
                 >
                   <span>#{m.index}</span>
-                  {hasTriggered ? <Check className="h-3 w-3 stroke-[2.5]" /> : <span>•</span>}
+                  <Check className="h-3 w-3 stroke-[2.5]" />
+                </button>
+              ) : (
+                <div
+                  key={m.index}
+                  title={`Checkpoint #${m.index} unlocks at ${formatTime(m.triggerSecond)}`}
+                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-3 py-1.5 text-xs font-mono font-bold text-[var(--text-muted)] opacity-60 cursor-not-allowed select-none"
+                >
+                  <span>#{m.index}</span>
+                  <span>•</span>
                 </div>
               );
             })}
@@ -970,7 +1060,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 {isLocallyVerified 
                   ? 'Lesson Verified (+50 XP awarded)' 
                   : isGateUnlocked 
-                  ? 'Attention Check: Enter the 4 collected digits to verify:' 
+                  ? 'Enter the 4 collected digits to complete this lesson:' 
                   : `Watch ${formatTime(Math.max(0, requiredSeconds - maxWatchedTime))} more to unlock verification`}
               </span>
             </div>

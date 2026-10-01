@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept-Language': 'en-US,en;q=0.9',
           },
-          next: { revalidate: 3600 },
+          cache: 'no-store',
         });
 
         if (!res.ok) {
