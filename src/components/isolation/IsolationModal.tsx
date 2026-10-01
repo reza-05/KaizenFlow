@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Shield, ShieldAlert, CheckCircle2, AlertTriangle, RefreshCw, X, Download, Terminal, Copy, Check, HelpCircle } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle2, AlertTriangle, RefreshCw, X, Download, Copy, Check, HelpCircle } from 'lucide-react';
 import {
   setIsolationEnabled,
   subscribeToIsolation,
@@ -14,7 +14,7 @@ interface IsolationModalProps {
   onClose: () => void;
 }
 
-// Crisp, authentic SVG brand vectors (No emojis)
+// Clean SVG brand icons
 const BRAND_VECTORS = {
   facebook: (
     <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -97,64 +97,59 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-7 shadow-2xl text-zinc-100 transition-all">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center gap-3.5 mb-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 shadow-md text-emerald-400">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold tracking-tight text-white font-sans">
-                Isolation Shield Engine
-              </h2>
-              <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
-                v1.0 MV3
-              </span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-lg rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-2xl text-[var(--text-primary)] max-h-[88vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-start justify-between pb-4 mb-4 border-b border-[var(--border-subtle)]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
+              <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Declarative browser firewall to suspend feeds & messaging tabs during study.
-            </p>
+            <div>
+              <h2 className="text-base font-bold tracking-tight text-[var(--text-primary)]">
+                Isolation Shield
+              </h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Block social media & distracting feeds across all browser tabs while studying.
+              </p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* Tactile Master Power Switch Card */}
-        <div className="flex items-center justify-between p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/60 mb-5">
-          <div className="space-y-0.5">
+        {/* Master Switch Card */}
+        <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] mb-4">
+          <div className="space-y-0.5 pr-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-semibold text-white tracking-tight">
-                {status.enabled ? 'Firewall Armed & Intercepting' : 'Firewall in Standby'}
+              <span className="text-sm font-semibold text-[var(--text-primary)]">
+                {status.enabled ? 'Shield is Active' : 'Shield is Inactive'}
               </span>
               <span
                 className={`flex h-2 w-2 rounded-full ${
                   status.enabled
                     ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]'
-                    : 'bg-zinc-600'
+                    : 'bg-[var(--text-muted)]'
                 }`}
               />
             </div>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-xs text-[var(--text-secondary)]">
               {status.enabled
-                ? 'External social media navigations will be routed to the 503 Focus Screen.'
-                : 'Engage shield to disable Facebook, Instagram & WhatsApp across all tabs.'}
+                ? 'Social media tabs are blocked and routed to the Focus Screen.'
+                : 'Turn ON to eliminate tab hopping during your focus session.'}
             </p>
           </div>
 
-          {/* Master Switch */}
           <button
             type="button"
             onClick={handleToggle}
+            aria-label="Toggle isolation shield"
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              status.enabled ? 'bg-emerald-600' : 'bg-zinc-700'
+              status.enabled ? 'bg-emerald-600' : 'bg-[var(--border-strong)]'
             }`}
           >
             <span
@@ -166,94 +161,91 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Browser Extension Link Status */}
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-3.5 mb-5 text-xs">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] p-4 mb-4 text-xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
-              Network Interceptor Status
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+              Browser Extension Link
             </span>
             <button
               onClick={handlePingExtension}
               disabled={isPinging}
-              className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
             >
               <RefreshCw className={`h-3 w-3 ${isPinging ? 'animate-spin' : ''}`} />
-              <span>{isPinging ? 'Handshaking...' : 'Verify Link'}</span>
+              <span>{isPinging ? 'Checking...' : 'Check Connection'}</span>
             </button>
           </div>
 
           {status.extensionInstalled ? (
-            <div className="flex items-center gap-2 text-emerald-400 font-medium py-1">
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium py-1">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>Companion extension active. Tab rules enforced permanently across sessions.</span>
+              <span>Extension active. Cross-browser tab isolation is enforced.</span>
             </div>
           ) : (
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-2 text-amber-400 font-medium">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>In-App Defocus Guard active. To block other browser tabs, load extension:</span>
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-amber-700 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <p className="text-xs">
+                  To block other browser tabs, load the companion extension once (takes 30 seconds).
+                </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <a
                   href="/downloads/kaizenflow-shield.zip"
                   download="kaizenflow-shield.zip"
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-semibold py-2 px-3 text-xs shadow-xs transition-colors"
+                  className="flex-1 min-w-[170px] flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-surface)] hover:opacity-90 font-medium py-2 px-3 text-xs transition-opacity cursor-pointer shadow-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
                   <span>Download Extension (.zip)</span>
                 </a>
                 <button
                   onClick={copyExtensionsUrl}
-                  className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 px-3 py-2 text-xs transition-colors"
+                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] text-[var(--text-primary)] px-3 py-2 text-xs transition-colors cursor-pointer"
                 >
-                  {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                  <span>{copiedLink ? 'Copied URL' : 'chrome://extensions'}</span>
+                  {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span>{copiedLink ? 'Copied' : 'chrome://extensions'}</span>
                 </button>
               </div>
 
-              <div className="rounded-lg bg-zinc-950 p-2.5 border border-zinc-800 text-[11px] text-zinc-400 space-y-1 font-mono">
-                <div className="flex items-center justify-between pb-1 mb-1 border-b border-zinc-800/60 font-sans">
-                  <span className="font-semibold text-zinc-300">Quick Setup</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsManualOpen(true)}
-                    className="text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 text-[11px] font-medium cursor-pointer"
-                  >
-                    <HelpCircle className="h-3 w-3" />
-                    <span>View Step-by-Step Manual with Screenshots →</span>
-                  </button>
-                </div>
-                <p>1. Open <span className="text-zinc-200">chrome://extensions</span></p>
-                <p>2. Toggle <span className="text-zinc-200">Developer mode</span> on</p>
-                <p>3. Drop or Load unpacked <span className="text-zinc-200">kaizenflow-shield</span> folder</p>
+              <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2.5 flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)]">First time setup?</span>
+                <button
+                  type="button"
+                  onClick={() => setIsManualOpen(true)}
+                  className="font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  <span>View Step-by-Step Guide with Screenshots →</span>
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Targeted Sites Matrix (High-Precision SVG Glyphs, Zero Emojis) */}
-        <div className="mb-5">
-          <div className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-widest mb-2.5">
-            Suspended Networks During Isolation
+        {/* Targeted Sites Matrix */}
+        <div className="mb-4">
+          <div className="text-[11px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">
+            Protected Social Networks
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {RESTRICTED_DOMAINS.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between rounded-lg border border-zinc-800/80 bg-zinc-900/50 px-3 py-2 text-xs transition-colors"
+                className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-xs transition-colors"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="text-zinc-400 shrink-0">{item.icon}</div>
-                  <span className="truncate font-medium text-zinc-200 text-[11px]">{item.name}</span>
+                  <div className="text-[var(--text-secondary)] shrink-0">{item.icon}</div>
+                  <span className="truncate font-medium text-[var(--text-primary)] text-[11px]">{item.name}</span>
                 </div>
                 {status.enabled ? (
-                  <span className="font-mono text-[9px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1 py-0.2 rounded ml-1 shrink-0">
-                    BLOCKED
+                  <span className="font-semibold text-[9px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 px-1.5 py-0.5 rounded ml-1 shrink-0">
+                    Blocked
                   </span>
                 ) : (
-                  <span className="font-mono text-[9px] text-zinc-600 ml-1 shrink-0">
-                    IDLE
+                  <span className="text-[9px] text-[var(--text-muted)] bg-[var(--bg-surface-subtle)] px-1.5 py-0.5 rounded ml-1 shrink-0">
+                    Idle
                   </span>
                 )}
               </div>
@@ -262,29 +254,28 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-zinc-800/80 text-[11px] text-zinc-500">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsManualOpen(true)}
-              className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors cursor-pointer group"
-            >
-              <HelpCircle className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
-              <span className="underline underline-offset-2">How to setup? (Visual Step-by-Step Manual)</span>
-            </button>
-            <span className="text-zinc-700 hidden sm:inline">•</span>
-            <span className="hidden sm:inline">
-              {status.distractionAttempts > 0
-                ? `${status.distractionAttempts} deflection attempts prevented`
-                : 'Zero distraction intrusions'}
-            </span>
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
           <button
-            onClick={onClose}
-            className="rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-1.5 font-medium transition-colors cursor-pointer w-full sm:w-auto text-center"
+            type="button"
+            onClick={() => setIsManualOpen(true)}
+            className="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer group"
           >
-            Done
+            <HelpCircle className="h-4 w-4 shrink-0" />
+            <span>How to setup? (Visual Step-by-Step Manual)</span>
           </button>
+          <div className="flex items-center gap-3">
+            {status.distractionAttempts > 0 && (
+              <span className="text-[11px] text-[var(--text-muted)]">
+                {status.distractionAttempts} attempts prevented
+              </span>
+            )}
+            <button
+              onClick={onClose}
+              className="rounded-lg bg-[var(--text-primary)] text-[var(--bg-surface)] hover:opacity-90 px-4 py-1.5 font-medium transition-opacity cursor-pointer text-xs"
+            >
+              Done
+            </button>
+          </div>
         </div>
       </div>
 

@@ -45,31 +45,29 @@ export const IsolationToggle: React.FC = () => {
           onClick={handleToggle}
           title={
             status.enabled
-              ? 'Isolation Shield is ARMED. Distraction sites blocked across all browser tabs.'
-              : 'Turn ON Isolation Shield to suspend Facebook, Instagram & WhatsApp across all tabs.'
+              ? 'Isolation Shield is active. Distraction sites blocked across all browser tabs.'
+              : 'Turn ON Isolation Shield to suspend social media tabs during study.'
           }
           className={`group h-8 px-2.5 rounded-lg border text-xs font-medium transition-all duration-200 flex items-center gap-2 select-none cursor-pointer ${
             status.enabled
-              ? 'bg-zinc-950 dark:bg-zinc-900 border-zinc-800 dark:border-zinc-700 text-white shadow-xs hover:border-zinc-600'
+              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 shadow-xs'
               : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-subtle)]'
           }`}
         >
           {status.enabled ? (
             <>
-              {/* Precision Glowing Status Light */}
               <span className="relative flex h-2 w-2 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <ShieldAlert className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span className="font-mono text-[11px] tracking-wider uppercase font-semibold text-zinc-100">
+              <ShieldAlert className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="text-[11px] font-semibold text-[var(--text-primary)]">
                 Shield
               </span>
-              <span className="text-[10px] font-mono px-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className="text-[10px] font-semibold px-1 rounded bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-400 dark:border dark:border-emerald-500/30">
                 ON
               </span>
-              {/* Precision Micro Slider */}
-              <div className="w-5 h-2.5 rounded-full bg-emerald-500 p-0.5 ml-0.5 flex items-center justify-end">
+              <div className="w-5 h-2.5 rounded-full bg-emerald-600 p-0.5 ml-0.5 flex items-center justify-end">
                 <div className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />
               </div>
             </>
@@ -79,12 +77,11 @@ export const IsolationToggle: React.FC = () => {
               <span className="text-[11px] font-medium tracking-tight">
                 Shield
               </span>
-              <span className="text-[10px] font-mono text-[var(--text-muted)]">
+              <span className="text-[10px] text-[var(--text-muted)] font-medium">
                 OFF
               </span>
-              {/* Precision Micro Slider Standby */}
-              <div className="w-5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700 p-0.5 ml-0.5 flex items-center justify-start transition-colors">
-                <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-300 shadow-xs" />
+              <div className="w-5 h-2.5 rounded-full bg-[var(--border-strong)] p-0.5 ml-0.5 flex items-center justify-start transition-colors">
+                <div className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />
               </div>
             </>
           )}
