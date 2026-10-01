@@ -130,7 +130,7 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
     {
       title: 'Click "Load unpacked" & Select Folder',
       badge: 'Step 4',
-      desc: 'Click "Load unpacked" on the top left, choose the unzipped "kaizenflow-shield" folder, and click "Select".',
+      desc: 'Click "Load unpacked" on the top left, choose the unzipped "kaizenflow-shield" folder, and click "Select Folder" (or "Open").',
       images: [
         {
           src: '/guide/step4-loadunpacked.png',
@@ -146,7 +146,7 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
         },
         {
           src: '/guide/step5-selectfolder.png',
-          caption: '2. Select "kaizenflow-shield"',
+          caption: '2. Select "kaizenflow-shield" & click Select / Open',
           highlight: {
             top: '52%',
             left: '18%',
@@ -156,20 +156,8 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
             badgePlacement: 'bottom',
           },
         },
-        {
-          src: '/guide/step6-selectbtn.png',
-          caption: '3. Click "Select"',
-          highlight: {
-            top: '23%',
-            left: '59%',
-            width: '31%',
-            height: '48%',
-            label: 'Click Select',
-            badgePlacement: 'top',
-          },
-        },
       ],
-      note: 'Select the unzipped folder containing manifest.json (not the .zip archive).',
+      note: 'Select the unzipped folder containing manifest.json (not the .zip archive), then confirm with "Select Folder" (Windows) or "Select" (macOS).',
     },
     {
       title: 'Setup Complete — Lifetime Protection',
