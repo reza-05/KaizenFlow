@@ -1,35 +1,33 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --bg-canvas: #fafafa;
-    --bg-surface: #ffffff;
-    --bg-surface-subtle: #f4f4f5;
-    --border-subtle: #e4e4e7;
-    --border-strong: #d4d4d8;
-    --text-primary: #18181b;
-    --text-secondary: #71717a;
-    --text-muted: #a1a1aa;
-    --accent-emerald: #059669;
-    --accent-emerald-subtle: #ecfdf5;
-    --accent-amber: #d97706;
-    --accent-amber-subtle: #fffbeb;
-  }
+:root {
+  --bg-canvas: #fafafa;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f4f4f5;
+  --border-subtle: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --text-primary: #18181b;
+  --text-secondary: #71717a;
+  --text-muted: #a1a1aa;
+  --accent-emerald: #059669;
+  --accent-emerald-subtle: #ecfdf5;
+  --accent-amber: #d97706;
+  --accent-amber-subtle: #fffbeb;
+}
 
-  .dark {
-    --bg-canvas: #09090b;
-    --bg-surface: #121215;
-    --bg-surface-subtle: #18181b;
-    --border-subtle: #27272a;
-    --border-strong: #3f3f46;
-    --text-primary: #f4f4f5;
-    --text-secondary: #a1a1aa;
-    --text-muted: #71717a;
-    --accent-emerald: #10b981;
-    --accent-emerald-subtle: #064e3b33;
-    --accent-amber: #f59e0b;
-    --accent-amber-subtle: #78350f33;
-  }
+.dark {
+  --bg-canvas: #09090b;
+  --bg-surface: #121215;
+  --bg-surface-subtle: #18181b;
+  --border-subtle: #27272a;
+  --border-strong: #3f3f46;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent-emerald: #10b981;
+  --accent-emerald-subtle: #064e3b33;
+  --accent-amber: #f59e0b;
+  --accent-amber-subtle: #78350f33;
 }
 
 body {
