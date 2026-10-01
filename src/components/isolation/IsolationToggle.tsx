@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Shield, ShieldAlert, Sliders } from 'lucide-react';
+import { Shield, Sliders } from 'lucide-react';
 import {
   getIsolationEnabled,
   setIsolationEnabled,
@@ -39,7 +39,7 @@ export const IsolationToggle: React.FC = () => {
   return (
     <>
       <div className="flex items-center gap-1.5">
-        {/* Sleek Tactile Toggle Button */}
+        {/* Clean Tactile Pill Switch */}
         <button
           type="button"
           onClick={handleToggle}
@@ -48,57 +48,45 @@ export const IsolationToggle: React.FC = () => {
               ? 'Isolation Shield is active. Distraction sites blocked across all browser tabs.'
               : 'Turn ON Isolation Shield to suspend social media tabs during study.'
           }
-          className={`group h-8 px-2 sm:px-2.5 rounded-lg border text-xs font-medium transition-all duration-200 flex items-center gap-1.5 sm:gap-2 select-none cursor-pointer ${
+          className={`group h-8 px-2.5 rounded-full border text-xs font-medium transition-all duration-200 flex items-center gap-2 select-none cursor-pointer ${
             status.enabled
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 shadow-xs'
-              : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-subtle)]'
+              ? 'border-emerald-600/30 dark:border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 shadow-xs'
+              : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] hover:border-[var(--border-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
-          {status.enabled ? (
-            <>
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <ShieldAlert className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="hidden xs:inline text-[11px] font-semibold text-[var(--text-primary)]">
-                Shield
-              </span>
-              <span className="text-[10px] font-semibold px-1 rounded bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-400 dark:border dark:border-emerald-500/30">
-                ON
-              </span>
-              <div className="w-5 h-2.5 rounded-full bg-emerald-600 p-0.5 ml-0.5 flex items-center justify-end">
-                <div className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />
-              </div>
-            </>
-          ) : (
-            <>
-              <Shield className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors shrink-0" />
-              <span className="hidden xs:inline text-[11px] font-medium tracking-tight">
-                Shield
-              </span>
-              <span className="text-[10px] text-[var(--text-muted)] font-medium">
-                OFF
-              </span>
-              <div className="w-5 h-2.5 rounded-full bg-[var(--border-strong)] p-0.5 ml-0.5 flex items-center justify-start transition-colors">
-                <div className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />
-              </div>
-            </>
-          )}
+          <Shield
+            className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+              status.enabled
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'
+            }`}
+          />
+          <span className="text-xs font-medium tracking-tight">
+            {status.enabled ? 'Shield Active' : 'Shield'}
+          </span>
+          <div
+            className={`w-7 h-4 rounded-full p-0.5 flex items-center transition-colors ${
+              status.enabled
+                ? 'bg-emerald-600 dark:bg-emerald-500 justify-end'
+                : 'bg-[var(--border-strong)] justify-start'
+            }`}
+          >
+            <div className="w-3 h-3 rounded-full bg-white shadow-xs" />
+          </div>
         </button>
 
-        {/* Small Discreet Settings Trigger */}
+        {/* Shield Rules & Settings Trigger */}
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          title="Shield Configuration & Target Rules"
-          className="h-8 w-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-subtle)] transition-colors flex items-center justify-center cursor-pointer"
+          title="Shield Configuration & Blocked Networks"
+          className="h-8 w-8 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-subtle)] transition-all flex items-center justify-center cursor-pointer"
         >
           <Sliders className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      {/* Modal Dialog */}
+      {/* Isolation Management Modal */}
       <IsolationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
