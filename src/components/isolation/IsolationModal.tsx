@@ -152,18 +152,9 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
         {/* Master Switch Card */}
         <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] mb-4">
           <div className="space-y-0.5 pr-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[var(--text-primary)]">
-                {status.enabled ? 'Shield is Active' : 'Shield is Inactive'}
-              </span>
-              <span
-                className={`flex h-2 w-2 rounded-full ${
-                  status.enabled
-                    ? 'bg-emerald-500'
-                    : 'bg-[var(--text-muted)]'
-                }`}
-              />
-            </div>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">
+              {status.enabled ? 'Shield is Active' : 'Shield is Inactive'}
+            </span>
             <p className="text-xs text-[var(--text-secondary)]">
               {status.enabled
                 ? 'Social media tabs are blocked and routed to the Focus Screen.'
@@ -264,11 +255,11 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
                   <span className="truncate font-medium text-[var(--text-primary)] text-xs">{item.name}</span>
                 </div>
                 {status.enabled ? (
-                  <span className="font-semibold text-[10px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 px-1.5 py-0.5 rounded ml-1 shrink-0">
+                  <span className="font-bold text-[10px] text-white bg-red-600 px-2 py-0.5 rounded-md shadow-xs tracking-wider uppercase shrink-0">
                     Blocked
                   </span>
                 ) : (
-                  <span className="text-[10px] text-[var(--text-muted)] bg-[var(--bg-surface-subtle)] px-1.5 py-0.5 rounded ml-1 shrink-0">
+                  <span className="font-medium text-[10px] text-[var(--text-muted)] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] px-2 py-0.5 rounded-md shrink-0">
                     Idle
                   </span>
                 )}

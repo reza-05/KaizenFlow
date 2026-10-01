@@ -48,10 +48,10 @@ export const IsolationToggle: React.FC = () => {
               ? 'Isolation Shield is active. Distraction sites blocked across all browser tabs.'
               : 'Turn ON Isolation Shield to suspend social media tabs during study.'
           }
-          className={`group h-8 px-2.5 rounded-full border text-xs font-medium transition-all duration-200 flex items-center gap-2 select-none cursor-pointer ${
+          className={`group h-8 px-2.5 rounded-full border text-xs transition-all duration-200 flex items-center gap-2 select-none cursor-pointer bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] ${
             status.enabled
-              ? 'border-emerald-600/30 dark:border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 shadow-xs'
-              : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] hover:border-[var(--border-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              ? 'border-emerald-600/50 dark:border-emerald-500/50 text-[var(--text-primary)] shadow-xs ring-1 ring-emerald-500/20'
+              : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           <Shield
@@ -61,14 +61,14 @@ export const IsolationToggle: React.FC = () => {
                 : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'
             }`}
           />
-          <span className="text-xs font-medium tracking-tight">
+          <span className="text-xs font-semibold tracking-tight text-[var(--text-primary)]">
             {status.enabled ? 'Shield Active' : 'Shield'}
           </span>
           <div
             className={`w-7 h-4 rounded-full p-0.5 flex items-center transition-colors ${
               status.enabled
                 ? 'bg-emerald-600 dark:bg-emerald-500 justify-end'
-                : 'bg-[var(--border-strong)] justify-start'
+                : 'bg-zinc-300 dark:bg-zinc-700 justify-start'
             }`}
           >
             <div className="w-3 h-3 rounded-full bg-white shadow-xs" />
