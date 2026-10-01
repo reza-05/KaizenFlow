@@ -86,6 +86,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [isPlayerReady, setIsPlayerReady] = useState<boolean>(false);
   const [hasStartedPlaying, setHasStartedPlaying] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isEnded, setIsEnded] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(video.durationSeconds || 1200);
   const [maxWatchedTime, setMaxWatchedTime] = useState<number>(0);
@@ -220,6 +221,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     autoTriggeredMilestonesRef.current.clear();
     setActiveFloatingToast(null);
     setHasStartedPlaying(false);
+    setIsEnded(false);
 
     const initialDur = Math.max(60, video.durationSeconds || 1200);
     setDuration(initialDur);
@@ -274,6 +276,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             if (event.data === 1) {
               setIsPlaying(true);
               setHasStartedPlaying(true);
+              setIsEnded(false);
               const liveDur = Math.floor(event.target.getDuration() || 0);
               if (liveDur > 30 && Math.abs(liveDur - duration) > 5) {
                 setDuration(liveDur);
@@ -281,7 +284,17 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               }
             }
             if (event.data === 2) setIsPlaying(false);
-            if (event.data === 0) setIsPlaying(false);
+            if (event.data === 0) {
+              setIsPlaying(false);
+              setIsEnded(true);
+              try {
+                confetti({
+                  particleCount: 100,
+                  spread: 80,
+                  origin: { y: 0.6 },
+                });
+              } catch {}
+            }
           },
         },
       });
@@ -386,11 +399,24 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             autoTriggeredMilestonesRef.current.delete(m.index);
           }
         });
+        // Prevent YouTube end-screen recommendation cards by completing 1.0s before physical end
+        if (duration > 15 && current >= duration - 1 && hasStartedPlaying && !isEnded) {
+          setIsEnded(true);
+          setIsPlaying(false);
+          try {
+            playerRef.current?.pauseVideo?.();
+            confetti({
+              particleCount: 100,
+              spread: 80,
+              origin: { y: 0.6 },
+            });
+          } catch {}
+        }
       } catch {}
     }, 500);
 
     return () => clearInterval(syncInterval);
-  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, generateMilestones, showMilestoneToast]);
+  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, generateMilestones, showMilestoneToast, hasStartedPlaying, isEnded]);
 
   // Focus Trap (3-second grace period when leaving tab in Lecture Mode)
   useEffect(() => {
@@ -462,8 +488,21 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }
   };
 
+  // Replay Lesson from second 0
+  const handleReplay = () => {
+    setIsEnded(false);
+    if (!playerRef.current) return;
+    try {
+      playerRef.current.seekTo(0, true);
+      playerRef.current.playVideo();
+      setCurrentTime(0);
+      setIsPlaying(true);
+    } catch {}
+  };
+
   // Rewind 10 Seconds (Always 100% permitted)
   const handleRewind10 = () => {
+    setIsEnded(false);
     if (!playerRef.current) return;
     const target = Math.max(0, currentTime - 10);
     playerRef.current.seekTo(target, true);
@@ -473,6 +512,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   // Seekbar Click: ANY POINT IN THE PAST IS 100% FREELY ACCESSIBLE, FORWARD IS BLOCKED!
   const handleScrubberAction = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!playerRef.current || duration <= 0) return;
+    setIsEnded(false);
     const rect = e.currentTarget.getBoundingClientRect();
     const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const targetTime = Math.floor(clickRatio * duration);
@@ -586,6 +626,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
 
   // User clicking #1, #2... jumps video back to that checkpoint and re-displays the 10-second code toast
   const handleMilestoneClick = (m: MilestoneDigit) => {
+    setIsEnded(false);
     if (!playerRef.current) return;
     try {
       playerRef.current.seekTo(m.triggerSecond, true);
@@ -645,17 +686,19 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         />
 
         {/* Transparent Click Overlay to Play/Pause on Video Click - ZERO ROBOTIC TEXT */}
-        <div 
-          onClick={togglePlay} 
-          className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center select-none"
-        >
-          {/* Subtle central Play button when paused */}
-          {!isPlaying && hasStartedPlaying && (
-            <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs shadow-2xl transition-transform hover:scale-105 pointer-events-none">
-              <Play className="h-6 w-6 sm:h-7 sm:w-7 fill-white ml-1" />
-            </div>
-          )}
-        </div>
+        {!isEnded && (
+          <div 
+            onClick={togglePlay} 
+            className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center select-none"
+          >
+            {/* Subtle central Play button when paused */}
+            {!isPlaying && hasStartedPlaying && (
+              <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs shadow-2xl transition-transform hover:scale-105 pointer-events-none">
+                <Play className="h-6 w-6 sm:h-7 sm:w-7 fill-white ml-1" />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Pre-Roll Cinema Cover (Before starting: pure thumbnail + central play icon - NO YOUTUBE TITLE/MORE VIDEOS!) */}
         {!hasStartedPlaying && (
@@ -760,6 +803,66 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             >
               Resume Focus
             </button>
+          </div>
+        )}
+
+        {/* End-of-Lesson Celebration Screen (Completely shields user from YouTube end-screen recommendations!) */}
+        {isEnded && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/92 backdrop-blur-md p-6 text-center text-white animate-in fade-in duration-300 select-none">
+            {/* Completion Badge */}
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#059669]/20 text-[#059669] mb-4 border border-[#059669]/40 shadow-2xl ring-4 ring-[#059669]/10">
+              <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
+            </div>
+
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#10b981] font-bold mb-1.5">
+              Lesson Finished
+            </span>
+
+            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white max-w-lg line-clamp-2">
+              {video.title}
+            </h3>
+
+            <p className="text-xs text-zinc-400 max-w-sm mt-2 mb-6">
+              Great focus session! Zero distractions, zero interruptions.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {/* Watch Again Button */}
+              <button
+                type="button"
+                onClick={handleReplay}
+                className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Watch Again</span>
+              </button>
+
+              {/* Next Lesson Button */}
+              {hasNextVideo && onNextVideo ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEnded(false);
+                    onNextVideo();
+                  }}
+                  className="flex items-center gap-2 rounded-xl bg-white text-black px-5 py-2.5 text-xs font-bold hover:bg-zinc-200 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95"
+                >
+                  <span>Next Lesson</span>
+                  <SkipForward className="h-3.5 w-3.5 fill-black" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEnded(false);
+                  }}
+                  className="flex items-center gap-2 rounded-xl bg-[#059669] text-white px-5 py-2.5 text-xs font-bold hover:bg-[#047857] transition-all cursor-pointer shadow-lg"
+                >
+                  <span>Lesson Complete</span>
+                  <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
