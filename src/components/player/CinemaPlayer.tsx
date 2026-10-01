@@ -87,7 +87,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [hasStartedPlaying, setHasStartedPlaying] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isEnded, setIsEnded] = useState<boolean>(false);
-  const [hideEndCards, setHideEndCards] = useState<boolean>(true);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(video.durationSeconds || 1200);
   const [maxWatchedTime, setMaxWatchedTime] = useState<number>(0);
@@ -223,7 +222,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     setActiveFloatingToast(null);
     setHasStartedPlaying(false);
     setIsEnded(false);
-    setHideEndCards(true);
 
     const initialDur = Math.max(60, video.durationSeconds || 1200);
     setDuration(initialDur);
@@ -625,9 +623,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const isGateUnlocked = (maxWatchedTime >= requiredSeconds && maxWatchedTime > 15) || isLocallyVerified;
   const fullExpectedCode = milestones.map(m => m.digit).join('');
 
-  // Near end of video window (last 20s) where YouTube injects End Screen suggestion cards
-  const isNearEnd = duration > 20 && currentTime >= duration - 20 && hasStartedPlaying;
-
   // User clicking #1, #2... jumps video back to that checkpoint and re-displays the 10-second code toast
   const handleMilestoneClick = (m: MilestoneDigit) => {
     setIsEnded(false);
@@ -806,64 +801,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               className="mt-4 rounded-md bg-white px-4 py-1.5 text-xs font-semibold text-black hover:bg-zinc-200 transition-colors cursor-pointer"
             >
               Resume Focus
-            </button>
-          </div>
-        )}
-
-        {/* Anti-Distraction End-Card Deflector (Shields recommendation cards in the last 20s while keeping audio/video running!) */}
-        {isNearEnd && !isEnded && hideEndCards && (
-          <div className="absolute inset-0 z-20 pointer-events-none select-none animate-in fade-in duration-300">
-            {/* Top Indicator Badge */}
-            <div className="absolute top-3 left-3 z-30 pointer-events-auto flex items-center gap-2 rounded-full bg-black/85 backdrop-blur-md px-3 py-1 border border-emerald-500/30 text-emerald-400 shadow-xl text-[11px]">
-              <ShieldAlert className="h-3.5 w-3.5 text-emerald-400" />
-              <span className="font-semibold">Distraction Shield Active</span>
-              <span className="text-zinc-500">•</span>
-              <button
-                type="button"
-                onClick={() => setHideEndCards(false)}
-                className="text-[10px] text-zinc-300 hover:text-white underline cursor-pointer"
-              >
-                Reveal Cards
-              </button>
-            </div>
-
-            {/* Left Suggested Video Card Mask */}
-            <div className="absolute left-[3%] top-[20%] w-[38%] h-[58%] rounded-xl bg-black/90 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center p-3 text-center shadow-2xl transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 mb-2">
-                <ShieldAlert className="h-5 w-5 text-emerald-400" />
-              </div>
-              <p className="text-xs font-semibold text-white">Suggested Video Shielded</p>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Stay locked into your lesson</p>
-            </div>
-
-            {/* Center Channel Subscribe Bubble Mask */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-20 w-20 rounded-full bg-black/90 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center shadow-2xl transition-all">
-              <ShieldAlert className="h-5 w-5 text-emerald-400" />
-            </div>
-
-            {/* Right Suggested Video Card Mask */}
-            <div className="absolute right-[3%] top-[20%] w-[38%] h-[58%] rounded-xl bg-black/90 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center p-3 text-center shadow-2xl transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 mb-2">
-                <ShieldAlert className="h-5 w-5 text-emerald-400" />
-              </div>
-              <p className="text-xs font-semibold text-white">Suggested Video Shielded</p>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Stay locked into your lesson</p>
-            </div>
-          </div>
-        )}
-
-        {/* If user clicked "Reveal Cards", show status badge that clicks remain safely blocked */}
-        {isNearEnd && !isEnded && !hideEndCards && (
-          <div className="absolute top-3 left-3 z-30 pointer-events-auto flex items-center gap-2 rounded-full bg-black/85 backdrop-blur-md px-3 py-1 border border-zinc-700 text-zinc-300 shadow-xl text-[11px]">
-            <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
-            <span>Cards Unlocked (Clicks Blocked)</span>
-            <span className="text-zinc-500">•</span>
-            <button
-              type="button"
-              onClick={() => setHideEndCards(true)}
-              className="text-[10px] text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
-            >
-              Re-shield
             </button>
           </div>
         )}
