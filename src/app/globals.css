@@ -63,3 +63,12 @@ body {
 .animate-float {
   animation: floatGentle 3s ease-in-out infinite;
 }
+
+/* YouTube Click-Trap Isolation: Prevent any click from ever penetrating into YouTube iframe elements */
+#kizen-custom-player-iframe,
+#kizen-custom-player-iframe iframe,
+.kizen-cinema-container iframe {
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
