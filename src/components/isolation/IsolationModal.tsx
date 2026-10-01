@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Shield, ShieldAlert, CheckCircle2, AlertTriangle, RefreshCw, X, Download, Terminal, Copy, Check } from 'lucide-react';
+import { Shield, ShieldAlert, CheckCircle2, AlertTriangle, RefreshCw, X, Download, Terminal, Copy, Check, HelpCircle } from 'lucide-react';
 import {
   setIsolationEnabled,
   subscribeToIsolation,
   IsolationStatus,
 } from '@/lib/isolation';
+import { SetupManualModal } from './SetupManualModal';
 
 interface IsolationModalProps {
   isOpen: boolean;
@@ -64,6 +65,7 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
   });
   const [isPinging, setIsPinging] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeToIsolation((newStatus) => {
@@ -211,9 +213,20 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
               </div>
 
               <div className="rounded-lg bg-zinc-950 p-2.5 border border-zinc-800 text-[11px] text-zinc-400 space-y-1 font-mono">
+                <div className="flex items-center justify-between pb-1 mb-1 border-b border-zinc-800/60 font-sans">
+                  <span className="font-semibold text-zinc-300">Quick Setup</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsManualOpen(true)}
+                    className="text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                  >
+                    <HelpCircle className="h-3 w-3" />
+                    <span>View Step-by-Step Manual with Screenshots →</span>
+                  </button>
+                </div>
                 <p>1. Open <span className="text-zinc-200">chrome://extensions</span></p>
                 <p>2. Toggle <span className="text-zinc-200">Developer mode</span> on</p>
-                <p>3. Drop the downloaded <span className="text-zinc-200">extension</span> folder (One-time setup)</p>
+                <p>3. Drop or Load unpacked <span className="text-zinc-200">kaizenflow-shield</span> folder</p>
               </div>
             </div>
           )}
@@ -249,20 +262,34 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-800/80 text-[11px] text-zinc-500">
-          <span>
-            {status.distractionAttempts > 0
-              ? `${status.distractionAttempts} deflection attempts prevented`
-              : 'Zero distraction intrusions'}
-          </span>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 border-t border-zinc-800/80 text-[11px] text-zinc-500">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsManualOpen(true)}
+              className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors cursor-pointer group"
+            >
+              <HelpCircle className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+              <span className="underline underline-offset-2">How to setup? (Visual Step-by-Step Manual)</span>
+            </button>
+            <span className="text-zinc-700 hidden sm:inline">•</span>
+            <span className="hidden sm:inline">
+              {status.distractionAttempts > 0
+                ? `${status.distractionAttempts} deflection attempts prevented`
+                : 'Zero distraction intrusions'}
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-1.5 font-medium transition-colors cursor-pointer"
+            className="rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-1.5 font-medium transition-colors cursor-pointer w-full sm:w-auto text-center"
           >
             Done
           </button>
         </div>
       </div>
+
+      {/* Visual Step-by-Step Setup Manual Modal */}
+      <SetupManualModal isOpen={isManualOpen} onClose={() => setIsManualOpen(false)} />
     </div>
   );
 };
