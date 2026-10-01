@@ -240,29 +240,6 @@ export default function KaizenFlowApp() {
       ) : (
         /* DASHBOARD / LIBRARY VIEW */
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-          {/* Header Banner */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-                Focus Library
-              </h1>
-              <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-xl leading-relaxed">
-                Zero algorithms. Zero comment distractions. Pure sequential study with proof-of-focus verification.
-              </p>
-            </div>
-
-            {/* Add Course Button */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-4 py-2.5 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Import Course / Syllabus</span>
-              </button>
-            </div>
-          </div>
-
           {/* Consistency Heatmap */}
           <ActivityHeatmap
             activityMap={activityMap}
@@ -280,9 +257,13 @@ export default function KaizenFlowApp() {
                   My Active Courses ({playlists.length}/10 slots used)
                 </h2>
               </div>
-              <span className="text-xs text-[var(--text-muted)]">
-                Max 10 active courses
-              </span>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Import Course / Syllabus</span>
+              </button>
             </div>
 
             {/* Courses Grid */}
