@@ -138,24 +138,46 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
           </div>
 
           {status.extensionInstalled ? (
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>KaizenFlow Shield Extension is connected. Rules active across all tabs!</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>KaizenFlow Shield Extension is connected & armed across all tabs!</span>
+              </div>
+              <p className="text-[11px] text-[var(--text-muted)] pl-6">
+                Permanent setup active: It stays active across browser restarts and PC reboots. Just use our top toggle.
+              </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-2 text-amber-500 font-medium">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>In-App Focus Guard active. To shut down external tabs, load our extension:</span>
+                <span>One-time setup required to block other tabs (Takes 10 seconds):</span>
               </div>
+              
+              <div className="flex flex-col sm:flex-row gap-2">
+                <a
+                  href="/downloads/kaizenflow-shield.zip"
+                  download="kaizenflow-shield.zip"
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] font-semibold py-2 px-3 text-xs hover:opacity-90 shadow-xs transition-opacity"
+                >
+                  <span>Download Extension (.zip)</span>
+                  <span>↓</span>
+                </a>
+              </div>
+
               <div className="rounded-lg bg-[var(--bg-surface)] p-2.5 border border-[var(--border-subtle)] text-[11px] text-[var(--text-secondary)] space-y-1">
                 <p>
                   1. In Chrome, open <code className="bg-[var(--bg-canvas)] px-1 py-0.5 rounded text-[var(--text-primary)] font-mono">chrome://extensions</code>
                 </p>
-                <p>2. Enable <strong>Developer mode</strong> (top right)</p>
+                <p>2. Turn on <strong>Developer mode</strong> toggle (top-right corner)</p>
                 <p>
-                  3. Click <strong>Load unpacked</strong> & select the <code className="bg-[var(--bg-canvas)] px-1 py-0.5 rounded text-[var(--text-primary)] font-mono">kizen/extension</code> folder in your project!
+                  3. Drag & drop the downloaded folder (or click <strong>Load unpacked</strong> and select the downloaded <code className="bg-[var(--bg-canvas)] px-1 py-0.5 rounded text-[var(--text-primary)] font-mono">extension</code> folder).
                 </p>
+              </div>
+
+              <div className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                <span>✨</span>
+                <span><strong>Once setup is done, you never have to do it again!</strong> It stays permanent even after closing Chrome or rebooting your computer.</span>
               </div>
             </div>
           )}
