@@ -289,6 +289,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       }
 
       playerRef.current = new window.YT.Player('kizen-custom-player-iframe', {
+        host: 'https://www.youtube-nocookie.com',
         videoId: video.ytVideoId,
         playerVars: {
           autoplay: 0,          // User starts explicitly via clean Kizen poster
