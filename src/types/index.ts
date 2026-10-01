@@ -35,14 +35,25 @@ export interface Playlist {
   createdAt: string;
 }
 
+export interface VideoMilestone {
+  index: number;
+  digit: string;
+  triggerSecond: number;
+  revealed: boolean;
+}
+
 export interface VideoProgress {
   userId: string;
   playlistId: string;
   ytVideoId: string;
   watchedSeconds: number;
+  maxWatchedSeconds?: number;
+  lastPositionSeconds?: number;
   isCompleted: boolean;
   isVerified: boolean;
   completedAt?: string;
+  savedMilestones?: VideoMilestone[];
+  updatedAt?: string;
 }
 
 export interface DailyActivity {

@@ -22,7 +22,8 @@ import {
   Settings,
   X
 } from 'lucide-react';
-import { VideoItem, StudyMode } from '@/types';
+import { VideoItem, StudyMode, VideoMilestone } from '@/types';
+import { getVideoProgress, saveVideoPlaybackProgress } from '@/lib/storage';
 
 declare global {
   interface Window {
@@ -41,12 +42,7 @@ interface CinemaPlayerProps {
   onTimestampCapture?: (seconds: number) => void;
 }
 
-interface MilestoneDigit {
-  index: number;
-  digit: string;
-  triggerSecond: number;
-  revealed: boolean;
-}
+type MilestoneDigit = VideoMilestone;
 
 // Full speed spectrum including real 2.5x and 3.0x speed boost
 const SPEED_OPTIONS = [
@@ -90,6 +86,13 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(video.durationSeconds || 1200);
   const [maxWatchedTime, setMaxWatchedTime] = useState<number>(0);
+  const [savedResumeTime, setSavedResumeTime] = useState<number>(0);
+
+  // Dedicated refs to maintain consistent progress saving across events & unmount
+  const milestonesRef = useRef<VideoMilestone[]>([]);
+  const maxWatchedTimeRef = useRef<number>(0);
+  const currentTimeRef = useRef<number>(0);
+  const lastSavedSecondsRef = useRef<number>(0);
 
   // Dedicated dock settings state (always accessible in normal mode & fullscreen)
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
@@ -209,23 +212,58 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
 
   // Initialize state when video or course changes
   useEffect(() => {
-    setIsLocallyVerified(initialVerified);
     setInputCode('');
     setVerificationError('');
     setCurrentTime(0);
-    setMaxWatchedTime(initialVerified ? (video.durationSeconds || 1200) : 0);
+    currentTimeRef.current = 0;
+    lastSavedSecondsRef.current = 0;
+    setHasStartedPlaying(false);
+    setIsEnded(false);
+    setActiveFloatingToast(null);
     if (toastTimerRef.current) {
       clearInterval(toastTimerRef.current);
       toastTimerRef.current = null;
     }
     autoTriggeredMilestonesRef.current.clear();
-    setActiveFloatingToast(null);
-    setHasStartedPlaying(false);
-    setIsEnded(false);
 
     const initialDur = Math.max(60, video.durationSeconds || 1200);
     setDuration(initialDur);
-    setMilestones(generateMilestones(initialDur));
+
+    // Read stored playback progress from storage
+    const saved = getVideoProgress(playlistId, video.ytVideoId);
+    const isSavedVerified = Boolean(initialVerified || saved?.isVerified);
+    setIsLocallyVerified(isSavedVerified);
+
+    const savedMax = saved?.maxWatchedSeconds ?? saved?.watchedSeconds ?? 0;
+    const effectiveMax = isSavedVerified ? initialDur : savedMax;
+    setMaxWatchedTime(effectiveMax);
+    maxWatchedTimeRef.current = effectiveMax;
+
+    const savedPos = saved?.lastPositionSeconds || 0;
+    if (savedPos > 15 && savedPos < initialDur - 10 && !isSavedVerified) {
+      setSavedResumeTime(savedPos);
+    } else {
+      setSavedResumeTime(0);
+    }
+
+    // Restore saved milestones if they exist, or generate and store them
+    let calibratedMilestones: VideoMilestone[];
+    if (saved?.savedMilestones && saved.savedMilestones.length === 4) {
+      calibratedMilestones = saved.savedMilestones.map(m => ({
+        ...m,
+        revealed: effectiveMax >= m.triggerSecond,
+      }));
+    } else {
+      calibratedMilestones = generateMilestones(initialDur);
+      saveVideoPlaybackProgress(playlistId, video.ytVideoId, {
+        savedMilestones: calibratedMilestones,
+        maxWatchedSeconds: savedMax,
+        lastPositionSeconds: savedPos,
+      });
+    }
+
+    setMilestones(calibratedMilestones);
+    milestonesRef.current = calibratedMilestones;
   }, [video.ytVideoId, playlistId, initialVerified, video.durationSeconds, generateMilestones]);
 
   // Clean up toast timer on unmount
@@ -267,9 +305,8 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           onReady: (event: any) => {
             setIsPlayerReady(true);
             const liveDur = Math.floor(event.target.getDuration() || 0);
-            if (liveDur > 30) {
+            if (liveDur > 30 && Math.abs(liveDur - duration) > 5) {
               setDuration(liveDur);
-              setMilestones(prev => generateMilestones(liveDur, prev.map(m => m.digit)));
             }
           },
           onStateChange: (event: any) => {
@@ -280,7 +317,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               const liveDur = Math.floor(event.target.getDuration() || 0);
               if (liveDur > 30 && Math.abs(liveDur - duration) > 5) {
                 setDuration(liveDur);
-                setMilestones(prev => generateMilestones(liveDur, prev.map(m => m.digit)));
               }
             }
             if (event.data === 2) setIsPlaying(false);
@@ -357,32 +393,44 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       try {
         const current = Math.floor(playerRef.current.getCurrentTime() || 0);
         setCurrentTime(current);
+        currentTimeRef.current = current;
 
         // Auto-detect and calibrate true duration as soon as YouTube loads metadata
         const liveDur = Math.floor(playerRef.current.getDuration() || 0);
         if (liveDur > 30 && Math.abs(liveDur - duration) > 5) {
           setDuration(liveDur);
-          setMilestones(prev => generateMilestones(liveDur, prev.map(m => m.digit)));
         }
 
         // STRICT FORWARD-SKIP LOCK:
         // User can rewind to any previous second freely.
         // If playhead jumps > maxAllowed ahead of legitimate maxWatchedTime, SNAP BACK!
         const maxAllowedJump = playbackSpeed >= 2.5 ? 5 : 3;
-        setMaxWatchedTime(prevMax => {
-          if (isLocallyVerified) {
-            return Math.max(prevMax, current);
-          }
+        let newMax = maxWatchedTimeRef.current;
+        if (isLocallyVerified) {
+          newMax = Math.max(newMax, current);
+        } else if (current > newMax + maxAllowedJump) {
+          playerRef.current.seekTo(newMax, true);
+          setVerificationError('Please watch sequentially to progress. You can review earlier sections anytime.');
+          setTimeout(() => setVerificationError(''), 4000);
+        } else {
+          newMax = Math.max(newMax, current);
+        }
 
-          if (current > prevMax + maxAllowedJump) {
-            playerRef.current.seekTo(prevMax, true);
-            setVerificationError('Please watch sequentially to progress. You can review earlier sections anytime.');
-            setTimeout(() => setVerificationError(''), 4000);
-            return prevMax;
-          }
+        if (newMax !== maxWatchedTimeRef.current) {
+          maxWatchedTimeRef.current = newMax;
+          setMaxWatchedTime(newMax);
+        }
 
-          return Math.max(prevMax, current);
-        });
+        // Auto-save playback progress every ~3 seconds during active playback
+        if (current > 0 && Math.abs(current - lastSavedSecondsRef.current) >= 3) {
+          lastSavedSecondsRef.current = current;
+          saveVideoPlaybackProgress(playlistId, video.ytVideoId, {
+            maxWatchedSeconds: newMax,
+            watchedSeconds: newMax,
+            lastPositionSeconds: current,
+            savedMilestones: milestonesRef.current,
+          });
+        }
 
         // Dynamic Focus Checkpoint Toast Auto-Triggering (10s duration)
         milestones.forEach(m => {
@@ -415,7 +463,27 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }, 500);
 
     return () => clearInterval(syncInterval);
-  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, generateMilestones, showMilestoneToast, hasStartedPlaying, isEnded]);
+  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, showMilestoneToast, hasStartedPlaying, isEnded, playlistId, video.ytVideoId]);
+
+  // Save progress on beforeunload or when video unmounts
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (currentTimeRef.current > 0 || maxWatchedTimeRef.current > 0) {
+        saveVideoPlaybackProgress(playlistId, video.ytVideoId, {
+          maxWatchedSeconds: maxWatchedTimeRef.current,
+          watchedSeconds: maxWatchedTimeRef.current,
+          lastPositionSeconds: currentTimeRef.current,
+          savedMilestones: milestonesRef.current,
+        });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      handleBeforeUnload();
+    };
+  }, [playlistId, video.ytVideoId]);
 
   // Focus Trap (3-second grace period when leaving tab in Lecture Mode)
   useEffect(() => {
@@ -459,12 +527,19 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     };
   }, [studyMode]);
 
-  // User starts playback directly from clean Kizen Poster
-  const handleStartPlayback = () => {
+  // User starts playback directly from clean Kizen Poster (optionally with seek)
+  const handleStartPlayback = (seekTarget?: number) => {
+    const targetSecond = typeof seekTarget === 'number' ? seekTarget : savedResumeTime;
     setHasStartedPlaying(true);
     setIsPlaying(true);
+
     if (playerRef.current) {
       try {
+        if (targetSecond > 0) {
+          playerRef.current.seekTo(targetSecond, true);
+          setCurrentTime(targetSecond);
+          currentTimeRef.current = targetSecond;
+        }
         playerRef.current.playVideo();
       } catch {}
     }
@@ -481,6 +556,13 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     if (isPlaying) {
       playerRef.current.pauseVideo();
       setIsPlaying(false);
+      // Immediately persist on pause
+      saveVideoPlaybackProgress(playlistId, video.ytVideoId, {
+        maxWatchedSeconds: maxWatchedTimeRef.current,
+        watchedSeconds: maxWatchedTimeRef.current,
+        lastPositionSeconds: currentTimeRef.current,
+        savedMilestones: milestonesRef.current,
+      });
     } else {
       playerRef.current.playVideo();
       setIsPlaying(true);
@@ -624,12 +706,13 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const fullExpectedCode = milestones.map(m => m.digit).join('');
 
   // User clicking #1, #2... jumps video back to that checkpoint and re-displays the 10-second code toast
-  const handleMilestoneClick = (m: MilestoneDigit) => {
+  const handleMilestoneClick = (m: VideoMilestone) => {
     setIsEnded(false);
     if (!playerRef.current) return;
     try {
       playerRef.current.seekTo(m.triggerSecond, true);
       setCurrentTime(m.triggerSecond);
+      currentTimeRef.current = m.triggerSecond;
       showMilestoneToast(m.index, m.digit, 10);
     } catch (err) {
       console.error('Error jumping to checkpoint:', err);
@@ -649,6 +732,15 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       setIsLocallyVerified(true);
       setVerificationError('');
       onVerify(playlistId, video.ytVideoId, video.title);
+
+      saveVideoPlaybackProgress(playlistId, video.ytVideoId, {
+        isCompleted: true,
+        isVerified: true,
+        maxWatchedSeconds: Math.max(maxWatchedTimeRef.current, duration),
+        watchedSeconds: Math.max(maxWatchedTimeRef.current, duration),
+        lastPositionSeconds: currentTimeRef.current,
+        savedMilestones: milestonesRef.current,
+      });
 
       try {
         confetti({
@@ -699,10 +791,10 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </div>
         )}
 
-        {/* Pre-Roll Cinema Cover (Before starting: pure thumbnail + central play icon - NO YOUTUBE TITLE/MORE VIDEOS!) */}
+        {/* Pre-Roll Cinema Cover (Before starting: pure thumbnail + central play / resume action) */}
         {!hasStartedPlaying && (
           <div 
-            onClick={handleStartPlayback}
+            onClick={() => handleStartPlayback()}
             className="absolute inset-0 z-20 cursor-pointer overflow-hidden flex flex-col justify-between p-6 sm:p-8 select-none transition-all duration-300 group/poster"
           >
             {/* High-res background image */}
@@ -723,13 +815,46 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-white border border-white/20">
                 <span>{formatTime(duration)}</span>
               </span>
+              {savedResumeTime > 15 && !isLocallyVerified && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#059669]/90 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-white border border-white/30 shadow-md">
+                  <span>Watched to {formatTime(savedResumeTime)}</span>
+                </span>
+              )}
             </div>
 
-            {/* Center Pure Play Icon (NO ROBOTIC TEXT!) */}
+            {/* Center Play / Resume Button Area */}
             <div className="relative z-10 flex items-center justify-center">
-              <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white text-black shadow-2xl group-hover/poster:scale-110 transition-all duration-300">
-                <Play className="h-7 w-7 sm:h-8 sm:w-8 fill-black ml-1" />
-              </div>
+              {savedResumeTime > 15 && !isLocallyVerified ? (
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartPlayback(savedResumeTime);
+                    }}
+                    className="flex items-center gap-2 rounded-xl bg-white text-black px-5 py-3 text-xs sm:text-sm font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Play className="h-4 w-4 fill-black" />
+                    <span>Resume from {formatTime(savedResumeTime)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSavedResumeTime(0);
+                      handleStartPlayback(0);
+                    }}
+                    className="flex items-center gap-1.5 rounded-xl bg-black/60 text-white/90 hover:text-white border border-white/20 backdrop-blur-md px-4 py-2.5 text-xs font-semibold hover:bg-black/80 transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Start from beginning</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white text-black shadow-2xl group-hover/poster:scale-110 transition-all duration-300">
+                  <Play className="h-7 w-7 sm:h-8 sm:w-8 fill-black ml-1" />
+                </div>
+              )}
             </div>
 
             {/* Bottom Title */}

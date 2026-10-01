@@ -128,6 +128,48 @@ export function getVideoProgressList(): Record<string, VideoProgress> {
   return {};
 }
 
+export function getVideoProgress(playlistId: string, ytVideoId: string): VideoProgress | null {
+  const all = getVideoProgressList();
+  const key = `${playlistId}_${ytVideoId}`;
+  return all[key] || null;
+}
+
+export function saveVideoPlaybackProgress(
+  playlistId: string,
+  ytVideoId: string,
+  data: Partial<VideoProgress>
+): void {
+  if (typeof window === 'undefined') return;
+  const progressKey = `${playlistId}_${ytVideoId}`;
+  const allProgress = getVideoProgressList();
+  const existing = allProgress[progressKey];
+
+  const maxWatchedSeconds = Math.max(
+    existing?.maxWatchedSeconds || 0,
+    existing?.watchedSeconds || 0,
+    data.maxWatchedSeconds || 0,
+    data.watchedSeconds || 0
+  );
+
+  allProgress[progressKey] = {
+    userId: 'usr_local',
+    playlistId,
+    ytVideoId,
+    watchedSeconds: maxWatchedSeconds,
+    maxWatchedSeconds,
+    lastPositionSeconds: data.lastPositionSeconds !== undefined ? data.lastPositionSeconds : (existing?.lastPositionSeconds || 0),
+    isCompleted: data.isCompleted !== undefined ? data.isCompleted : (existing?.isCompleted || false),
+    isVerified: data.isVerified !== undefined ? data.isVerified : (existing?.isVerified || false),
+    completedAt: data.completedAt || existing?.completedAt,
+    savedMilestones: data.savedMilestones || existing?.savedMilestones,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(allProgress));
+  } catch {}
+}
+
 export function markVideoVerified(
   playlistId: string,
   ytVideoId: string,
@@ -135,18 +177,23 @@ export function markVideoVerified(
 ): { xpEarned: number; newStreak: number } {
   const progressKey = `${playlistId}_${ytVideoId}`;
   const allProgress = getVideoProgressList();
+  const existing = allProgress[progressKey];
 
-  const alreadyVerified = allProgress[progressKey]?.isVerified;
+  const alreadyVerified = existing?.isVerified;
   const xpEarned = alreadyVerified ? 0 : 50;
 
   allProgress[progressKey] = {
     userId: 'usr_local',
     playlistId,
     ytVideoId,
-    watchedSeconds: 1200,
+    watchedSeconds: existing?.watchedSeconds || 1200,
+    maxWatchedSeconds: existing?.maxWatchedSeconds || existing?.watchedSeconds || 1200,
+    lastPositionSeconds: existing?.lastPositionSeconds || 0,
     isCompleted: true,
     isVerified: true,
     completedAt: new Date().toISOString(),
+    savedMilestones: existing?.savedMilestones,
+    updatedAt: new Date().toISOString(),
   };
 
   if (typeof window !== 'undefined') {
