@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <Link href="/" className="flex items-baseline gap-2.5 group">
               <span className="text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
-                Kizen
+                KaizenFlow
               </span>
               <span className="hidden sm:inline-block text-xs font-medium text-[var(--text-secondary)] border-l border-[var(--border-subtle)] pl-2.5">
                 Lock In & Learn

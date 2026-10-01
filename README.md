@@ -1,4 +1,4 @@
-# Kizen — Lock In & Learn
+# KaizenFlow — Lock In & Learn
 
 > **Continuous Growth, Zero Distraction.**  
 > Transform any YouTube playlist into an active, locked-in study portal with proof-of-focus verification, streaks, and an autonomous syllabus-to-roadmap matching engine.
@@ -17,7 +17,7 @@ Learning through online video tutorials on YouTube is plagued by the **YouTube D
 * **Passive Consumption:** Students play lectures in background tabs or skim forward to conclude lessons without cognitively retaining information.
 * **The Academic Curriculum Gap:** University students have specific semester syllabi but waste hours scouring YouTube for sequential lectures that map directly to their exams.
 
-**Kizen solves this completely.**
+**KaizenFlow solves this completely.**
 
 ---
 
@@ -48,9 +48,10 @@ Learning through online video tutorials on YouTube is plagued by the **YouTube D
   * *Lecture Mode:* Strict focus trap for conceptual lectures.
   * *Studio Mode:* Allows split-screen code editors (VS Code / Terminal) while keeping the 80% watch-time gate active.
 
-### 5. 📊 365-Day Consistency Heatmap & Streaks
-* GitHub-style 16-week contribution grid displaying daily study volume with graduated emerald intensity.
-* Tracks Daily Streak (🔥), total study hours, and active learning days.
+### 5. 📊 Codeforces-Style 365-Day Activity Momentum & Streaks
+* **53-Week Continuous Flow:** Shows daily consistency timeline moving chronologically from 1 year ago to today.
+* **Peak Study Flame (🔥):** High intensity days feature a deep green (`#047857`) block embedded with an active flame icon.
+* **Iconic 3-Column Metrics:** Instant breakdown across *All Time*, *Last Year*, and *Current Month* active study streaks.
 
 ### 6. 📝 In-Video Timestamped Notes
 * Markdown notepad embedded beside the player.
@@ -75,7 +76,7 @@ Learning through online video tutorials on YouTube is plagued by the **YouTube D
 | **Styling & Icons** | Tailwind CSS v4 + Lucide Icons + Canvas Confetti |
 | **State & Persistence** | Persistent Local Storage + Firebase (Firestore & Auth ready) |
 | **Player Engine** | YouTube IFrame Player API (Isolated Sandbox) |
-| **Cross-Platform** | Web (macOS, Windows, Linux) & Flutter Mobile App Ready |
+| **Cross-Platform** | Web (macOS, Windows, Linux) & Mobile Responsive |
 
 ---
 
@@ -89,8 +90,8 @@ Learning through online video tutorials on YouTube is plagued by the **YouTube D
 
 ```bash
 # Clone the repository
-git clone https://github.com/reza-05/kizen.git
-cd kizen
+git clone https://github.com/reza-05/kizenflow.git
+cd kizenflow
 
 # Install dependencies
 npm install
@@ -117,4 +118,4 @@ For the comprehensive Hackathon Problem Statement and Engineering Specification,
 
 ## 📜 License
 
-MIT License &copy; 2026 Kizen Team. Developed for deep focus and continuous learning.
+MIT License &copy; 2026 KaizenFlow Team. Developed for deep focus and continuous learning.

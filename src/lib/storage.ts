@@ -4,6 +4,15 @@ import { Playlist, UserProfile, VideoProgress, DailyActivity, StudyNote } from '
 import { CURATED_STARTER_COURSES } from './youtube';
 
 const STORAGE_KEYS = {
+  USER: 'kaizenflow_user_profile',
+  PLAYLISTS: 'kaizenflow_playlists',
+  PROGRESS: 'kaizenflow_video_progress',
+  ACTIVITY: 'kaizenflow_daily_activity',
+  NOTES: 'kaizenflow_study_notes',
+  THEME: 'kaizenflow_theme_mode',
+};
+
+const LEGACY_STORAGE_KEYS = {
   USER: 'kizen_user_profile',
   PLAYLISTS: 'kizen_playlists',
   PROGRESS: 'kizen_video_progress',
@@ -12,13 +21,20 @@ const STORAGE_KEYS = {
   THEME: 'kizen_theme_mode',
 };
 
+function getStoredValue(key: keyof typeof STORAGE_KEYS, suffix: string = ''): string | null {
+  if (typeof window === 'undefined') return null;
+  const primaryKey = suffix ? `${STORAGE_KEYS[key]}_${suffix}` : STORAGE_KEYS[key];
+  const legacyKey = suffix ? `${LEGACY_STORAGE_KEYS[key]}_${suffix}` : LEGACY_STORAGE_KEYS[key];
+  return localStorage.getItem(primaryKey) || localStorage.getItem(legacyKey);
+}
+
 // Initial default user profile
 export function getInitialUserProfile(): UserProfile {
   if (typeof window === 'undefined') {
     return {
       id: 'usr_local',
       name: 'Scholar',
-      email: 'learner@kizen.study',
+      email: 'learner@kaizenflow.study',
       totalXP: 350,
       currentStreak: 4,
       longestStreak: 12,
@@ -28,7 +44,7 @@ export function getInitialUserProfile(): UserProfile {
     };
   }
 
-  const stored = localStorage.getItem(STORAGE_KEYS.USER);
+  const stored = getStoredValue('USER');
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -40,7 +56,7 @@ export function getInitialUserProfile(): UserProfile {
   const profile: UserProfile = {
     id: 'usr_local',
     name: 'Scholar',
-    email: 'learner@kizen.study',
+    email: 'learner@kaizenflow.study',
     totalXP: 350,
     currentStreak: 4,
     longestStreak: 12,
@@ -60,7 +76,7 @@ export function saveUserProfile(profile: UserProfile): void {
 // Initial playlists (Preloaded with our 2 curated starters)
 export function getPlaylists(): Playlist[] {
   if (typeof window === 'undefined') return CURATED_STARTER_COURSES;
-  const stored = localStorage.getItem(STORAGE_KEYS.PLAYLISTS);
+  const stored = getStoredValue('PLAYLISTS');
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -119,7 +135,7 @@ export function renamePlaylist(playlistId: string, newTitle: string): void {
 // Progress tracking
 export function getVideoProgressList(): Record<string, VideoProgress> {
   if (typeof window === 'undefined') return {};
-  const stored = localStorage.getItem(STORAGE_KEYS.PROGRESS);
+  const stored = getStoredValue('PROGRESS');
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -249,7 +265,7 @@ export function markVideoVerified(
 // 365-Day Activity Log for Heatmap
 export function getDailyActivityMap(): Record<string, DailyActivity> {
   if (typeof window === 'undefined') return {};
-  const stored = localStorage.getItem(STORAGE_KEYS.ACTIVITY);
+  const stored = getStoredValue('ACTIVITY');
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -298,7 +314,7 @@ export function updateDailyActivity(date: string, minutes: number, verified: num
 // Notes Storage
 export function getNotes(videoId: string): StudyNote[] {
   if (typeof window === 'undefined') return [];
-  const stored = localStorage.getItem(`${STORAGE_KEYS.NOTES}_${videoId}`);
+  const stored = getStoredValue('NOTES', videoId);
   if (stored) {
     try {
       return JSON.parse(stored);

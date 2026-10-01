@@ -57,7 +57,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `kizen_notes_${currentVideoId}.md`;
+    link.download = `kaizenflow_notes_${currentVideoId}.md`;
     link.click();
     URL.revokeObjectURL(url);
   };

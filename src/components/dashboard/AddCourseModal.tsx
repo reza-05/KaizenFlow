@@ -205,7 +205,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
                 disabled={isSubmitting || isQuotaReached}
                 className="rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-4 py-2 text-xs font-semibold hover:opacity-90 disabled:opacity-40 transition-opacity"
               >
-                {isSubmitting ? 'Fetching...' : 'Import to Kizen'}
+                {isSubmitting ? 'Fetching...' : 'Import to KaizenFlow'}
               </button>
             </div>
           </form>

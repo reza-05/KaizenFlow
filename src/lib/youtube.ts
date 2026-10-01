@@ -180,7 +180,7 @@ export const CURATED_STARTER_COURSES: Playlist[] = [
   },
 ];
 
-// Parser that generates a structured Kizen course from any YouTube playlist or video URL
+// Parser that generates a structured KaizenFlow course from any YouTube playlist or video URL
 export async function parseYouTubePlaylist(urlOrId: string, customName?: string): Promise<Playlist> {
   const trimmed = urlOrId.trim();
 

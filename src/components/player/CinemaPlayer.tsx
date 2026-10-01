@@ -969,7 +969,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             </div>
             <h3 className="text-lg font-bold text-white">Focus Session Paused</h3>
             <p className="text-xs text-zinc-300 max-w-sm mt-1">
-              You clicked outside the Kizen window. Return here to resume video playback and focus checkpoints.
+              You clicked outside the KaizenFlow window. Return here to resume video playback and focus checkpoints.
             </p>
             <button
               onClick={() => {

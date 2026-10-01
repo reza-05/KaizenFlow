@@ -67,7 +67,10 @@ body {
 /* YouTube Click-Trap Isolation: Prevent any click from ever penetrating into YouTube iframe elements */
 #kizen-custom-player-iframe,
 #kizen-custom-player-iframe iframe,
-.kizen-cinema-container iframe {
+.kizen-cinema-container iframe,
+#kaizenflow-custom-player-iframe,
+#kaizenflow-custom-player-iframe iframe,
+.kaizenflow-cinema-container iframe {
   pointer-events: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;

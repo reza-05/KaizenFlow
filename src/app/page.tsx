@@ -24,7 +24,7 @@ import {
 } from '@/lib/storage';
 import { Playlist, VideoItem, UserProfile, StudyNote } from '@/types';
 
-export default function KizenApp() {
+export default function KaizenFlowApp() {
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);

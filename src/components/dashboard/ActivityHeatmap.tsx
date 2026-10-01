@@ -19,15 +19,14 @@ interface DayCell {
   isFuture: boolean;
 }
 
-interface MonthBlock {
-  name: string;
-  year: number;
-  monthIndex: number;
-  isCurrent: boolean;
-  weeks: (DayCell | null)[][];
+interface WeekColumn {
+  weekIndex: number;
+  monthLabel?: string;
+  days: (DayCell | null)[];
 }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   activityMap,
@@ -35,8 +34,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   longestStreak = 42,
   totalLessonsCompleted,
 }) => {
-  // Default to 'recent' (Recent Month First: Oct -> Nov)
-  const [orderMode, setOrderMode] = useState<'recent' | 'oldest'>('recent');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
   const [hoveredCell, setHoveredCell] = useState<{
     date: string;
     dayOfMonth: number;
@@ -45,83 +43,111 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     y: number;
   } | null>(null);
 
-  // Compute 12-Month Calendar Blocks dynamically based on today's real date
-  const months = useMemo<MonthBlock[]>(() => {
+  // Compute 53-week continuous calendar timeline (Codeforces Flow: from 1 year ago to now)
+  const weeks = useMemo<WeekColumn[]>(() => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    const rawMonths: MonthBlock[] = [];
 
-    // Calculate 12 consecutive months ending with current month
-    for (let i = 0; i < 12; i++) {
-      const monthOffset = orderMode === 'recent' ? i : (11 - i);
-      const monthDate = new Date(today.getFullYear(), today.getMonth() - monthOffset, 1);
-      const year = monthDate.getFullYear();
-      const monthIndex = monthDate.getMonth();
-      const monthName = MONTH_NAMES[monthIndex];
-      const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-      const isCurrent = monthDate.getFullYear() === today.getFullYear() && monthDate.getMonth() === today.getMonth();
+    // Current week ends on Saturday
+    const currentDayOfWeek = today.getDay();
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + (6 - currentDayOfWeek));
 
-      const weeks: (DayCell | null)[][] = [];
-      let currentWeek: (DayCell | null)[] = new Array(7).fill(null);
+    // Start 52 weeks (364 days) before the end date's Sunday
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - (52 * 7 + 6));
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(year, monthIndex, day);
-        const dayOfWeek = d.getDay(); // 0 = Sun, 6 = Sat
-        const monthNum = String(monthIndex + 1).padStart(2, '0');
-        const dayNum = String(day).padStart(2, '0');
-        const dateStr = `${year}-${monthNum}-${dayNum}`;
+    const result: WeekColumn[] = [];
+    let lastLabeledMonth = -1;
+    const cursor = new Date(startDate);
 
+    for (let w = 0; w < 53; w++) {
+      const days: (DayCell | null)[] = [];
+      let monthLabel: string | undefined = undefined;
+
+      for (let d = 0; d < 7; d++) {
+        const dateStr = cursor.toISOString().split('T')[0];
+        const month = cursor.getMonth();
+        const dayOfMonth = cursor.getDate();
         const isFuture = dateStr > todayStr;
-        const cell: DayCell = {
+
+        // Label month on first appearance or when dayOfMonth is in the first week of the month
+        if (month !== lastLabeledMonth && dayOfMonth <= 7 && !monthLabel) {
+          monthLabel = MONTH_NAMES[month];
+          lastLabeledMonth = month;
+        }
+
+        days.push({
           date: dateStr,
-          dayOfMonth: day,
-          dayOfWeek,
+          dayOfMonth,
+          dayOfWeek: d,
           activity: activityMap[dateStr],
           isFuture,
-        };
+        });
 
-        currentWeek[dayOfWeek] = cell;
-
-        // Saturday (6) or last day of month closes the week column
-        if (dayOfWeek === 6 || day === daysInMonth) {
-          weeks.push(currentWeek);
-          currentWeek = new Array(7).fill(null);
-        }
+        cursor.setDate(cursor.getDate() + 1);
       }
 
-      rawMonths.push({
-        name: monthName,
-        year,
-        monthIndex,
-        isCurrent,
-        weeks,
+      result.push({
+        weekIndex: w,
+        monthLabel,
+        days,
       });
     }
 
-    return rawMonths;
-  }, [activityMap, orderMode]);
-
-  // Dynamic statistics
-  const activeDaysCount = useMemo(() => {
-    return Object.values(activityMap).filter(
-      a => (a.minutesWatched && a.minutesWatched > 0) || (a.verifiedCount && a.verifiedCount > 0)
-    ).length;
+    return result;
   }, [activityMap]);
 
-  const totalLessons = useMemo(() => {
+  // Dynamic statistics for Codeforces 3-column stats
+  const totalLessonsAllTime = useMemo(() => {
     if (typeof totalLessonsCompleted === 'number') return totalLessonsCompleted;
     return Object.values(activityMap).reduce((acc, curr) => acc + (curr.verifiedCount || 0), 0);
   }, [activityMap, totalLessonsCompleted]);
 
-  // Determine cell visual style (Seamless Light Mode & Dark Mode with CSS Variables)
+  const yearStats = useMemo(() => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oneYearAgoStr = oneYearAgo.toISOString().split('T')[0];
+
+    let lessons = 0;
+    let minutes = 0;
+    Object.values(activityMap).forEach(a => {
+      if (a.date >= oneYearAgoStr) {
+        lessons += (a.verifiedCount || 0);
+        minutes += (a.minutesWatched || 0);
+      }
+    });
+
+    return {
+      lessons,
+      hours: (minutes / 60).toFixed(1),
+    };
+  }, [activityMap]);
+
+  const monthStats = useMemo(() => {
+    const today = new Date();
+    const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    let lessons = 0;
+    let minutes = 0;
+    Object.values(activityMap).forEach(a => {
+      if (a.date.startsWith(currentYearMonth)) {
+        lessons += (a.verifiedCount || 0);
+        minutes += (a.minutesWatched || 0);
+      }
+    });
+
+    return { lessons, minutes };
+  }, [activityMap]);
+
+  // Cell style logic: DEEP GREEN for high activity with 🔥, NO YELLOW!
   const getCellDetails = (cell: DayCell | null) => {
     if (!cell) return { isVisible: false, className: '', hasFlame: false };
 
-    // Future days in current month (subtle dashed outline, not harsh black!)
     if (cell.isFuture) {
       return {
         isVisible: true,
-        className: 'bg-[var(--bg-surface-subtle)]/40 border border-dashed border-[var(--border-subtle)]/50 opacity-40 cursor-default',
+        className: 'bg-[var(--bg-surface-subtle)]/30 border border-dashed border-[var(--border-subtle)]/40 opacity-30 cursor-default',
         hasFlame: false,
       };
     }
@@ -130,20 +156,20 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     const mins = activity?.minutesWatched || 0;
     const verified = activity?.verifiedCount || 0;
 
-    // Inactive day (Soft adaptive ivory/gray in Light Mode, dark graphite in Dark Mode)
+    // Inactive day (Clean adaptive gray in Light Mode, dark zinc in Dark Mode)
     if (mins === 0 && verified === 0) {
       return {
         isVisible: true,
-        className: 'bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:ring-1 hover:ring-[var(--text-primary)]',
+        className: 'bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]',
         hasFlame: false,
       };
     }
 
-    // High intensity day with flame icon (>= 60 mins or verified >= 2)
+    // High intensity day (>= 60 mins or verified >= 2): DEEP GREEN BOX + FLAME (NO YELLOW!)
     if (mins >= 60 || verified >= 2 || (mins >= 35 && verified >= 1 && (cell.dayOfMonth % 3 === 0))) {
       return {
         isVisible: true,
-        className: 'bg-[#059669] dark:bg-[#10b981] border-2 border-amber-400 shadow-2xs hover:scale-115 ring-1 ring-amber-400/40 text-white',
+        className: 'bg-[#047857] dark:bg-[#065f46] border border-[#065f46] dark:border-[#047857] hover:scale-115 shadow-2xs text-white',
         hasFlame: true,
       };
     }
@@ -187,146 +213,192 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
 
   return (
     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-xs relative transition-colors duration-200">
-      {/* Top Header Row (Matches LeetCode header) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-subtle)]">
-        {/* Left: Active Days Count & Info Tooltip */}
+      {/* Top Header Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2">
-          <span className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
-            {activeDaysCount} Active days
+          <span className="text-sm sm:text-base font-bold tracking-tight text-[var(--text-primary)]">
+            Activity & Consistency Momentum
           </span>
           <div className="group relative flex items-center">
             <Info className="h-4 w-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer" />
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 text-[11px] text-[var(--text-secondary)] shadow-xl z-50 pointer-events-none">
-              Active days represent days with verified lessons or recorded focus watch time.
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-52 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 text-[11px] text-[var(--text-secondary)] shadow-xl z-50 pointer-events-none">
+              Daily study volume & proof-of-focus verification log over the past 52 weeks.
             </div>
           </div>
         </div>
 
-        {/* Right: Dropdown Order Selector & Streak Badges */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Order Selector (Recent First vs Chronological) */}
-          <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs">
+        {/* Right Filter & Streak */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <span>Filter:</span>
             <select
-              value={orderMode}
-              onChange={e => setOrderMode(e.target.value as 'recent' | 'oldest')}
-              className="bg-transparent font-sans text-xs font-semibold text-[var(--text-primary)] focus:outline-none cursor-pointer"
+              value={selectedYear}
+              onChange={e => setSelectedYear(e.target.value)}
+              className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-2 py-0.5 text-xs font-semibold text-[var(--text-primary)] focus:outline-none cursor-pointer"
             >
-              <option value="recent" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Recent First (Oct → Nov)
-              </option>
-              <option value="oldest" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Chronological (Nov → Oct)
-              </option>
+              <option value="all">All Time</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
             </select>
           </div>
 
-          {/* Current Streak (Fire Badge) */}
-          <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-500 shadow-2xs">
+          <div className="flex items-center gap-1 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-500">
             <Flame className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-            <span>{currentStreak} Days Streak</span>
-          </div>
-
-          {/* Longest Streak Box */}
-          <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs font-mono font-medium text-[var(--text-secondary)]">
-            <span>Longest: {longestStreak}</span>
+            <span>{currentStreak} Days</span>
           </div>
         </div>
       </div>
 
-      {/* 12-Month Calendar Heatmap Grid (Scrollable horizontally) */}
-      <div className="overflow-x-auto pb-2 scrollbar-thin">
-        <div className="flex items-start justify-between gap-3 sm:gap-4 min-w-[760px] select-none py-1">
-          {months.map(month => (
-            <div key={`${month.year}-${month.monthIndex}`} className="flex flex-col items-center gap-2">
-              {/* Month Weeks Grid (7 rows tall) */}
-              <div className="flex gap-1 sm:gap-1.25">
-                {month.weeks.map((week, wIdx) => (
-                  <div key={wIdx} className="flex flex-col gap-1 sm:gap-1.25">
-                    {week.map((cell, dayIdx) => {
-                      const details = getCellDetails(cell);
-
-                      if (!details.isVisible) {
-                        return (
-                          <div
-                            key={dayIdx}
-                            className="w-3 h-3 sm:w-3.5 sm:h-3.5 pointer-events-none"
-                          />
-                        );
-                      }
-
-                      return (
-                        <div
-                          key={dayIdx}
-                          onMouseEnter={(e) => {
-                            if (!cell || cell.isFuture) return;
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setHoveredCell({
-                              date: cell.date,
-                              dayOfMonth: cell.dayOfMonth,
-                              activity: cell.activity,
-                              x: rect.left + rect.width / 2,
-                              y: rect.top,
-                            });
-                          }}
-                          onMouseLeave={() => setHoveredCell(null)}
-                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-[2.5px] transition-all duration-150 flex items-center justify-center relative cursor-pointer ${details.className}`}
-                        >
-                          {details.hasFlame && (
-                            <span className="text-[7.5px] sm:text-[8.5px] leading-none select-none pointer-events-none drop-shadow-xs">
-                              🔥
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-
-              {/* Month Label (Nov, Dec, Jan, etc.) with current indicator */}
-              <div className="flex items-center gap-1">
-                <span className={`text-[11px] ${
-                  month.isCurrent 
-                    ? 'font-bold text-[var(--text-primary)]' 
-                    : 'font-medium text-[var(--text-muted)]'
-                }`}>
-                  {month.name}
-                </span>
-                {month.isCurrent && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" title="Current Month" />
+      {/* Codeforces-Style Continuous Heatmap Grid (Left to Right timeline) */}
+      <div className="overflow-x-auto pb-3 pt-1 scrollbar-thin">
+        <div className="min-w-[780px] select-none">
+          {/* Top Month Labels aligned with weeks */}
+          <div className="flex ml-7 sm:ml-8 gap-1 sm:gap-1.25 text-[11px] font-medium text-[var(--text-muted)] h-5 mb-1 select-none">
+            {weeks.map((week, idx) => (
+              <div key={idx} className="w-3 sm:w-3.5 flex-shrink-0 relative">
+                {week.monthLabel && (
+                  <span className="absolute left-0 top-0 text-[10px] font-semibold text-[var(--text-secondary)] whitespace-nowrap">
+                    {week.monthLabel}
+                  </span>
                 )}
               </div>
+            ))}
+          </div>
+
+          {/* Grid with Weekday Labels on Left (Mon, Wed, Fri) */}
+          <div className="flex items-start">
+            {/* Weekday Labels (Mon, Wed, Fri) */}
+            <div className="flex flex-col gap-1 sm:gap-1.25 w-7 text-[9px] font-mono text-[var(--text-muted)] pt-0.5 pr-1 text-right select-none">
+              <span className="h-3 sm:h-3.5 leading-3"></span>
+              <span className="h-3 sm:h-3.5 leading-3">Mon</span>
+              <span className="h-3 sm:h-3.5 leading-3"></span>
+              <span className="h-3 sm:h-3.5 leading-3">Wed</span>
+              <span className="h-3 sm:h-3.5 leading-3"></span>
+              <span className="h-3 sm:h-3.5 leading-3">Fri</span>
+              <span className="h-3 sm:h-3.5 leading-3"></span>
             </div>
-          ))}
+
+            {/* 53 Columns of Weeks (7 rows each) */}
+            <div className="flex gap-1 sm:gap-1.25">
+              {weeks.map((week) => (
+                <div key={week.weekIndex} className="flex flex-col gap-1 sm:gap-1.25 flex-shrink-0">
+                  {week.days.map((cell, dayIdx) => {
+                    const details = getCellDetails(cell);
+
+                    return (
+                      <div
+                        key={dayIdx}
+                        onMouseEnter={(e) => {
+                          if (!cell || cell.isFuture) return;
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setHoveredCell({
+                            date: cell.date,
+                            dayOfMonth: cell.dayOfMonth,
+                            activity: cell.activity,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                        }}
+                        onMouseLeave={() => setHoveredCell(null)}
+                        className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-[2px] transition-all duration-150 flex items-center justify-center relative cursor-pointer ${details.className}`}
+                      >
+                        {details.hasFlame && (
+                          <span className="text-[7.5px] sm:text-[8.5px] leading-none select-none pointer-events-none drop-shadow-xs">
+                            🔥
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Bottom Footer Row (LeetCode-style total count & fire legend) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--border-subtle)] text-xs">
-        {/* Left: Problems / Lessons Completed This Year */}
-        <div className="font-semibold text-[var(--text-primary)]">
-          <span className="font-bold">{totalLessons}</span> lessons completed this year
-        </div>
-
-        {/* Right: Less -> More Intensity Legend (Mode Adaptive!) */}
-        <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] select-none">
-          <span>Less</span>
-          <div className="flex items-center gap-1">
-            {/* Inactive */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]" />
-            {/* Level 1 */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857]" />
-            {/* Level 2 */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#34d399] dark:bg-[#059669] border border-[#10b981]" />
-            {/* Level 3 */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#10b981] border border-[#047857]" />
-            {/* Level 4 (Flame) */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#10b981] border border-amber-400 flex items-center justify-center">
-              <span className="text-[6.5px] leading-none">🔥</span>
+      {/* Codeforces Iconic 3-Column Statistics Layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-5 mt-3 border-t border-[var(--border-subtle)]">
+        {/* Column 1: All Time */}
+        <div className="space-y-3">
+          <div>
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              {totalLessonsAllTime} lessons
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              verified for all time
             </div>
           </div>
-          <span>More</span>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              {longestStreak} days
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              in a row max streak
+            </div>
+          </div>
         </div>
+
+        {/* Column 2: Last Year */}
+        <div className="space-y-3">
+          <div>
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              {yearStats.lessons} lessons
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              verified for the last year
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              {longestStreak} days
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              in a row for the last year
+            </div>
+          </div>
+        </div>
+
+        {/* Column 3: Current Month & Live Streak */}
+        <div className="space-y-3">
+          <div>
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+              {monthStats.lessons} lessons
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              verified for the last month
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-1.5">
+              <span>{currentStreak} days</span>
+              <Flame className="h-4.5 w-4.5 fill-amber-500 text-amber-500" />
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              in a row for the last month
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Legend (Deep Green with Flame for max intensity - NO YELLOW!) */}
+      <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)] select-none">
+        <span>Less</span>
+        <div className="flex items-center gap-1">
+          {/* Inactive */}
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]" />
+          {/* Level 1 */}
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857]" />
+          {/* Level 2 */}
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#34d399] dark:bg-[#059669] border border-[#10b981]" />
+          {/* Level 3 */}
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#10b981] border border-[#047857]" />
+          {/* Level 4 (Deep Green with Flame - NO YELLOW!) */}
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#047857] dark:bg-[#065f46] border border-[#065f46] dark:border-[#047857] flex items-center justify-center">
+            <span className="text-[6.5px] leading-none">🔥</span>
+          </div>
+        </div>
+        <span>More</span>
       </div>
 
       {/* Interactive Tooltip Card */}
@@ -354,7 +426,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
               )}
             </div>
           ) : (
-            <p className="text-[11px] text-[var(--text-muted)]">No study sessions recorded</p>
+            <p className="text-[11px] text-[var(--text-muted)]">No study activity recorded</p>
           )}
         </div>
       )}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Kizen — Lock In & Learn | Distraction-Free Video Study",
+  title: "KaizenFlow — Lock In & Learn | Distraction-Free Video Study",
   description: "Transform any YouTube playlist into an active, locked-in study portal with proof-of-focus verification, streaks, and syllabus matching.",
   icons: {
     icon: "/favicon.ico",
