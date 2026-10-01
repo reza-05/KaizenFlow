@@ -35,6 +35,19 @@ export default function KaizenFlowApp() {
   const [activityMap, setActivityMap] = useState(getDailyActivityMap());
   const [notes, setNotes] = useState<StudyNote[]>([]);
   const [activeTimestampSeconds, setActiveTimestampSeconds] = useState(0);
+  const [focusWarning, setFocusWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleFocusReturn = (e: Event) => {
+      const customEvt = e as CustomEvent<{ distractionCount: number }>;
+      const count = customEvt.detail?.distractionCount || 1;
+      setFocusWarning(`⚠️ Isolation Alert: Tab switch detected! Stay focused on your study (${count} distraction attempts logged).`);
+      setTimeout(() => setFocusWarning(null), 6000);
+    };
+
+    window.addEventListener('kaizenflow-focus-return', handleFocusReturn);
+    return () => window.removeEventListener('kaizenflow-focus-return', handleFocusReturn);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -170,6 +183,19 @@ export default function KaizenFlowApp() {
         activeCourseTitle={activeCourse?.customTitle}
         onBackToDashboard={activeCourse ? handleBackToDashboard : undefined}
       />
+
+      {/* Focus Warning Alert Banner (Tab deflection guard) */}
+      {focusWarning && (
+        <div className="bg-rose-500 text-white text-xs font-semibold px-4 py-2 text-center animate-in fade-in slide-in-from-top duration-200 flex items-center justify-center gap-2 shadow-md">
+          <span>{focusWarning}</span>
+          <button
+            onClick={() => setFocusWarning(null)}
+            className="ml-2 rounded bg-black/20 hover:bg-black/40 px-1.5 py-0.5 text-[10px]"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Main View: Study Room vs Dashboard */}
       {activeCourse && activeVideo ? (

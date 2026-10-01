@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Award, BookOpen, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { ClashFlame } from '@/components/ui/ClashFlame';
+import { IsolationToggle } from '@/components/isolation/IsolationToggle';
 
 interface NavbarProps {
   userProfile?: UserProfile;
@@ -106,6 +107,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{userProfile.activePlaylistsCount || 0}/10 Courses</span>
             </div>
           )}
+
+          {/* Isolation Mode Distraction Shield Toggle */}
+          <IsolationToggle />
 
           {/* Theme Switcher (No AI Cliché, pure clean icon) */}
           <button
