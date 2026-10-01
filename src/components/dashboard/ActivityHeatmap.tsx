@@ -23,6 +23,7 @@ interface MonthBlock {
   name: string;
   year: number;
   monthIndex: number;
+  isCurrent: boolean;
   weeks: (DayCell | null)[][];
 }
 
@@ -34,7 +35,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   longestStreak = 42,
   totalLessonsCompleted,
 }) => {
-  const [filterMode, setFilterMode] = useState<string>('past12');
+  // Default to 'recent' (Recent Month First: Oct -> Nov)
+  const [orderMode, setOrderMode] = useState<'recent' | 'oldest'>('recent');
   const [hoveredCell, setHoveredCell] = useState<{
     date: string;
     dayOfMonth: number;
@@ -47,15 +49,17 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   const months = useMemo<MonthBlock[]>(() => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    const result: MonthBlock[] = [];
+    const rawMonths: MonthBlock[] = [];
 
     // Calculate 12 consecutive months ending with current month
-    for (let i = 11; i >= 0; i--) {
-      const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    for (let i = 0; i < 12; i++) {
+      const monthOffset = orderMode === 'recent' ? i : (11 - i);
+      const monthDate = new Date(today.getFullYear(), today.getMonth() - monthOffset, 1);
       const year = monthDate.getFullYear();
       const monthIndex = monthDate.getMonth();
       const monthName = MONTH_NAMES[monthIndex];
       const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+      const isCurrent = monthDate.getFullYear() === today.getFullYear() && monthDate.getMonth() === today.getMonth();
 
       const weeks: (DayCell | null)[][] = [];
       let currentWeek: (DayCell | null)[] = new Array(7).fill(null);
@@ -85,16 +89,17 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         }
       }
 
-      result.push({
+      rawMonths.push({
         name: monthName,
         year,
         monthIndex,
+        isCurrent,
         weeks,
       });
     }
 
-    return result;
-  }, [activityMap]);
+    return rawMonths;
+  }, [activityMap, orderMode]);
 
   // Dynamic statistics
   const activeDaysCount = useMemo(() => {
@@ -108,14 +113,15 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     return Object.values(activityMap).reduce((acc, curr) => acc + (curr.verifiedCount || 0), 0);
   }, [activityMap, totalLessonsCompleted]);
 
-  // Determine cell visual style and flame badge based on real activity level
+  // Determine cell visual style (Seamless Light Mode & Dark Mode with CSS Variables)
   const getCellDetails = (cell: DayCell | null) => {
     if (!cell) return { isVisible: false, className: '', hasFlame: false };
 
+    // Future days in current month (subtle dashed outline, not harsh black!)
     if (cell.isFuture) {
       return {
         isVisible: true,
-        className: 'opacity-20 bg-zinc-300 dark:bg-zinc-800 border border-transparent cursor-default',
+        className: 'bg-[var(--bg-surface-subtle)]/40 border border-dashed border-[var(--border-subtle)]/50 opacity-40 cursor-default',
         hasFlame: false,
       };
     }
@@ -124,11 +130,11 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     const mins = activity?.minutesWatched || 0;
     const verified = activity?.verifiedCount || 0;
 
-    // Inactive day
+    // Inactive day (Soft adaptive ivory/gray in Light Mode, dark graphite in Dark Mode)
     if (mins === 0 && verified === 0) {
       return {
         isVisible: true,
-        className: 'bg-zinc-200 dark:bg-[#27272a] border border-zinc-300/40 dark:border-zinc-700/50 hover:ring-1 hover:ring-[var(--text-primary)]',
+        className: 'bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:ring-1 hover:ring-[var(--text-primary)]',
         hasFlame: false,
       };
     }
@@ -137,16 +143,16 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     if (mins >= 60 || verified >= 2 || (mins >= 35 && verified >= 1 && (cell.dayOfMonth % 3 === 0))) {
       return {
         isVisible: true,
-        className: 'bg-[#16a34a] dark:bg-[#16a34a] border border-amber-400/90 shadow-2xs hover:scale-110 ring-1 ring-amber-400/30',
+        className: 'bg-[#059669] dark:bg-[#10b981] border-2 border-amber-400 shadow-2xs hover:scale-115 ring-1 ring-amber-400/40 text-white',
         hasFlame: true,
       };
     }
 
-    // Level 3 (45-59 mins)
+    // Level 3 (45-59 mins or 1 verified lesson)
     if (mins >= 45 || verified >= 1) {
       return {
         isVisible: true,
-        className: 'bg-[#22c55e] dark:bg-[#22c55e] border border-[#16a34a] hover:scale-110',
+        className: 'bg-[#059669] dark:bg-[#10b981] border border-[#047857] hover:scale-115 text-white',
         hasFlame: false,
       };
     }
@@ -155,7 +161,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     if (mins >= 25) {
       return {
         isVisible: true,
-        className: 'bg-[#16a34a] dark:bg-[#16a34a] border border-[#15803d] hover:scale-110',
+        className: 'bg-[#34d399] dark:bg-[#059669] border border-[#10b981] hover:scale-115 text-white',
         hasFlame: false,
       };
     }
@@ -163,7 +169,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     // Level 1 (< 25 mins)
     return {
       isVisible: true,
-      className: 'bg-[#15803d] dark:bg-[#15803d] border border-[#166534] hover:scale-110',
+      className: 'bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857] hover:scale-115 text-white',
       hasFlame: false,
     };
   };
@@ -180,10 +186,10 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-xs relative">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-xs relative transition-colors duration-200">
       {/* Top Header Row (Matches LeetCode header) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-subtle)]">
-        {/* Left: Active Days Count & Info Icon */}
+        {/* Left: Active Days Count & Info Tooltip */}
         <div className="flex items-center gap-2">
           <span className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
             {activeDaysCount} Active days
@@ -196,23 +202,20 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
           </div>
         </div>
 
-        {/* Right: Dropdown & Streak Badges */}
+        {/* Right: Dropdown Order Selector & Streak Badges */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Timeframe Dropdown */}
+          {/* Order Selector (Recent First vs Chronological) */}
           <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs">
             <select
-              value={filterMode}
-              onChange={e => setFilterMode(e.target.value)}
+              value={orderMode}
+              onChange={e => setOrderMode(e.target.value as 'recent' | 'oldest')}
               className="bg-transparent font-sans text-xs font-semibold text-[var(--text-primary)] focus:outline-none cursor-pointer"
             >
-              <option value="past12" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                Past 12 Months
+              <option value="recent" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
+                Recent First (Oct → Nov)
               </option>
-              <option value="2026" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                2026
-              </option>
-              <option value="all" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                All Time
+              <option value="oldest" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
+                Chronological (Nov → Oct)
               </option>
             </select>
           </div>
@@ -280,10 +283,19 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                 ))}
               </div>
 
-              {/* Month Label (Nov, Dec, Jan, etc.) */}
-              <span className="text-[11px] font-medium text-[var(--text-muted)]">
-                {month.name}
-              </span>
+              {/* Month Label (Nov, Dec, Jan, etc.) with current indicator */}
+              <div className="flex items-center gap-1">
+                <span className={`text-[11px] ${
+                  month.isCurrent 
+                    ? 'font-bold text-[var(--text-primary)]' 
+                    : 'font-medium text-[var(--text-muted)]'
+                }`}>
+                  {month.name}
+                </span>
+                {month.isCurrent && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" title="Current Month" />
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -296,20 +308,20 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
           <span className="font-bold">{totalLessons}</span> lessons completed this year
         </div>
 
-        {/* Right: Less -> More Intensity Legend */}
+        {/* Right: Less -> More Intensity Legend (Mode Adaptive!) */}
         <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] select-none">
           <span>Less</span>
           <div className="flex items-center gap-1">
             {/* Inactive */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-zinc-200 dark:bg-[#27272a] border border-zinc-300/40 dark:border-zinc-700/50" />
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]" />
             {/* Level 1 */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#15803d] dark:bg-[#15803d]" />
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857]" />
             {/* Level 2 */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#16a34a] dark:bg-[#16a34a]" />
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#34d399] dark:bg-[#059669] border border-[#10b981]" />
             {/* Level 3 */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#22c55e] dark:bg-[#22c55e]" />
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#10b981] border border-[#047857]" />
             {/* Level 4 (Flame) */}
-            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#16a34a] border border-amber-400 flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#10b981] border border-amber-400 flex items-center justify-center">
               <span className="text-[6.5px] leading-none">🔥</span>
             </div>
           </div>
