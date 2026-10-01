@@ -638,15 +638,11 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     >
       {/* 100% PURE CINEMA VIDEO CONTAINER */}
       <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-black shadow-xl">
-        {/* Mount node for YouTube API with 1.18x overscan to permanently clip out YouTube's top bar and bottom logo */}
+        {/* Mount node for YouTube API (100% natural, uncropped view) */}
         <div 
           id="kizen-custom-player-iframe" 
-          className="h-full w-full pointer-events-none transform scale-[1.18] origin-center" 
+          className="h-full w-full pointer-events-none" 
         />
-
-        {/* Top & Bottom Sub-pixel Letterbox Guards (ensures zero bleed of YT chrome on any screen ratio) */}
-        <div className="absolute top-0 left-0 right-0 h-2 bg-black z-10 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-2 bg-black z-10 pointer-events-none" />
 
         {/* Transparent Click Overlay to Play/Pause on Video Click - ZERO ROBOTIC TEXT */}
         <div 
@@ -674,7 +670,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.ytVideoId}/hqdefault.jpg`;
               }}
               alt={video.title}
-              className="absolute inset-0 h-full w-full object-cover group-hover/poster:scale-103 transition-transform duration-500 ease-out"
+              className="absolute inset-0 h-full w-full object-contain bg-black transition-opacity duration-300"
             />
 
             {/* Cinematic Gradient Vignette */}
