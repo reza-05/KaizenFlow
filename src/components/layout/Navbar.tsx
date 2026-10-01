@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Flame, Award, BookOpen, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { Award, BookOpen, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { UserProfile } from '@/types';
+import { ClashFlame } from '@/components/ui/ClashFlame';
 
 interface NavbarProps {
   userProfile?: UserProfile;
@@ -80,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Daily Study Streak"
             className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
           >
-            <span className="flame-burn text-xs leading-none select-none">🔥</span>
+            <ClashFlame size={15} />
             <span>{userProfile?.currentStreak || 0}</span>
             <span className="hidden sm:inline text-[var(--text-secondary)] font-normal">Day Streak</span>
           </div>

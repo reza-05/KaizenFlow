@@ -38,6 +38,8 @@ export default function KaizenFlowApp() {
 
   useEffect(() => {
     setMounted(true);
+    const cleanActivity = getDailyActivityMap();
+    setActivityMap(cleanActivity);
     const profile = getInitialUserProfile();
     setUserProfile(profile);
 
@@ -114,17 +116,9 @@ export default function KaizenFlowApp() {
     // Update local verified state
     setProgressMap(prev => ({ ...prev, [`${playlistId}_${videoId}`]: true }));
     
-    // Update user profile in state
-    if (userProfile) {
-      setUserProfile({
-        ...userProfile,
-        totalXP: userProfile.totalXP + xpEarned,
-        currentStreak: newStreak,
-      });
-    }
-
-    // Refresh activity heatmap
+    // Refresh user profile and activity heatmap
     setActivityMap(getDailyActivityMap());
+    setUserProfile(getInitialUserProfile());
     setPlaylists(getPlaylists());
   };
 

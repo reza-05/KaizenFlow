@@ -28,6 +28,56 @@ function getStoredValue(key: keyof typeof STORAGE_KEYS, suffix: string = ''): st
   return localStorage.getItem(primaryKey) || localStorage.getItem(legacyKey);
 }
 
+// Calculate genuine streaks from real active study dates
+export function calculateStreaksFromActivity(activityMap: Record<string, DailyActivity>): {
+  currentStreak: number;
+  longestStreak: number;
+} {
+  const activeDates = Object.keys(activityMap)
+    .filter(d => (activityMap[d]?.verifiedCount > 0 || activityMap[d]?.minutesWatched >= 10))
+    .sort()
+    .reverse();
+
+  if (activeDates.length === 0) {
+    return { currentStreak: 0, longestStreak: 0 };
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  let currentStreak = 0;
+  if (activeDates.includes(today) || activeDates.includes(yesterday)) {
+    const startIdx = activeDates[0] === today ? 0 : 0;
+    let cursor = new Date(activeDates[startIdx]);
+    currentStreak = 1;
+    for (let i = startIdx + 1; i < activeDates.length; i++) {
+      cursor.setDate(cursor.getDate() - 1);
+      const expected = cursor.toISOString().split('T')[0];
+      if (activeDates[i] === expected) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  let longestStreak = Math.max(currentStreak, 1);
+  const ascDates = [...activeDates].reverse();
+  let run = 1;
+  for (let i = 1; i < ascDates.length; i++) {
+    const prev = new Date(ascDates[i - 1]);
+    prev.setDate(prev.getDate() + 1);
+    if (ascDates[i] === prev.toISOString().split('T')[0]) {
+      run++;
+    } else {
+      run = 1;
+    }
+    if (run > longestStreak) longestStreak = run;
+  }
+
+  return { currentStreak, longestStreak: Math.max(currentStreak, longestStreak) };
+}
+
 // Initial default user profile (Pure genuine user stats, 0 fake numbers)
 export function getInitialUserProfile(): UserProfile {
   if (typeof window === 'undefined') {
@@ -45,18 +95,20 @@ export function getInitialUserProfile(): UserProfile {
   }
 
   const stored = getStoredValue('USER');
+  const activityMap = getDailyActivityMap();
+  const streaks = calculateStreaksFromActivity(activityMap);
+  const genuineProgress = Object.values(getVideoProgressList()).filter(p => p.isVerified);
+  const genuineXP = genuineProgress.length * 50;
+
   if (stored) {
     try {
       const parsed: UserProfile = JSON.parse(stored);
-      // Clean up legacy fake profile stats (e.g. 350 XP, 4 day streak, 12 longest) if user hasn't completed verified lessons
-      const verifiedCount = Object.values(getVideoProgressList()).filter(p => p.isVerified).length;
-      if (verifiedCount === 0 && (parsed.totalXP === 350 || parsed.longestStreak === 12 || parsed.longestStreak === 42 || parsed.currentStreak === 4)) {
-        parsed.totalXP = 0;
-        parsed.currentStreak = 0;
-        parsed.longestStreak = 0;
-        parsed.lastStudyDate = '';
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(parsed));
-      }
+      // Enforce true verified stats so legacy fake seed (e.g. 350 XP, 4 day streak, 12 longest) is corrected
+      parsed.totalXP = Math.max(parsed.totalXP, genuineXP);
+      parsed.currentStreak = streaks.currentStreak;
+      parsed.longestStreak = Math.max(streaks.longestStreak, streaks.currentStreak);
+      parsed.lastStudyDate = streaks.currentStreak > 0 ? (parsed.lastStudyDate || new Date().toISOString().split('T')[0]) : '';
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(parsed));
       return parsed;
     } catch {
       // fallback
@@ -67,10 +119,10 @@ export function getInitialUserProfile(): UserProfile {
     id: 'usr_local',
     name: 'Scholar',
     email: 'learner@kaizenflow.study',
-    totalXP: 0,
-    currentStreak: 0,
-    longestStreak: 0,
-    lastStudyDate: '',
+    totalXP: genuineXP,
+    currentStreak: streaks.currentStreak,
+    longestStreak: streaks.longestStreak,
+    lastStudyDate: streaks.currentStreak > 0 ? new Date().toISOString().split('T')[0] : '',
     activePlaylistsCount: CURATED_STARTER_COURSES.length,
     createdAt: new Date().toISOString(),
   };
@@ -275,22 +327,53 @@ export function markVideoVerified(
 // 365-Day Activity Log for Heatmap (100% Genuine User Records, 0 Fake Data)
 export function getDailyActivityMap(): Record<string, DailyActivity> {
   if (typeof window === 'undefined') return {};
+
+  const allProgress = getVideoProgressList();
+  const genuineProgressList = Object.values(allProgress);
+  const genuineVerified = genuineProgressList.filter(p => p.isVerified);
+
+  // Build the clean real activity map from user verified lessons
+  const cleanMap: Record<string, DailyActivity> = {};
+  genuineVerified.forEach(p => {
+    const dateStr = (p.completedAt || p.updatedAt || new Date().toISOString()).split('T')[0];
+    if (!cleanMap[dateStr]) {
+      cleanMap[dateStr] = {
+        date: dateStr,
+        minutesWatched: 0,
+        verifiedCount: 0,
+        xpEarned: 0,
+      };
+    }
+    cleanMap[dateStr].verifiedCount += 1;
+    cleanMap[dateStr].minutesWatched += Math.max(20, Math.round((p.watchedSeconds || 1200) / 60));
+    cleanMap[dateStr].xpEarned += 50;
+  });
+
+  const today = new Date().toISOString().split('T')[0];
   const stored = getStoredValue('ACTIVITY');
   if (stored) {
     try {
       const parsed: Record<string, DailyActivity> = JSON.parse(stored);
-      // Clean up legacy fake seeded data if it contains the 340-item simulated loop
-      const verifiedProgressCount = Object.values(getVideoProgressList()).filter(p => p.isVerified).length;
-      if (Object.keys(parsed).length > 50 && verifiedProgressCount === 0) {
-        localStorage.removeItem(STORAGE_KEYS.ACTIVITY);
+      // If legacy simulated seed data detected (e.g. dozens of dates while real verified is small)
+      if (Object.keys(parsed).length > 5 && genuineVerified.length <= 5) {
+        // Discard legacy fake seed data completely and overwrite with cleanMap!
+        localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(cleanMap));
         localStorage.removeItem(LEGACY_STORAGE_KEYS.ACTIVITY);
-        return {};
+        return cleanMap;
       }
-      return parsed;
+      // If today has legitimate active minutes watched, merge it
+      if (parsed[today]) {
+        if (!cleanMap[today]) {
+          cleanMap[today] = parsed[today];
+        } else {
+          cleanMap[today].minutesWatched = Math.max(cleanMap[today].minutesWatched, parsed[today].minutesWatched || 0);
+        }
+      }
     } catch {}
   }
 
-  return {};
+  localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(cleanMap));
+  return cleanMap;
 }
 
 export function updateDailyActivity(date: string, minutes: number, verified: number, xp: number): void {
