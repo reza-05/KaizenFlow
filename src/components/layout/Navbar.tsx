@@ -6,6 +6,7 @@ import { Award, BookOpen, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { ClashFlame } from '@/components/ui/ClashFlame';
 import { IsolationToggle } from '@/components/isolation/IsolationToggle';
+import { KaizenFlowLogo } from '@/components/ui/KaizenFlowLogo';
 
 interface NavbarProps {
   userProfile?: UserProfile;
@@ -56,13 +57,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Back to Library</span>
             </button>
           ) : (
-            <Link href="/" className="flex items-baseline gap-2.5 group">
-              <span className="text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
-                KaizenFlow
-              </span>
-              <span className="hidden sm:inline-block text-xs font-medium text-[var(--text-secondary)] border-l border-[var(--border-subtle)] pl-2.5">
-                Lock In & Learn
-              </span>
+            <Link href="/" className="flex items-center group">
+              <KaizenFlowLogo size={32} />
             </Link>
           )}
 

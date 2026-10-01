@@ -184,16 +184,22 @@ export default function KaizenFlowApp() {
         onBackToDashboard={activeCourse ? handleBackToDashboard : undefined}
       />
 
-      {/* Focus Warning Alert Banner (Tab deflection guard) */}
+      {/* Floating Dynamic Island HUD Pill (Zero layout-shift, high-end feel) */}
       {focusWarning && (
-        <div className="bg-rose-500 text-white text-xs font-semibold px-4 py-2 text-center animate-in fade-in slide-in-from-top duration-200 flex items-center justify-center gap-2 shadow-md">
-          <span>{focusWarning}</span>
-          <button
-            onClick={() => setFocusWarning(null)}
-            className="ml-2 rounded bg-black/20 hover:bg-black/40 px-1.5 py-0.5 text-[10px]"
-          >
-            Dismiss
-          </button>
+        <div className="fixed top-20 right-4 sm:right-8 z-50 max-w-md animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="flex items-center gap-3 rounded-full border border-zinc-800/80 bg-zinc-950/95 px-4 py-2 text-xs text-zinc-200 shadow-2xl backdrop-blur-md">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+            </span>
+            <span className="truncate">{focusWarning}</span>
+            <button
+              onClick={() => setFocusWarning(null)}
+              className="ml-auto rounded-full p-1 text-zinc-400 hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
