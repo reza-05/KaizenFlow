@@ -1,0 +1,302 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Plus, Flame, Award, BookOpen, Layers, CheckCircle2, Compass, ArrowRight } from 'lucide-react';
+import { Navbar } from '@/components/layout/Navbar';
+import { CourseCard } from '@/components/dashboard/CourseCard';
+import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
+import { AddCourseModal } from '@/components/dashboard/AddCourseModal';
+import { CinemaPlayer } from '@/components/player/CinemaPlayer';
+import { StudySidebar } from '@/components/player/StudySidebar';
+import { 
+  getPlaylists, 
+  savePlaylists, 
+  addPlaylist, 
+  deletePlaylist, 
+  renamePlaylist, 
+  getInitialUserProfile, 
+  getVideoProgressList, 
+  markVideoVerified, 
+  getDailyActivityMap,
+  getNotes,
+  addNote,
+  deleteNote
+} from '@/lib/storage';
+import { Playlist, VideoItem, UserProfile, StudyNote } from '@/types';
+
+export default function KizenApp() {
+  const [mounted, setMounted] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [activeCourse, setActiveCourse] = useState<Playlist | null>(null);
+  const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
+  const [activityMap, setActivityMap] = useState(getDailyActivityMap());
+  const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [activeTimestampSeconds, setActiveTimestampSeconds] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+    const profile = getInitialUserProfile();
+    setUserProfile(profile);
+
+    const loadedPlaylists = getPlaylists();
+    setPlaylists(loadedPlaylists);
+
+    const allProgress = getVideoProgressList();
+    const verifiedStatus: Record<string, boolean> = {};
+    Object.values(allProgress).forEach(p => {
+      if (p.isVerified) {
+        verifiedStatus[p.ytVideoId] = true;
+      }
+    });
+    setProgressMap(verifiedStatus);
+  }, []);
+
+  // Sync notes when active video changes
+  useEffect(() => {
+    if (activeVideo) {
+      setNotes(getNotes(activeVideo.ytVideoId));
+    }
+  }, [activeVideo?.ytVideoId]);
+
+  if (!mounted) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-canvas)]">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--text-primary)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  const handleOpenCourse = (course: Playlist) => {
+    setActiveCourse(course);
+    // Select first unwatched video, or first video
+    const unwatched = course.videos.find(v => !progressMap[v.ytVideoId]);
+    setActiveVideo(unwatched || course.videos[0]);
+  };
+
+  const handleBackToDashboard = () => {
+    setActiveCourse(null);
+    setActiveVideo(null);
+    // Refresh playlists and profile state
+    setPlaylists(getPlaylists());
+    setUserProfile(getInitialUserProfile());
+  };
+
+  const handleAddCourse = (newCourse: Playlist) => {
+    const res = addPlaylist(newCourse);
+    if (res.success) {
+      setPlaylists(getPlaylists());
+      if (userProfile) {
+        setUserProfile({ ...userProfile, activePlaylistsCount: playlists.length + 1 });
+      }
+    }
+    return res;
+  };
+
+  const handleDeleteCourse = (courseId: string) => {
+    deletePlaylist(courseId);
+    setPlaylists(getPlaylists());
+    if (userProfile) {
+      setUserProfile({ ...userProfile, activePlaylistsCount: Math.max(0, playlists.length - 1) });
+    }
+  };
+
+  const handleRenameCourse = (courseId: string, newTitle: string) => {
+    renamePlaylist(courseId, newTitle);
+    setPlaylists(getPlaylists());
+  };
+
+  const handleVerifyVideo = (playlistId: string, videoId: string, title: string) => {
+    const { xpEarned, newStreak } = markVideoVerified(playlistId, videoId, title);
+    
+    // Update local verified state
+    setProgressMap(prev => ({ ...prev, [videoId]: true }));
+    
+    // Update user profile in state
+    if (userProfile) {
+      setUserProfile({
+        ...userProfile,
+        totalXP: userProfile.totalXP + xpEarned,
+        currentStreak: newStreak,
+      });
+    }
+
+    // Refresh activity heatmap
+    setActivityMap(getDailyActivityMap());
+    setPlaylists(getPlaylists());
+  };
+
+  const handleNextVideo = () => {
+    if (!activeCourse || !activeVideo) return;
+    const currentIndex = activeCourse.videos.findIndex(v => v.ytVideoId === activeVideo.ytVideoId);
+    if (currentIndex >= 0 && currentIndex < activeCourse.videos.length - 1) {
+      setActiveVideo(activeCourse.videos[currentIndex + 1]);
+    }
+  };
+
+  const handleAddStudyNote = (content: string, timestampSeconds: number) => {
+    if (!activeVideo || !activeCourse) return;
+    const mins = Math.floor(timestampSeconds / 60);
+    const secs = timestampSeconds % 60;
+
+    const newNote: StudyNote = {
+      id: 'note_' + Date.now().toString(36),
+      playlistId: activeCourse.id,
+      videoId: activeVideo.ytVideoId,
+      timestampSeconds,
+      timestampFormatted: `${mins}:${secs < 10 ? '0' : ''}${secs}`,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = addNote(newNote);
+    setNotes(updated);
+  };
+
+  const handleDeleteStudyNote = (noteId: string) => {
+    if (!activeVideo) return;
+    const updated = deleteNote(activeVideo.ytVideoId, noteId);
+    setNotes(updated);
+  };
+
+  const currentVideoIndex = activeCourse && activeVideo
+    ? activeCourse.videos.findIndex(v => v.ytVideoId === activeVideo.ytVideoId)
+    : -1;
+  const hasNextVideo = Boolean(
+    activeCourse && currentVideoIndex >= 0 && currentVideoIndex < activeCourse.videos.length - 1
+  );
+
+  return (
+    <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] transition-colors duration-200">
+      {/* Top Navbar */}
+      <Navbar
+        userProfile={userProfile || undefined}
+        activeCourseTitle={activeCourse?.customTitle}
+        onBackToDashboard={activeCourse ? handleBackToDashboard : undefined}
+      />
+
+      {/* Main View: Study Room vs Dashboard */}
+      {activeCourse && activeVideo ? (
+        /* STUDY ROOM / CINEMA FOCUS PLAYER VIEW */
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Cinema Player Area (8 cols on large screens) */}
+            <div className="lg:col-span-8 flex flex-col gap-4">
+              <CinemaPlayer
+                video={activeVideo}
+                playlistId={activeCourse.id}
+                isVerified={progressMap[activeVideo.ytVideoId] || false}
+                onVerify={handleVerifyVideo}
+                onNextVideo={handleNextVideo}
+                hasNextVideo={hasNextVideo}
+                onTimestampCapture={sec => setActiveTimestampSeconds(sec)}
+              />
+            </div>
+
+            {/* Right Sidebar: Queue & Notes (4 cols on large screens) */}
+            <div className="lg:col-span-4 h-[calc(100vh-7.5rem)] sticky top-20">
+              <StudySidebar
+                videos={activeCourse.videos}
+                currentVideoId={activeVideo.ytVideoId}
+                onSelectVideo={video => setActiveVideo(video)}
+                verifiedMap={progressMap}
+                notes={notes}
+                onAddNote={handleAddStudyNote}
+                onDeleteNote={handleDeleteStudyNote}
+                activeTimestampSeconds={activeTimestampSeconds}
+              />
+            </div>
+          </div>
+        </main>
+      ) : (
+        /* DASHBOARD / LIBRARY VIEW */
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          {/* Header Banner */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+                Focus Library
+              </h1>
+              <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-xl leading-relaxed">
+                Zero algorithms. Zero comment distractions. Pure sequential study with proof-of-focus verification.
+              </p>
+            </div>
+
+            {/* Add Course Button */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="flex items-center gap-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-4 py-2.5 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Import Course / Syllabus</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Consistency Heatmap */}
+          <ActivityHeatmap
+            activityMap={activityMap}
+            currentStreak={userProfile?.currentStreak || 1}
+          />
+
+          {/* Active Courses Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-[var(--text-secondary)]" />
+                <h2 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
+                  My Active Courses ({playlists.length}/10 slots used)
+                </h2>
+              </div>
+              <span className="text-xs text-[var(--text-muted)]">
+                Max 10 active courses
+              </span>
+            </div>
+
+            {/* Courses Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {playlists.map(course => (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  onOpenCourse={handleOpenCourse}
+                  onDeleteCourse={handleDeleteCourse}
+                  onRenameCourse={handleRenameCourse}
+                />
+              ))}
+
+              {/* Add New Course Placeholder Card (if under 10) */}
+              {playlists.length < 10 && (
+                <div
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-8 text-center cursor-pointer hover:border-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]/70 transition-all duration-200 min-h-[260px] group"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:scale-105 transition-all">
+                    <Plus className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-xs font-bold text-[var(--text-primary)] mt-3">
+                    Add Another Course
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-muted)] max-w-xs mt-1">
+                    Paste YouTube playlist URL or map your exam syllabus ({10 - playlists.length} slots left)
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+      )}
+
+      {/* Add Course Modal */}
+      <AddCourseModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAddCourse={handleAddCourse}
+        currentCount={playlists.length}
+      />
+    </div>
+  );
+}
