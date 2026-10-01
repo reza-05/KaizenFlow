@@ -193,25 +193,26 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
         <button
           type="button"
           onClick={() => setIsManualOpen(true)}
-          className="w-full flex items-center justify-between p-3 rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent hover:border-emerald-500/40 hover:from-emerald-500/15 transition-all cursor-pointer group text-left shadow-xs mb-4"
+          className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all cursor-pointer group text-left shadow-xs mt-6 mb-4"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <BookOpen className="h-4 w-4" />
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <BookOpen className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                <span>How to Setup? (Visual Step-by-Step Manual)</span>
-                <span className="text-[10px] font-semibold bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
-                  Guide
-                </span>
-              </div>
-              <p className="text-[11px] text-[var(--text-secondary)] truncate">
-                Visual walkthrough with screenshot highlights (one-time setup)
+              <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
+                How to Setup Shield?
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">
+                Step-by-step visual tutorial to enable cross-tab blocking
               </p>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+
+          <div className="shrink-0 flex items-center gap-1.5 rounded-lg bg-emerald-600 group-hover:bg-emerald-500 text-white text-xs font-semibold px-3.5 py-2 shadow-xs transition-colors ml-3">
+            <span>View Guide</span>
+            <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </div>
         </button>
 
         {/* Footer */}
