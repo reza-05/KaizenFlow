@@ -30,8 +30,8 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   activityMap,
-  currentStreak,
-  longestStreak = 42,
+  currentStreak = 0,
+  longestStreak = 0,
   totalLessonsCompleted,
 }) => {
   const [selectedYear, setSelectedYear] = useState<string>('all');
@@ -140,15 +140,21 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     return { lessons, minutes };
   }, [activityMap]);
 
-  // Cell style logic: DEEP GREEN for high activity with 🔥, NO YELLOW!
+  // Exact 5-Tier Color & Video Mapping:
+  // Level 0: 0 videos (< 15 mins) -> Inactive Gray
+  // Level 1: 1 video verified (15-30 mins) -> Light Mint Green
+  // Level 2: 2 videos verified (31-60 mins) -> Vibrant Green
+  // Level 3: 3 videos verified (61-90 mins) -> Deep Emerald Green
+  // Level 4: 4+ videos verified (> 90 mins) -> Deep Forest Green + Realistic Burning Flame (NO YELLOW!)
   const getCellDetails = (cell: DayCell | null) => {
-    if (!cell) return { isVisible: false, className: '', hasFlame: false };
+    if (!cell) return { isVisible: false, className: '', hasFlame: false, level: 0 };
 
     if (cell.isFuture) {
       return {
         isVisible: true,
         className: 'bg-[var(--bg-surface-subtle)]/30 border border-dashed border-[var(--border-subtle)]/40 opacity-30 cursor-default',
         hasFlame: false,
+        level: 0,
       };
     }
 
@@ -156,47 +162,52 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     const mins = activity?.minutesWatched || 0;
     const verified = activity?.verifiedCount || 0;
 
-    // Inactive day (Clean adaptive gray in Light Mode, dark zinc in Dark Mode)
-    if (mins === 0 && verified === 0) {
+    // Inactive day (0 videos verified and < 15 mins watched)
+    if (verified === 0 && mins < 15) {
       return {
         isVisible: true,
         className: 'bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]',
         hasFlame: false,
+        level: 0,
       };
     }
 
-    // High intensity day (>= 60 mins or verified >= 2): DEEP GREEN BOX + FLAME (NO YELLOW!)
-    if (mins >= 60 || verified >= 2 || (mins >= 35 && verified >= 1 && (cell.dayOfMonth % 3 === 0))) {
+    // Level 4: Peak study day (4+ videos verified OR >= 90 mins): DEEP GREEN + REAL ANIMATED BURNING FLAME (NO YELLOW!)
+    if (verified >= 4 || mins >= 90) {
       return {
         isVisible: true,
-        className: 'bg-[#047857] dark:bg-[#065f46] border border-[#065f46] dark:border-[#047857] hover:scale-115 shadow-2xs text-white',
+        className: 'bg-[#047857] dark:bg-[#064e3b] border border-[#065f46] dark:border-[#047857] hover:scale-115 text-white shadow-xs',
         hasFlame: true,
+        level: 4,
       };
     }
 
-    // Level 3 (45-59 mins or 1 verified lesson)
-    if (mins >= 45 || verified >= 1) {
+    // Level 3: 3 videos verified OR >= 60 mins
+    if (verified >= 3 || mins >= 60) {
       return {
         isVisible: true,
-        className: 'bg-[#059669] dark:bg-[#10b981] border border-[#047857] hover:scale-115 text-white',
+        className: 'bg-[#16a34a] dark:bg-[#10b981] border border-[#15803d] dark:border-[#34d399] hover:scale-115 text-white',
         hasFlame: false,
+        level: 3,
       };
     }
 
-    // Level 2 (25-44 mins)
-    if (mins >= 25) {
+    // Level 2: 2 videos verified OR >= 30 mins
+    if (verified >= 2 || mins >= 30) {
       return {
         isVisible: true,
-        className: 'bg-[#34d399] dark:bg-[#059669] border border-[#10b981] hover:scale-115 text-white',
+        className: 'bg-[#4ade80] dark:bg-[#059669] border border-[#22c55e] dark:border-[#10b981] hover:scale-115 text-white',
         hasFlame: false,
+        level: 2,
       };
     }
 
-    // Level 1 (< 25 mins)
+    // Level 1: 1 video verified OR >= 15 mins
     return {
       isVisible: true,
-      className: 'bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857] hover:scale-115 text-white',
+      className: 'bg-[#bbf7d0] dark:bg-[#064e3b] border border-[#86efac] dark:border-[#065f46] hover:scale-115 text-zinc-800 dark:text-white',
       hasFlame: false,
+      level: 1,
     };
   };
 
@@ -243,7 +254,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
           </div>
 
           <div className="flex items-center gap-1 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-500">
-            <Flame className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+            <span className="flame-burn text-xs leading-none select-none">🔥</span>
             <span>{currentStreak} Days</span>
           </div>
         </div>
@@ -303,7 +314,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                         className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-[2px] transition-all duration-150 flex items-center justify-center relative cursor-pointer ${details.className}`}
                       >
                         {details.hasFlame && (
-                          <span className="text-[7.5px] sm:text-[8.5px] leading-none select-none pointer-events-none drop-shadow-xs">
+                          <span className="flame-burn text-[7.5px] sm:text-[8.5px] leading-none select-none pointer-events-none drop-shadow-xs">
                             🔥
                           </span>
                         )}
@@ -372,7 +383,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
           <div>
             <div className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-1.5">
               <span>{currentStreak} days</span>
-              <Flame className="h-4.5 w-4.5 fill-amber-500 text-amber-500" />
+              <span className="flame-burn text-base leading-none select-none">🔥</span>
             </div>
             <div className="text-xs text-[var(--text-secondary)] mt-0.5">
               in a row for the last month
@@ -381,21 +392,36 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         </div>
       </div>
 
-      {/* Legend (Deep Green with Flame for max intensity - NO YELLOW!) */}
+      {/* Legend (Exact Video Count Mapping + Realistic Burning Fire) */}
       <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)] select-none">
         <span>Less</span>
         <div className="flex items-center gap-1">
-          {/* Inactive */}
-          <div className="w-2.5 h-2.5 rounded-[2px] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]" />
-          {/* Level 1 */}
-          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857]" />
-          {/* Level 2 */}
-          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#34d399] dark:bg-[#059669] border border-[#10b981]" />
-          {/* Level 3 */}
-          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#10b981] border border-[#047857]" />
-          {/* Level 4 (Deep Green with Flame - NO YELLOW!) */}
-          <div className="w-2.5 h-2.5 rounded-[2px] bg-[#047857] dark:bg-[#065f46] border border-[#065f46] dark:border-[#047857] flex items-center justify-center">
-            <span className="text-[6.5px] leading-none">🔥</span>
+          {/* Level 0: 0 videos */}
+          <div
+            title="Level 0: 0 videos (<15 mins)"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] cursor-help transition-transform hover:scale-125"
+          />
+          {/* Level 1: 1 video */}
+          <div
+            title="Level 1: 1 video verified (15-30 mins)"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#bbf7d0] dark:bg-[#064e3b] border border-[#86efac] dark:border-[#065f46] cursor-help transition-transform hover:scale-125"
+          />
+          {/* Level 2: 2 videos */}
+          <div
+            title="Level 2: 2 videos verified (31-60 mins)"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#4ade80] dark:bg-[#059669] border border-[#22c55e] dark:border-[#10b981] cursor-help transition-transform hover:scale-125"
+          />
+          {/* Level 3: 3 videos */}
+          <div
+            title="Level 3: 3 videos verified (61-90 mins)"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#16a34a] dark:bg-[#10b981] border border-[#15803d] dark:border-[#34d399] cursor-help transition-transform hover:scale-125"
+          />
+          {/* Level 4: 4+ videos + Burning Flame */}
+          <div
+            title="Level 4: 4+ videos verified (>90 mins) — Peak Focus Day 🔥"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#047857] dark:bg-[#064e3b] border border-[#065f46] dark:border-[#047857] flex items-center justify-center cursor-help transition-transform hover:scale-125"
+          >
+            <span className="flame-burn text-[6.5px] leading-none select-none">🔥</span>
           </div>
         </div>
         <span>More</span>

@@ -28,18 +28,18 @@ function getStoredValue(key: keyof typeof STORAGE_KEYS, suffix: string = ''): st
   return localStorage.getItem(primaryKey) || localStorage.getItem(legacyKey);
 }
 
-// Initial default user profile
+// Initial default user profile (Pure genuine user stats, 0 fake numbers)
 export function getInitialUserProfile(): UserProfile {
   if (typeof window === 'undefined') {
     return {
       id: 'usr_local',
       name: 'Scholar',
       email: 'learner@kaizenflow.study',
-      totalXP: 350,
-      currentStreak: 4,
-      longestStreak: 12,
-      lastStudyDate: new Date().toISOString().split('T')[0],
-      activePlaylistsCount: 2,
+      totalXP: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastStudyDate: '',
+      activePlaylistsCount: CURATED_STARTER_COURSES.length,
       createdAt: new Date().toISOString(),
     };
   }
@@ -47,7 +47,17 @@ export function getInitialUserProfile(): UserProfile {
   const stored = getStoredValue('USER');
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed: UserProfile = JSON.parse(stored);
+      // Clean up legacy fake profile stats (e.g. 350 XP, 4 day streak, 12 longest) if user hasn't completed verified lessons
+      const verifiedCount = Object.values(getVideoProgressList()).filter(p => p.isVerified).length;
+      if (verifiedCount === 0 && (parsed.totalXP === 350 || parsed.longestStreak === 12 || parsed.longestStreak === 42 || parsed.currentStreak === 4)) {
+        parsed.totalXP = 0;
+        parsed.currentStreak = 0;
+        parsed.longestStreak = 0;
+        parsed.lastStudyDate = '';
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(parsed));
+      }
+      return parsed;
     } catch {
       // fallback
     }
@@ -57,11 +67,11 @@ export function getInitialUserProfile(): UserProfile {
     id: 'usr_local',
     name: 'Scholar',
     email: 'learner@kaizenflow.study',
-    totalXP: 350,
-    currentStreak: 4,
-    longestStreak: 12,
-    lastStudyDate: new Date().toISOString().split('T')[0],
-    activePlaylistsCount: 2,
+    totalXP: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastStudyDate: '',
+    activePlaylistsCount: CURATED_STARTER_COURSES.length,
     createdAt: new Date().toISOString(),
   };
   localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile));
@@ -262,38 +272,25 @@ export function markVideoVerified(
   return { xpEarned, newStreak: profile.currentStreak };
 }
 
-// 365-Day Activity Log for Heatmap
+// 365-Day Activity Log for Heatmap (100% Genuine User Records, 0 Fake Data)
 export function getDailyActivityMap(): Record<string, DailyActivity> {
   if (typeof window === 'undefined') return {};
   const stored = getStoredValue('ACTIVITY');
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed: Record<string, DailyActivity> = JSON.parse(stored);
+      // Clean up legacy fake seeded data if it contains the 340-item simulated loop
+      const verifiedProgressCount = Object.values(getVideoProgressList()).filter(p => p.isVerified).length;
+      if (Object.keys(parsed).length > 50 && verifiedProgressCount === 0) {
+        localStorage.removeItem(STORAGE_KEYS.ACTIVITY);
+        localStorage.removeItem(LEGACY_STORAGE_KEYS.ACTIVITY);
+        return {};
+      }
+      return parsed;
     } catch {}
   }
 
-  // Seed sample past activity for a realistic heatmap out-of-the-box (distributed across 12 months)
-  const sampleMap: Record<string, DailyActivity> = {};
-  const today = new Date();
-  for (let i = 1; i <= 340; i++) {
-    // Realistic study pattern: active roughly every 2-3 days, with intense study sprints
-    if ((i % 2 === 0 || i % 5 === 0 || (i >= 40 && i <= 85 && i % 4 !== 0)) && (i % 11 !== 0)) {
-      const d = new Date(today.getTime() - i * 86400000).toISOString().split('T')[0];
-      const isHighIntensity = (i % 7 === 0 || i % 13 === 0);
-      sampleMap[d] = {
-        date: d,
-        minutesWatched: isHighIntensity ? 65 + (i % 3) * 25 : 25 + (i % 4) * 15,
-        verifiedCount: isHighIntensity ? 2 : (i % 3 === 0 ? 1 : 0),
-        xpEarned: isHighIntensity ? 100 : (i % 3 === 0 ? 50 : 25),
-      };
-    }
-  }
-
-  try {
-    localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(sampleMap));
-  } catch {}
-
-  return sampleMap;
+  return {};
 }
 
 export function updateDailyActivity(date: string, minutes: number, verified: number, xp: number): void {

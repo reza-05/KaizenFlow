@@ -80,8 +80,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Daily Study Streak"
             className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
           >
-            <Flame className="h-3.5 w-3.5 text-[#d97706] fill-[#d97706]/20" />
-            <span>{userProfile?.currentStreak || 1}</span>
+            <span className="flame-burn text-xs leading-none select-none">🔥</span>
+            <span>{userProfile?.currentStreak || 0}</span>
             <span className="hidden sm:inline text-[var(--text-secondary)] font-normal">Day Streak</span>
           </div>
 

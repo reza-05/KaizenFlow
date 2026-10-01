@@ -240,8 +240,8 @@ export default function KaizenFlowApp() {
           {/* Consistency Heatmap */}
           <ActivityHeatmap
             activityMap={activityMap}
-            currentStreak={userProfile?.currentStreak || 1}
-            longestStreak={userProfile?.longestStreak || userProfile?.currentStreak || 42}
+            currentStreak={userProfile?.currentStreak || 0}
+            longestStreak={userProfile?.longestStreak || userProfile?.currentStreak || 0}
             totalLessonsCompleted={Object.values(progressMap).filter(Boolean).length}
           />
 
