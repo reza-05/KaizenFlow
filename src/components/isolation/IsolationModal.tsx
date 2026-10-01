@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Shield, CheckCircle2, AlertTriangle, RefreshCw, X, Download, Copy, Check, HelpCircle, ArrowRight, BookOpen } from 'lucide-react';
+import { Shield, X, ArrowRight, BookOpen } from 'lucide-react';
 import {
   setIsolationEnabled,
   subscribeToIsolation,
@@ -76,8 +76,6 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
     extensionInstalled: false,
     distractionAttempts: 0,
   });
-  const [isPinging, setIsPinging] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -94,22 +92,6 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
 
   const handleToggle = () => {
     setIsolationEnabled(!status.enabled);
-  };
-
-  const handlePingExtension = () => {
-    setIsPinging(true);
-    if (typeof window !== 'undefined') {
-      window.postMessage({ type: 'KAIZENFLOW_PING' }, '*');
-    }
-    setTimeout(() => {
-      setIsPinging(false);
-    }, 500);
-  };
-
-  const copyExtensionsUrl = () => {
-    navigator.clipboard.writeText('chrome://extensions');
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   if (!isOpen || !mounted) return null;
@@ -176,67 +158,6 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
               }`}
             />
           </button>
-        </div>
-
-        {/* Browser Extension Link Status */}
-        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] p-4 mb-4 text-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-              Browser Extension Link
-            </span>
-            <button
-              onClick={handlePingExtension}
-              disabled={isPinging}
-              className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)]"
-            >
-              <RefreshCw className={`h-3 w-3 ${isPinging ? 'animate-spin' : ''}`} />
-              <span>{isPinging ? 'Checking...' : 'Check Connection'}</span>
-            </button>
-          </div>
-
-          {status.extensionInstalled ? (
-            <div className="flex items-center gap-2.5 py-1">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 shrink-0">
-                <CheckCircle2 className="h-4 w-4" />
-              </div>
-              <div>
-                <span className="font-semibold text-[var(--text-primary)]">
-                  Extension Connected
-                </span>
-                <p className="text-[11px] text-[var(--text-secondary)]">
-                  Cross-browser tab isolation is enforced across all sessions.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-start gap-2 text-amber-800 dark:text-amber-300">
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <p className="text-xs">
-                  To block other browser tabs, load the companion extension once (takes ~30 seconds).
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
-                <a
-                  href="/downloads/kaizenflow-shield.zip"
-                  download="kaizenflow-shield.zip"
-                  className="flex-1 min-w-[170px] flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-surface)] hover:opacity-90 font-medium py-2 px-3 text-xs transition-opacity cursor-pointer shadow-xs"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  <span>Download Extension (.zip)</span>
-                </a>
-                <button
-                  onClick={copyExtensionsUrl}
-                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] text-[var(--text-primary)] px-3 py-2 text-xs transition-colors cursor-pointer"
-                >
-                  {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                  <span>{copiedLink ? 'Copied' : 'chrome://extensions'}</span>
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Targeted Sites Matrix with Real Authentic Logos */}
