@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Shield, CheckCircle2, AlertTriangle, RefreshCw, X, Download, Copy, Check, HelpCircle, ArrowRight, BookOpen } from 'lucide-react';
 import {
   setIsolationEnabled,
@@ -78,6 +79,11 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
   const [isPinging, setIsPinging] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToIsolation((newStatus) => {
@@ -106,11 +112,20 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-2xl text-[var(--text-primary)] max-h-[90vh] overflow-y-auto">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] overflow-y-auto bg-black/65 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-5 pt-16 sm:pt-20 pb-12 text-center">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-lg rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-2xl text-[var(--text-primary)] text-left my-auto"
+        >
         {/* Header */}
         <div className="flex items-start justify-between pb-4 mb-4 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-3">
@@ -302,9 +317,11 @@ export const IsolationModal: React.FC<IsolationModalProps> = ({ isOpen, onClose 
           </button>
         </div>
       </div>
-
-      {/* Visual Step-by-Step Setup Manual Modal */}
-      <SetupManualModal isOpen={isManualOpen} onClose={() => setIsManualOpen(false)} />
     </div>
-  );
+
+    {/* Visual Step-by-Step Setup Manual Modal */}
+    <SetupManualModal isOpen={isManualOpen} onClose={() => setIsManualOpen(false)} />
+  </div>,
+  document.body
+);
 };

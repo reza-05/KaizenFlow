@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Download, Copy, Check, ChevronRight, ChevronLeft, HelpCircle, ShieldCheck, FolderArchive, MousePointerClick } from 'lucide-react';
 
 interface SetupManualModalProps {
@@ -35,6 +36,11 @@ interface StepItem {
 export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onClose }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const copyUrl = () => {
     navigator.clipboard.writeText('chrome://extensions');
@@ -42,7 +48,7 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const steps: StepItem[] = [
     {
@@ -196,9 +202,18 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
     },
   ];
 
-  return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-4xl rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-7 shadow-2xl text-[var(--text-primary)] flex flex-col max-h-[90vh] overflow-hidden">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[110] overflow-y-auto bg-black/70 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-5 pt-14 sm:pt-16 pb-10 text-center">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-4xl rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-7 shadow-2xl text-[var(--text-primary)] text-left my-auto flex flex-col max-h-[92vh] overflow-hidden"
+        >
         {/* Header */}
         <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-[var(--border-subtle)] mb-3 sm:mb-4 shrink-0">
           <div className="flex items-center gap-3">
@@ -367,5 +382,7 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
         </div>
       </div>
     </div>
-  );
+  </div>,
+  document.body
+);
 };
