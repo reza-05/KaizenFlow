@@ -30,7 +30,6 @@ interface StepItem {
   desc: string;
   images?: StepImage[];
   action?: React.ReactNode;
-  note?: string;
 }
 
 export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onClose }) => {
@@ -71,7 +70,6 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           </div>
         </div>
       ),
-      note: 'Keep the extracted folder in your Downloads or Documents directory. You only select it once.',
     },
     {
       title: 'Open Extension Manager in Chrome',
@@ -131,7 +129,6 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           },
         },
       ],
-      note: 'Developer mode is a built-in Chromium feature to run local productivity tools without store dependencies.',
     },
     {
       title: 'Click "Load unpacked" & Select Folder',
@@ -163,7 +160,6 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           },
         },
       ],
-      note: 'Select the unzipped folder containing manifest.json (not the .zip archive), then confirm with "Select Folder" (Windows) or "Select" (macOS).',
     },
     {
       title: 'Setup Complete — Lifetime Protection',
@@ -198,7 +194,6 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           </p>
         </div>
       ),
-      note: 'Zero network telemetry. The extension runs 100% locally and only suspends distraction URLs when Shield is engaged.',
     },
   ];
 
@@ -335,14 +330,6 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
                   )}
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Pro Note */}
-          {steps[activeStep].note && (
-            <div className="rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] p-3 text-xs text-[var(--text-secondary)] leading-relaxed flex items-start gap-2.5">
-              <span className="text-base shrink-0">💡</span>
-              <span>{steps[activeStep].note}</span>
             </div>
           )}
         </div>
