@@ -47,15 +47,17 @@ interface MilestoneDigit {
   revealed: boolean;
 }
 
-// YouTube HTML5 Player natively supports up to 2.0x speed
+// Full speed spectrum including real 2.5x and 3.0x speed boost
 const SPEED_OPTIONS = [
   { label: '0.5x', value: 0.5 },
   { label: '0.75x', value: 0.75 },
-  { label: '1.0x Speed', value: 1.0 },
+  { label: '1.0x (Normal)', value: 1.0 },
   { label: '1.25x', value: 1.25 },
   { label: '1.5x', value: 1.5 },
   { label: '1.75x', value: 1.75 },
-  { label: '2.0x (Max)', value: 2.0 },
+  { label: '2.0x', value: 2.0 },
+  { label: '2.5x Boost', value: 2.5 },
+  { label: '3.0x Ultra Boost', value: 3.0 },
 ];
 
 const QUALITY_OPTIONS = [
@@ -252,6 +254,31 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     };
   }, [video.ytVideoId, generateMilestones]);
 
+  // Real Speed Boost (up to 3.0x):
+  // YouTube native player max rate is 2.0x. For 2.5x and 3.0x,
+  // we set native rate to 2.0x and micro-advance the difference every 1 second
+  // so the video and progress genuinely finish at 2.5x / 3.0x speed!
+  useEffect(() => {
+    if (!isPlaying || !isPlayerReady || playbackSpeed <= 2.0) return;
+
+    if (playerRef.current?.setPlaybackRate) {
+      playerRef.current.setPlaybackRate(2.0);
+    }
+
+    const boostStep = playbackSpeed - 2.0; // 0.5s for 2.5x, 1.0s for 3.0x
+    const boostInterval = setInterval(() => {
+      if (!playerRef.current || typeof playerRef.current.getCurrentTime !== 'function') return;
+      try {
+        const curr = playerRef.current.getCurrentTime();
+        if (curr && curr > 0) {
+          playerRef.current.seekTo(curr + boostStep, true);
+        }
+      } catch {}
+    }, 1000);
+
+    return () => clearInterval(boostInterval);
+  }, [isPlaying, isPlayerReady, playbackSpeed]);
+
   // Sync Current Playback Time & STRICT FORWARD-SKIP LOCK & LIVE DURATION
   useEffect(() => {
     if (!isPlayerReady) return;
@@ -272,13 +299,14 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
 
         // STRICT FORWARD-SKIP LOCK:
         // User can rewind to any previous second freely.
-        // If playhead jumps > 3 seconds ahead of legitimate maxWatchedTime, SNAP BACK!
+        // If playhead jumps > maxAllowed ahead of legitimate maxWatchedTime, SNAP BACK!
+        const maxAllowedJump = playbackSpeed >= 2.5 ? 5 : 3;
         setMaxWatchedTime(prevMax => {
           if (isLocallyVerified) {
             return Math.max(prevMax, current);
           }
 
-          if (current > prevMax + 3) {
+          if (current > prevMax + maxAllowedJump) {
             playerRef.current.seekTo(prevMax, true);
             setVerificationError('Please watch sequentially to progress. You can review earlier sections anytime.');
             setTimeout(() => setVerificationError(''), 4000);
@@ -306,7 +334,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }, 500);
 
     return () => clearInterval(syncInterval);
-  }, [isPlayerReady, milestones, isLocallyVerified, duration, generateMilestones]);
+  }, [isPlayerReady, milestones, isLocallyVerified, duration, playbackSpeed, generateMilestones]);
 
   // Focus Trap (3-second grace period when leaving tab in Lecture Mode)
   useEffect(() => {
@@ -361,7 +389,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }
   };
 
-  // Play / Pause Toggle
+  // Play / Pause Toggle directly on video click
   const togglePlay = () => {
     if (!playerRef.current) return;
     if (!hasStartedPlaying) {
@@ -406,11 +434,11 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }
   };
 
-  // Speed Handler (0.5x to 2.0x, genuinely supported by YouTube)
+  // Speed Handler (Supports full spectrum 0.5x to 3.0x Ultra Boost)
   const handleSpeedChange = (speed: number) => {
     setPlaybackSpeed(speed);
     if (playerRef.current?.setPlaybackRate) {
-      playerRef.current.setPlaybackRate(speed);
+      playerRef.current.setPlaybackRate(Math.min(2.0, speed));
     }
   };
 
@@ -542,14 +570,34 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     >
       {/* 100% PURE CINEMA VIDEO CONTAINER */}
       <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-black shadow-xl">
-        {/* Mount node for YouTube API */}
-        <div id="kizen-custom-player-iframe" className="h-full w-full pointer-events-none" />
+        {/* Mount node for YouTube API with 1.18x overscan to permanently clip out YouTube's top bar and bottom logo */}
+        <div 
+          id="kizen-custom-player-iframe" 
+          className="h-full w-full pointer-events-none transform scale-[1.18] origin-center" 
+        />
 
-        {/* Pre-Roll Cinema Cover (Completely eliminates YouTube title bar, "More videos", and YT logo before start!) */}
+        {/* Top & Bottom Sub-pixel Letterbox Guards (ensures zero bleed of YT chrome on any screen ratio) */}
+        <div className="absolute top-0 left-0 right-0 h-2 bg-black z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-black z-10 pointer-events-none" />
+
+        {/* Transparent Click Overlay to Play/Pause on Video Click - ZERO ROBOTIC TEXT */}
+        <div 
+          onClick={togglePlay} 
+          className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center select-none"
+        >
+          {/* Subtle central Play button when paused */}
+          {!isPlaying && hasStartedPlaying && (
+            <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs shadow-2xl transition-transform hover:scale-105 pointer-events-none">
+              <Play className="h-6 w-6 sm:h-7 sm:w-7 fill-white ml-1" />
+            </div>
+          )}
+        </div>
+
+        {/* Pre-Roll Cinema Cover (Before starting: pure thumbnail + central play icon - NO YOUTUBE TITLE/MORE VIDEOS!) */}
         {!hasStartedPlaying && (
           <div 
             onClick={handleStartPlayback}
-            className="absolute inset-0 z-20 cursor-pointer overflow-hidden flex flex-col justify-between p-6 sm:p-8 group/poster select-none transition-all duration-300"
+            className="absolute inset-0 z-20 cursor-pointer overflow-hidden flex flex-col justify-between p-6 sm:p-8 select-none transition-all duration-300 group/poster"
           >
             {/* High-res background image */}
             <img 
@@ -558,29 +606,24 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.ytVideoId}/hqdefault.jpg`;
               }}
               alt={video.title}
-              className="absolute inset-0 h-full w-full object-cover group-hover/poster:scale-105 transition-transform duration-700 ease-out"
+              className="absolute inset-0 h-full w-full object-cover group-hover/poster:scale-103 transition-transform duration-500 ease-out"
             />
 
             {/* Cinematic Gradient Vignette */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/70 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/60 pointer-events-none" />
 
             {/* Top Badge */}
             <div className="relative z-10 flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-semibold text-white border border-white/20">
-                <span>Lecture</span>
-                <span>&bull;</span>
                 <span>{formatTime(duration)}</span>
               </span>
             </div>
 
-            {/* Center Play Button */}
-            <div className="relative z-10 flex flex-col items-center justify-center gap-3">
+            {/* Center Pure Play Icon (NO ROBOTIC TEXT!) */}
+            <div className="relative z-10 flex items-center justify-center">
               <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white text-black shadow-2xl group-hover/poster:scale-110 transition-all duration-300">
                 <Play className="h-7 w-7 sm:h-8 sm:w-8 fill-black ml-1" />
               </div>
-              <span className="rounded-full bg-black/60 backdrop-blur-md px-4 py-1 text-xs font-semibold text-white/90 border border-white/10 tracking-wide">
-                Click to Start Lesson
-              </span>
             </div>
 
             {/* Bottom Title */}
@@ -589,25 +632,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 {video.title}
               </h2>
             </div>
-          </div>
-        )}
-
-        {/* Mid-Lecture Pause Overlay (Masks any YouTube pause clutter) */}
-        {hasStartedPlaying && !isPlaying && (
-          <div 
-            onClick={togglePlay}
-            className="absolute inset-0 z-10 cursor-pointer flex flex-col items-center justify-center bg-black/45 backdrop-blur-[2px] transition-all"
-            title="Click to Resume"
-          >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-black shadow-2xl hover:scale-110 transition-transform">
-              <Play className="h-7 w-7 fill-black ml-1" />
-            </div>
-            <span className="mt-3 rounded-full bg-black/70 backdrop-blur-md px-3.5 py-1 text-xs font-medium text-white/90 border border-white/10">
-              Resume Lesson
-            </span>
-
-            {/* Bottom Mask Bar to hide any YouTube "More videos" in bottom right */}
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
           </div>
         )}
 
@@ -805,7 +829,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               </select>
             </div>
 
-            {/* Speed Boost Selector (0.5x to 2.0x Max) */}
+            {/* Speed Boost Selector (0.5x to 3.0x Ultra Boost) */}
             <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]">
               <Sliders className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
               <select
