@@ -102,6 +102,8 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [volume, setVolume] = useState<number>(100);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [studyMode, setStudyMode] = useState<StudyMode>('lecture');
+  const [isAdShieldActive, setIsAdShieldActive] = useState<boolean>(false);
+  const wasAutoMutedByShieldRef = useRef<boolean>(false);
 
   // Focus trap state (pauses playback if user clicks outside during lecture mode)
   const [isWindowFocused, setIsWindowFocused] = useState<boolean>(true);
@@ -298,9 +300,12 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           modestbranding: 1,
           rel: 0,
           showinfo: 0,
-          iv_load_policy: 3,
+          iv_load_policy: 3,    // Removes in-video cards & annotations
           fs: 0,
-          origin: window.location.origin,
+          playsinline: 1,       // Prevents fullscreen mobile ad takeovers
+          enablejsapi: 1,
+          widget_referrer: typeof window !== 'undefined' ? window.location.origin : '',
+          origin: typeof window !== 'undefined' ? window.location.origin : '',
         },
         events: {
           onReady: (event: any) => {
@@ -392,6 +397,45 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       if (!playerRef.current || typeof playerRef.current.getCurrentTime !== 'function') return;
 
       try {
+        // Smart In-Player Ad Shield Engine:
+        let isAd = false;
+        try {
+          const videoData = playerRef.current.getVideoData?.();
+          const liveDur = Math.floor(playerRef.current.getDuration?.() || 0);
+          if (videoData && videoData.video_id && videoData.video_id !== video.ytVideoId) {
+            isAd = true;
+          } else if (liveDur > 0 && liveDur <= 45 && duration > 90) {
+            isAd = true;
+          }
+        } catch {}
+
+        if (isAd) {
+          setIsAdShieldActive(true);
+          // Auto-mute noisy commercial audio so study session remains undisturbed
+          if (!isMuted && !wasAutoMutedByShieldRef.current) {
+            wasAutoMutedByShieldRef.current = true;
+            try { playerRef.current.mute(); } catch {}
+          }
+          // Attempt micro-seek to end of ad to fast-forward
+          try {
+            const adDur = playerRef.current.getDuration?.() || 0;
+            if (adDur > 0) {
+              playerRef.current.seekTo(adDur, true);
+            }
+          } catch {}
+          return; // Freeze study metrics & milestone progress during ads
+        } else {
+          if (wasAutoMutedByShieldRef.current) {
+            wasAutoMutedByShieldRef.current = false;
+            setIsAdShieldActive(false);
+            if (!isMuted) {
+              try { playerRef.current.unMute(); } catch {}
+            }
+          } else if (isAdShieldActive) {
+            setIsAdShieldActive(false);
+          }
+        }
+
         const current = Math.floor(playerRef.current.getCurrentTime() || 0);
         setCurrentTime(current);
         currentTimeRef.current = current;
@@ -776,6 +820,14 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           id="kizen-custom-player-iframe" 
           className="h-full w-full pointer-events-none select-none [&_iframe]:pointer-events-none" 
         />
+
+        {/* Smart In-Player Ad Shield Badge */}
+        {isAdShieldActive && (
+          <div className="absolute top-4 left-4 z-30 flex items-center gap-2 rounded-xl bg-black/85 backdrop-blur-md px-3.5 py-1.5 border border-white/20 text-white shadow-2xl animate-in fade-in duration-200 pointer-events-none">
+            <VolumeX className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span className="text-[11px] font-semibold">Ad Shield Active: Audio muted until lesson resumes</span>
+          </div>
+        )}
 
         {/* Transparent Click Overlay to Play/Pause on Video Click - ZERO ROBOTIC TEXT */}
         {!isEnded && (
