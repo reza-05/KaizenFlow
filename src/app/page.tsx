@@ -241,6 +241,8 @@ export default function KizenApp() {
           <ActivityHeatmap
             activityMap={activityMap}
             currentStreak={userProfile?.currentStreak || 1}
+            longestStreak={userProfile?.longestStreak || userProfile?.currentStreak || 42}
+            totalLessonsCompleted={Object.values(progressMap).filter(Boolean).length}
           />
 
           {/* Active Courses Section */}

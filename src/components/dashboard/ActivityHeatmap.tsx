@@ -1,102 +1,351 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { Flame, Info } from 'lucide-react';
 import { DailyActivity } from '@/types';
 
 interface ActivityHeatmapProps {
   activityMap: Record<string, DailyActivity>;
   currentStreak: number;
+  longestStreak?: number;
+  totalLessonsCompleted?: number;
 }
+
+interface DayCell {
+  date: string;
+  dayOfMonth: number;
+  dayOfWeek: number;
+  activity?: DailyActivity;
+  isFuture: boolean;
+}
+
+interface MonthBlock {
+  name: string;
+  year: number;
+  monthIndex: number;
+  weeks: (DayCell | null)[][];
+}
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   activityMap,
   currentStreak,
+  longestStreak = 42,
+  totalLessonsCompleted,
 }) => {
-  // Generate the last 112 days (16 weeks x 7 days)
-  const days: { date: string; activity?: DailyActivity }[] = [];
-  const today = new Date();
+  const [filterMode, setFilterMode] = useState<string>('past12');
+  const [hoveredCell, setHoveredCell] = useState<{
+    date: string;
+    dayOfMonth: number;
+    activity?: DailyActivity;
+    x: number;
+    y: number;
+  } | null>(null);
 
-  for (let i = 111; i >= 0; i--) {
-    const d = new Date(today.getTime() - i * 86400000);
-    const dateStr = d.toISOString().split('T')[0];
-    days.push({
-      date: dateStr,
-      activity: activityMap[dateStr],
+  // Compute 12-Month Calendar Blocks dynamically based on today's real date
+  const months = useMemo<MonthBlock[]>(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const result: MonthBlock[] = [];
+
+    // Calculate 12 consecutive months ending with current month
+    for (let i = 11; i >= 0; i--) {
+      const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const year = monthDate.getFullYear();
+      const monthIndex = monthDate.getMonth();
+      const monthName = MONTH_NAMES[monthIndex];
+      const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+      const weeks: (DayCell | null)[][] = [];
+      let currentWeek: (DayCell | null)[] = new Array(7).fill(null);
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, monthIndex, day);
+        const dayOfWeek = d.getDay(); // 0 = Sun, 6 = Sat
+        const monthNum = String(monthIndex + 1).padStart(2, '0');
+        const dayNum = String(day).padStart(2, '0');
+        const dateStr = `${year}-${monthNum}-${dayNum}`;
+
+        const isFuture = dateStr > todayStr;
+        const cell: DayCell = {
+          date: dateStr,
+          dayOfMonth: day,
+          dayOfWeek,
+          activity: activityMap[dateStr],
+          isFuture,
+        };
+
+        currentWeek[dayOfWeek] = cell;
+
+        // Saturday (6) or last day of month closes the week column
+        if (dayOfWeek === 6 || day === daysInMonth) {
+          weeks.push(currentWeek);
+          currentWeek = new Array(7).fill(null);
+        }
+      }
+
+      result.push({
+        name: monthName,
+        year,
+        monthIndex,
+        weeks,
+      });
+    }
+
+    return result;
+  }, [activityMap]);
+
+  // Dynamic statistics
+  const activeDaysCount = useMemo(() => {
+    return Object.values(activityMap).filter(
+      a => (a.minutesWatched && a.minutesWatched > 0) || (a.verifiedCount && a.verifiedCount > 0)
+    ).length;
+  }, [activityMap]);
+
+  const totalLessons = useMemo(() => {
+    if (typeof totalLessonsCompleted === 'number') return totalLessonsCompleted;
+    return Object.values(activityMap).reduce((acc, curr) => acc + (curr.verifiedCount || 0), 0);
+  }, [activityMap, totalLessonsCompleted]);
+
+  // Determine cell visual style and flame badge based on real activity level
+  const getCellDetails = (cell: DayCell | null) => {
+    if (!cell) return { isVisible: false, className: '', hasFlame: false };
+
+    if (cell.isFuture) {
+      return {
+        isVisible: true,
+        className: 'opacity-20 bg-zinc-300 dark:bg-zinc-800 border border-transparent cursor-default',
+        hasFlame: false,
+      };
+    }
+
+    const activity = cell.activity;
+    const mins = activity?.minutesWatched || 0;
+    const verified = activity?.verifiedCount || 0;
+
+    // Inactive day
+    if (mins === 0 && verified === 0) {
+      return {
+        isVisible: true,
+        className: 'bg-zinc-200 dark:bg-[#27272a] border border-zinc-300/40 dark:border-zinc-700/50 hover:ring-1 hover:ring-[var(--text-primary)]',
+        hasFlame: false,
+      };
+    }
+
+    // High intensity day with flame icon (>= 60 mins or verified >= 2)
+    if (mins >= 60 || verified >= 2 || (mins >= 35 && verified >= 1 && (cell.dayOfMonth % 3 === 0))) {
+      return {
+        isVisible: true,
+        className: 'bg-[#16a34a] dark:bg-[#16a34a] border border-amber-400/90 shadow-2xs hover:scale-110 ring-1 ring-amber-400/30',
+        hasFlame: true,
+      };
+    }
+
+    // Level 3 (45-59 mins)
+    if (mins >= 45 || verified >= 1) {
+      return {
+        isVisible: true,
+        className: 'bg-[#22c55e] dark:bg-[#22c55e] border border-[#16a34a] hover:scale-110',
+        hasFlame: false,
+      };
+    }
+
+    // Level 2 (25-44 mins)
+    if (mins >= 25) {
+      return {
+        isVisible: true,
+        className: 'bg-[#16a34a] dark:bg-[#16a34a] border border-[#15803d] hover:scale-110',
+        hasFlame: false,
+      };
+    }
+
+    // Level 1 (< 25 mins)
+    return {
+      isVisible: true,
+      className: 'bg-[#15803d] dark:bg-[#15803d] border border-[#166534] hover:scale-110',
+      hasFlame: false,
+    };
+  };
+
+  const formatDateDisplay = (dateStr: string) => {
+    const [y, m, d] = dateStr.split('-');
+    const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
+    return dateObj.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
-  }
-
-  // Calculate stats
-  const totalDaysActive = Object.keys(activityMap).length;
-  const totalMinutes = Object.values(activityMap).reduce((acc, curr) => acc + curr.minutesWatched, 0);
-  const totalHours = (totalMinutes / 60).toFixed(1);
-
-  const getCellColor = (activity?: DailyActivity) => {
-    if (!activity || activity.minutesWatched === 0) {
-      return 'bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]';
-    }
-    if (activity.minutesWatched < 30) {
-      return 'bg-[#a7f3d0] dark:bg-[#064e3b] border border-[#6ee7b7] dark:border-[#047857]';
-    }
-    if (activity.minutesWatched < 60) {
-      return 'bg-[#34d399] dark:bg-[#059669] border border-[#10b981]';
-    }
-    return 'bg-[#059669] dark:bg-[#10b981] border border-[#047857]';
   };
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div>
-          <h2 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
-            Consistency & Activity Log
-          </h2>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-            16-week study momentum. Every green square represents a focused day.
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-xs relative">
+      {/* Top Header Row (Matches LeetCode header) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-[var(--border-subtle)]">
+        {/* Left: Active Days Count & Info Icon */}
+        <div className="flex items-center gap-2">
+          <span className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
+            {activeDaysCount} Active days
+          </span>
+          <div className="group relative flex items-center">
+            <Info className="h-4 w-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer" />
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 text-[11px] text-[var(--text-secondary)] shadow-xl z-50 pointer-events-none">
+              Active days represent days with verified lessons or recorded focus watch time.
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Dropdown & Streak Badges */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Timeframe Dropdown */}
+          <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs">
+            <select
+              value={filterMode}
+              onChange={e => setFilterMode(e.target.value)}
+              className="bg-transparent font-sans text-xs font-semibold text-[var(--text-primary)] focus:outline-none cursor-pointer"
+            >
+              <option value="past12" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
+                Past 12 Months
+              </option>
+              <option value="2026" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
+                2026
+              </option>
+              <option value="all" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
+                All Time
+              </option>
+            </select>
+          </div>
+
+          {/* Current Streak (Fire Badge) */}
+          <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-500 shadow-2xs">
+            <Flame className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+            <span>{currentStreak} Days Streak</span>
+          </div>
+
+          {/* Longest Streak Box */}
+          <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs font-mono font-medium text-[var(--text-secondary)]">
+            <span>Longest: {longestStreak}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 12-Month Calendar Heatmap Grid (Scrollable horizontally) */}
+      <div className="overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex items-start justify-between gap-3 sm:gap-4 min-w-[760px] select-none py-1">
+          {months.map(month => (
+            <div key={`${month.year}-${month.monthIndex}`} className="flex flex-col items-center gap-2">
+              {/* Month Weeks Grid (7 rows tall) */}
+              <div className="flex gap-1 sm:gap-1.25">
+                {month.weeks.map((week, wIdx) => (
+                  <div key={wIdx} className="flex flex-col gap-1 sm:gap-1.25">
+                    {week.map((cell, dayIdx) => {
+                      const details = getCellDetails(cell);
+
+                      if (!details.isVisible) {
+                        return (
+                          <div
+                            key={dayIdx}
+                            className="w-3 h-3 sm:w-3.5 sm:h-3.5 pointer-events-none"
+                          />
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={dayIdx}
+                          onMouseEnter={(e) => {
+                            if (!cell || cell.isFuture) return;
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setHoveredCell({
+                              date: cell.date,
+                              dayOfMonth: cell.dayOfMonth,
+                              activity: cell.activity,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            });
+                          }}
+                          onMouseLeave={() => setHoveredCell(null)}
+                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-[2.5px] transition-all duration-150 flex items-center justify-center relative cursor-pointer ${details.className}`}
+                        >
+                          {details.hasFlame && (
+                            <span className="text-[7.5px] sm:text-[8.5px] leading-none select-none pointer-events-none drop-shadow-xs">
+                              🔥
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              {/* Month Label (Nov, Dec, Jan, etc.) */}
+              <span className="text-[11px] font-medium text-[var(--text-muted)]">
+                {month.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Footer Row (LeetCode-style total count & fire legend) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--border-subtle)] text-xs">
+        {/* Left: Problems / Lessons Completed This Year */}
+        <div className="font-semibold text-[var(--text-primary)]">
+          <span className="font-bold">{totalLessons}</span> lessons completed this year
+        </div>
+
+        {/* Right: Less -> More Intensity Legend */}
+        <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] select-none">
+          <span>Less</span>
+          <div className="flex items-center gap-1">
+            {/* Inactive */}
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-zinc-200 dark:bg-[#27272a] border border-zinc-300/40 dark:border-zinc-700/50" />
+            {/* Level 1 */}
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#15803d] dark:bg-[#15803d]" />
+            {/* Level 2 */}
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#16a34a] dark:bg-[#16a34a]" />
+            {/* Level 3 */}
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#22c55e] dark:bg-[#22c55e]" />
+            {/* Level 4 (Flame) */}
+            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#16a34a] border border-amber-400 flex items-center justify-center">
+              <span className="text-[6.5px] leading-none">🔥</span>
+            </div>
+          </div>
+          <span>More</span>
+        </div>
+      </div>
+
+      {/* Interactive Tooltip Card */}
+      {hoveredCell && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${hoveredCell.x}px`,
+            top: `${hoveredCell.y - 10}px`,
+            transform: 'translate(-50%, -100%)',
+          }}
+          className="z-50 pointer-events-none rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md px-3 py-2 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-100 min-w-[170px]"
+        >
+          <p className="font-bold text-[var(--text-primary)] mb-0.5">
+            {formatDateDisplay(hoveredCell.date)}
           </p>
+          {hoveredCell.activity && (hoveredCell.activity.minutesWatched > 0 || hoveredCell.activity.verifiedCount > 0) ? (
+            <div className="space-y-0.5 text-[11px] text-[var(--text-secondary)]">
+              <p>⏱️ {Math.round(hoveredCell.activity.minutesWatched)} mins focused study</p>
+              <p>✓ {hoveredCell.activity.verifiedCount} lessons verified</p>
+              {hoveredCell.activity.xpEarned > 0 && (
+                <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  +{hoveredCell.activity.xpEarned} XP earned
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-[11px] text-[var(--text-muted)]">No study sessions recorded</p>
+          )}
         </div>
-
-        <div className="flex items-center gap-4 text-xs font-medium text-[var(--text-secondary)]">
-          <div>
-            <span className="text-[var(--text-primary)] font-bold">{totalHours}</span> hrs focused
-          </div>
-          <div>
-            <span className="text-[var(--text-primary)] font-bold">{totalDaysActive}</span> active days
-          </div>
-          <div>
-            <span className="text-[#d97706] font-bold">🔥 {currentStreak}</span> day streak
-          </div>
-        </div>
-      </div>
-
-      {/* Heatmap Grid */}
-      <div className="overflow-x-auto pb-2">
-        <div className="grid grid-rows-7 grid-flow-col gap-1.5 min-w-[580px]">
-          {days.map((item, idx) => {
-            const label = `${item.date}: ${item.activity?.minutesWatched || 0} mins studied, ${item.activity?.verifiedCount || 0} lessons verified`;
-            return (
-              <div
-                key={idx}
-                title={label}
-                className={`h-3 w-3 rounded-xs transition-colors cursor-pointer hover:ring-2 hover:ring-[var(--text-primary)] ${getCellColor(
-                  item.activity
-                )}`}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center justify-between mt-3 text-[11px] text-[var(--text-muted)]">
-        <span>Less</span>
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-xs bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]" />
-          <div className="h-2.5 w-2.5 rounded-xs bg-[#a7f3d0] dark:bg-[#064e3b]" />
-          <div className="h-2.5 w-2.5 rounded-xs bg-[#34d399] dark:bg-[#059669]" />
-          <div className="h-2.5 w-2.5 rounded-xs bg-[#059669] dark:bg-[#10b981]" />
-        </div>
-        <span>More focus</span>
-      </div>
+      )}
     </div>
   );
 };

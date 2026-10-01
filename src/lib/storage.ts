@@ -168,6 +168,13 @@ export function saveVideoPlaybackProgress(
   try {
     localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(allProgress));
   } catch {}
+
+  const newlyWatchedSec = Math.max(0, maxWatchedSeconds - (existing?.maxWatchedSeconds || 0));
+  if (newlyWatchedSec >= 15) {
+    const today = new Date().toISOString().split('T')[0];
+    const mins = Math.round((newlyWatchedSec / 60) * 10) / 10;
+    updateDailyActivity(today, mins, 0, 0);
+  }
 }
 
 export function markVideoVerified(
@@ -249,20 +256,27 @@ export function getDailyActivityMap(): Record<string, DailyActivity> {
     } catch {}
   }
 
-  // Seed sample past activity for a realistic heatmap out-of-the-box
+  // Seed sample past activity for a realistic heatmap out-of-the-box (distributed across 12 months)
   const sampleMap: Record<string, DailyActivity> = {};
   const today = new Date();
-  for (let i = 0; i < 45; i++) {
-    if (i % 3 === 0 || i % 5 === 0) {
+  for (let i = 1; i <= 340; i++) {
+    // Realistic study pattern: active roughly every 2-3 days, with intense study sprints
+    if ((i % 2 === 0 || i % 5 === 0 || (i >= 40 && i <= 85 && i % 4 !== 0)) && (i % 11 !== 0)) {
       const d = new Date(today.getTime() - i * 86400000).toISOString().split('T')[0];
+      const isHighIntensity = (i % 7 === 0 || i % 13 === 0);
       sampleMap[d] = {
         date: d,
-        minutesWatched: 35 + (i % 4) * 20,
-        verifiedCount: 1 + (i % 2),
-        xpEarned: 50 + (i % 3) * 50,
+        minutesWatched: isHighIntensity ? 65 + (i % 3) * 25 : 25 + (i % 4) * 15,
+        verifiedCount: isHighIntensity ? 2 : (i % 3 === 0 ? 1 : 0),
+        xpEarned: isHighIntensity ? 100 : (i % 3 === 0 ? 50 : 25),
       };
     }
   }
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(sampleMap));
+  } catch {}
+
   return sampleMap;
 }
 
