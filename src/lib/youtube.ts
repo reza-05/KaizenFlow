@@ -182,125 +182,46 @@ export const CURATED_STARTER_COURSES: Playlist[] = [
 
 // Parser that generates a structured Kizen course from any YouTube playlist or video URL
 export async function parseYouTubePlaylist(urlOrId: string, customName?: string): Promise<Playlist> {
-  const singleVideoId = extractVideoId(urlOrId);
-  const playlistId = extractPlaylistId(urlOrId);
+  const trimmed = urlOrId.trim();
 
-  // If a single video was provided or URL contains a video ID
-  if (singleVideoId && !playlistId) {
-    let videoTitle = customName?.trim() || '';
-    let authorName = 'YouTube Instructor';
-    let thumbnailUrl = `https://img.youtube.com/vi/${singleVideoId}/hqdefault.jpg`;
-
-    try {
-      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${singleVideoId}&format=json`);
-      if (res.ok) {
-        const data = await res.json();
-        if (!videoTitle && data.title) videoTitle = data.title;
-        if (data.author_name) authorName = data.author_name;
-        if (data.thumbnail_url) thumbnailUrl = data.thumbnail_url;
-      }
-    } catch {}
-
-    const courseTitle = videoTitle || `Course: ${singleVideoId}`;
-    const singleVideoItem: VideoItem = {
-      id: `vid_${singleVideoId}`,
-      ytVideoId: singleVideoId,
-      title: videoTitle || `Lecture: ${courseTitle}`,
-      durationSeconds: 3600, // Will be dynamically auto-calibrated by YouTube Player on load
-      durationFormatted: '1h 00m',
-      thumbnailUrl,
-    };
-
-    return {
-      id: 'pl_' + Date.now().toString(36),
-      userId: 'user_active',
-      ytPlaylistId: `pl_${singleVideoId}`,
-      customTitle: courseTitle,
-      originalTitle: `${courseTitle} (${authorName})`,
-      thumbnailUrl,
-      totalVideos: 1,
-      completedVideos: 0,
-      videos: [singleVideoItem],
-      sourceType: 'youtube_playlist',
-      lastSyncedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-    };
-  }
-
-  const effectivePlaylistId = playlistId || (singleVideoId ? `PL_${singleVideoId}` : 'PL_custom_' + Date.now().toString(36));
-
-  // Check if it matches a known curated starter
-  const matched = CURATED_STARTER_COURSES.find(c => c.ytPlaylistId === effectivePlaylistId);
-  if (matched) {
-    return {
-      ...matched,
-      id: 'pl_' + Date.now().toString(36),
-      customTitle: customName?.trim() || matched.customTitle,
-      createdAt: new Date().toISOString(),
-      lastSyncedAt: new Date().toISOString(),
-    };
-  }
-
-  // If a single video was also in playlist URL, use it as the first item
-  const initialId = singleVideoId || 'kqtD5dpn9C8';
-  let initialTitle = '01. Course Introduction & Foundations';
+  // 1. Fetch real playlist or video metadata via our server-side API route
   try {
-    const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${initialId}&format=json`);
+    const res = await fetch('/api/youtube', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: trimmed, customName }),
+    });
+
     if (res.ok) {
-      const data = await res.json();
-      if (data.title) initialTitle = data.title;
+      const course: Playlist = await res.json();
+      return course;
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      if (errData.error) {
+        throw new Error(errData.error);
+      }
     }
-  } catch {}
+  } catch (err: any) {
+    if (err.message && !err.message.includes('fetch')) {
+      throw err;
+    }
+    console.error('API route failed:', err);
+  }
 
-  const defaultVideos: VideoItem[] = [
-    {
-      id: `vid_1_${Date.now()}`,
-      ytVideoId: initialId,
-      title: initialTitle,
-      durationSeconds: 3600,
-      durationFormatted: 'Dynamic',
-      thumbnailUrl: `https://img.youtube.com/vi/${initialId}/hqdefault.jpg`,
-    },
-    {
-      id: `vid_2_${Date.now()}`,
-      ytVideoId: 'rfscVS0vtbw',
-      title: '02. Core Architecture & Deep Dive Implementation',
-      durationSeconds: 2400,
-      durationFormatted: 'Dynamic',
-      thumbnailUrl: 'https://img.youtube.com/vi/rfscVS0vtbw/hqdefault.jpg',
-    },
-    {
-      id: `vid_3_${Date.now()}`,
-      ytVideoId: 'V9wG42I5x4M',
-      title: '03. Advanced Concepts & Practical Exercises',
-      durationSeconds: 2700,
-      durationFormatted: 'Dynamic',
-      thumbnailUrl: 'https://img.youtube.com/vi/V9wG42I5x4M/hqdefault.jpg',
-    },
-    {
-      id: `vid_4_${Date.now()}`,
-      ytVideoId: 'EAR7De6Goz4',
-      title: '04. Review, Edge Cases & Mastery Assessment',
-      durationSeconds: 3000,
-      durationFormatted: 'Dynamic',
-      thumbnailUrl: 'https://img.youtube.com/vi/EAR7De6Goz4/hqdefault.jpg',
-    },
-  ];
+  // 2. Curated starter course match as local fallback
+  const playlistId = extractPlaylistId(trimmed);
+  if (playlistId) {
+    const matched = CURATED_STARTER_COURSES.find(c => c.ytPlaylistId === playlistId);
+    if (matched) {
+      return {
+        ...matched,
+        id: 'pl_' + Date.now().toString(36),
+        customTitle: customName?.trim() || matched.customTitle,
+        createdAt: new Date().toISOString(),
+        lastSyncedAt: new Date().toISOString(),
+      };
+    }
+  }
 
-  const title = customName?.trim() || initialTitle || `Course: ${effectivePlaylistId.slice(0, 14)}`;
-
-  return {
-    id: 'pl_' + Date.now().toString(36),
-    userId: 'user_active',
-    ytPlaylistId: effectivePlaylistId,
-    customTitle: title,
-    originalTitle: title,
-    thumbnailUrl: defaultVideos[0].thumbnailUrl,
-    totalVideos: defaultVideos.length,
-    completedVideos: 0,
-    videos: defaultVideos,
-    sourceType: 'youtube_playlist',
-    lastSyncedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  };
+  throw new Error('Could not find videos in this YouTube playlist or video link. Please verify the URL is public or unlisted.');
 }
