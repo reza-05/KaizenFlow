@@ -44,31 +44,32 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-sm transition-colors duration-200">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
         {/* Brand identity */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
           {onBackToDashboard ? (
             <button
               onClick={onBackToDashboard}
-              className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors"
+              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Library</span>
+              <span className="hidden xs:inline">Back to Library</span>
+              <span className="xs:hidden">Back</span>
             </button>
           ) : (
-            <Link href="/" className="flex items-baseline gap-2.5 group">
-              <span className="text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
+            <Link href="/" className="flex items-baseline gap-2 group shrink-0">
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
                 KaizenFlow
               </span>
-              <span className="hidden sm:inline-block text-xs font-medium text-[var(--text-secondary)] border-l border-[var(--border-subtle)] pl-2.5">
+              <span className="hidden md:inline-block text-xs font-medium text-[var(--text-secondary)] border-l border-[var(--border-subtle)] pl-2.5">
                 Lock In & Learn
               </span>
             </Link>
           )}
 
           {activeCourseTitle && (
-            <div className="hidden md:flex items-center gap-2 border-l border-[var(--border-subtle)] pl-4">
-              <span className="max-w-xs truncate text-xs font-semibold text-[var(--text-primary)]">
+            <div className="hidden md:flex items-center gap-2 border-l border-[var(--border-subtle)] pl-4 min-w-0">
+              <span className="max-w-[180px] lg:max-w-xs truncate text-xs font-semibold text-[var(--text-primary)]">
                 {activeCourseTitle}
               </span>
             </div>
@@ -76,25 +77,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right Action & Stats Bar */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {/* Daily Streak Counter */}
           <div
             title="Daily Study Streak"
-            className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
           >
-            <ClashFlame size={15} />
+            <ClashFlame size={14} />
             <span>{userProfile?.currentStreak || 0}</span>
-            <span className="hidden sm:inline text-[var(--text-secondary)] font-normal">Day Streak</span>
+            <span className="hidden sm:inline text-[var(--text-secondary)] font-normal text-[11px]">Streak</span>
           </div>
 
           {/* XP Badge */}
           <div
             title="Total Earned XP"
-            className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
           >
             <Award className="h-3.5 w-3.5 text-[#059669]" />
             <span>{userProfile?.totalXP || 0}</span>
-            <span className="hidden sm:inline text-[var(--text-secondary)] font-normal">XP</span>
+            <span className="hidden sm:inline text-[var(--text-secondary)] font-normal text-[11px]">XP</span>
           </div>
 
           {/* Quota Badge */}

@@ -221,8 +221,8 @@ export default function KaizenFlowApp() {
               />
             </div>
 
-            {/* Right Sidebar: Queue & Notes (4 cols on large screens) */}
-            <div className="lg:col-span-4 h-[calc(100vh-7.5rem)] sticky top-20">
+            {/* Right Sidebar: Queue & Notes (4 cols on large screens, scrollable on mobile) */}
+            <div className="lg:col-span-4 min-h-[440px] lg:min-h-0 lg:h-[calc(100vh-7.5rem)] lg:sticky top-20">
               <StudySidebar
                 playlistId={activeCourse.id}
                 videos={activeCourse.videos}

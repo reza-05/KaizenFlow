@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Download, Copy, Check, ChevronRight, ChevronLeft, HelpCircle, ShieldCheck, FolderArchive, ArrowRight, MousePointerClick } from 'lucide-react';
+import { X, Download, Copy, Check, ChevronRight, ChevronLeft, HelpCircle, ShieldCheck, FolderArchive, MousePointerClick } from 'lucide-react';
 
 interface SetupManualModalProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface TargetHighlight {
   width: string;
   height: string;
   label: string;
+  badgePlacement?: 'top' | 'bottom';
 }
 
 interface StepImage {
@@ -76,11 +77,12 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           src: '/guide/step1-menu.png',
           caption: '1. In Chrome menu, click "Extensions"',
           highlight: {
-            top: '72%',
+            top: '71%',
             left: '2%',
             width: '96%',
             height: '14%',
             label: 'Click "Extensions"',
+            badgePlacement: 'top',
           },
         },
         {
@@ -89,9 +91,10 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           highlight: {
             top: '10%',
             left: '2.5%',
-            width: '38%',
-            height: '42%',
+            width: '37%',
+            height: '38%',
             label: 'Click "Manage extensions"',
+            badgePlacement: 'top',
           },
         },
       ],
@@ -115,11 +118,12 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           src: '/guide/step3-devmode.png',
           caption: 'Toggle the "Developer mode" switch to ON (top-right corner)',
           highlight: {
-            top: '12%',
-            left: '68%',
+            top: '11%',
+            left: '67%',
             width: '30%',
-            height: '26%',
+            height: '20%',
             label: 'Turn this Switch ON',
+            badgePlacement: 'bottom',
           },
         },
       ],
@@ -135,33 +139,36 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           src: '/guide/step4-loadunpacked.png',
           caption: '1. Click the blue "Load unpacked" button (top-left)',
           highlight: {
-            top: '32%',
-            left: '2.5%',
-            width: '30%',
-            height: '24%',
+            top: '34%',
+            left: '2.8%',
+            width: '28.5%',
+            height: '21%',
             label: 'Click "Load unpacked"',
+            badgePlacement: 'bottom',
           },
         },
         {
           src: '/guide/step5-selectfolder.png',
           caption: '2. Click the unzipped "kaizenflow-shield" folder to select it',
           highlight: {
-            top: '41%',
-            left: '17.5%',
+            top: '52%',
+            left: '18%',
             width: '29%',
-            height: '25%',
+            height: '21%',
             label: 'Select "kaizenflow-shield"',
+            badgePlacement: 'bottom',
           },
         },
         {
           src: '/guide/step6-selectbtn.png',
           caption: '3. Click the blue "Select" button to complete loading',
           highlight: {
-            top: '22%',
-            left: '58%',
-            width: '34%',
-            height: '54%',
+            top: '23%',
+            left: '59%',
+            width: '31%',
+            height: '48%',
             label: 'Click "Select"',
+            badgePlacement: 'top',
           },
         },
       ],
@@ -180,11 +187,12 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           src: '/guide/step8-navbar-toggle.png',
           caption: 'Daily Use: Simply flip the Shield toggle ON/OFF in KaizenFlow’s top bar',
           highlight: {
-            top: '20%',
+            top: '12%',
             left: '5%',
             width: '90%',
-            height: '60%',
+            height: '76%',
             label: 'Shield Toggle in KaizenFlow',
+            badgePlacement: 'top',
           },
         },
       ],
@@ -206,19 +214,19 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
   ];
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-2xl text-[var(--text-primary)] flex flex-col max-h-[88vh] overflow-hidden">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-2.5 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-6 shadow-2xl text-[var(--text-primary)] flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-[var(--border-subtle)] mb-4 shrink-0">
+        <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-[var(--border-subtle)] mb-3 sm:mb-4 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-emerald-600 dark:text-emerald-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-emerald-600 dark:text-emerald-400 shrink-0">
               <HelpCircle className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)] font-sans">
+              <h2 className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-[var(--text-primary)] font-sans">
                 How to Setup KaizenFlow Shield?
               </h2>
-              <p className="text-xs text-[var(--text-secondary)]">
+              <p className="text-[11px] sm:text-xs text-[var(--text-secondary)]">
                 Step-by-step visual guide for Chrome, Brave, Edge & Chromium
               </p>
             </div>
@@ -231,13 +239,13 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
           </button>
         </div>
 
-        {/* Step Navigation Tabs */}
-        <div className="grid grid-cols-5 gap-1.5 mb-4 shrink-0">
+        {/* Step Navigation Tabs (Horizontal Scrollable on Mobile) */}
+        <div className="flex sm:grid sm:grid-cols-5 gap-1.5 mb-3 sm:mb-4 shrink-0 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {steps.map((s, idx) => (
             <button
               key={idx}
               onClick={() => setActiveStep(idx)}
-              className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+              className={`min-w-[85px] sm:min-w-0 p-2 rounded-xl text-left border transition-all cursor-pointer shrink-0 ${
                 activeStep === idx
                   ? 'bg-[var(--bg-surface)] border-[var(--border-strong)] text-[var(--text-primary)] shadow-xs ring-1 ring-[var(--border-strong)]'
                   : 'bg-[var(--bg-surface-subtle)] border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-subtle)]'
@@ -254,9 +262,9 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Step Content Box */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pr-1 scrollbar-thin">
           <div className="space-y-1">
-            <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            <div className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               {steps[activeStep].badge} OF 5
             </div>
             <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)] tracking-tight">
@@ -276,7 +284,7 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
 
           {/* Warning / Focus Notice if search bar or confusion might happen */}
           {steps[activeStep].warningNote && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300 leading-relaxed flex items-start gap-2.5">
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 sm:p-3 text-xs text-amber-800 dark:text-amber-300 leading-relaxed flex items-start gap-2.5">
               <span className="text-sm shrink-0">🎯</span>
               <span className="font-medium">{steps[activeStep].warningNote}</span>
             </div>
@@ -308,7 +316,13 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
                         }}
                         className="absolute pointer-events-none rounded-lg border-2 border-amber-500 bg-amber-500/20 ring-4 ring-amber-500/30 shadow-[0_0_24px_rgba(245,158,11,0.65)] animate-pulse"
                       >
-                        <div className="absolute -top-6 sm:-top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-amber-500 text-zinc-950 font-bold text-[9px] sm:text-[11px] px-2 py-0.5 rounded shadow-lg flex items-center gap-1">
+                        <div
+                          className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap bg-amber-500 text-zinc-950 font-bold text-[9px] sm:text-[11px] px-2 py-0.5 rounded shadow-lg flex items-center gap-1 z-30 ${
+                            img.highlight.badgePlacement === 'bottom'
+                              ? '-bottom-6 sm:-bottom-7'
+                              : '-top-6 sm:-top-7'
+                          }`}
+                        >
                           <MousePointerClick className="h-3 w-3" />
                           <span>{img.highlight.label}</span>
                         </div>
@@ -337,7 +351,7 @@ export const SetupManualModal: React.FC<SetupManualModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between pt-4 mt-3 border-t border-[var(--border-subtle)] shrink-0">
+        <div className="flex items-center justify-between pt-3 sm:pt-4 mt-2 sm:mt-3 border-t border-[var(--border-subtle)] shrink-0">
           <button
             onClick={() => setActiveStep(prev => Math.max(0, prev - 1))}
             disabled={activeStep === 0}
