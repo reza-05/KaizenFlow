@@ -48,7 +48,7 @@ export default function KizenApp() {
     const verifiedStatus: Record<string, boolean> = {};
     Object.values(allProgress).forEach(p => {
       if (p.isVerified) {
-        verifiedStatus[p.ytVideoId] = true;
+        verifiedStatus[`${p.playlistId}_${p.ytVideoId}`] = true;
       }
     });
     setProgressMap(verifiedStatus);
@@ -71,8 +71,8 @@ export default function KizenApp() {
 
   const handleOpenCourse = (course: Playlist) => {
     setActiveCourse(course);
-    // Select first unwatched video, or first video
-    const unwatched = course.videos.find(v => !progressMap[v.ytVideoId]);
+    // Select first unwatched video in this course, or first video
+    const unwatched = course.videos.find(v => !progressMap[`${course.id}_${v.ytVideoId}`]);
     setActiveVideo(unwatched || course.videos[0]);
   };
 
@@ -112,7 +112,7 @@ export default function KizenApp() {
     const { xpEarned, newStreak } = markVideoVerified(playlistId, videoId, title);
     
     // Update local verified state
-    setProgressMap(prev => ({ ...prev, [videoId]: true }));
+    setProgressMap(prev => ({ ...prev, [`${playlistId}_${videoId}`]: true }));
     
     // Update user profile in state
     if (userProfile) {
@@ -187,7 +187,7 @@ export default function KizenApp() {
               <CinemaPlayer
                 video={activeVideo}
                 playlistId={activeCourse.id}
-                isVerified={progressMap[activeVideo.ytVideoId] || false}
+                isVerified={Boolean(progressMap[`${activeCourse.id}_${activeVideo.ytVideoId}`])}
                 onVerify={handleVerifyVideo}
                 onNextVideo={handleNextVideo}
                 hasNextVideo={hasNextVideo}
@@ -198,6 +198,7 @@ export default function KizenApp() {
             {/* Right Sidebar: Queue & Notes (4 cols on large screens) */}
             <div className="lg:col-span-4 h-[calc(100vh-7.5rem)] sticky top-20">
               <StudySidebar
+                playlistId={activeCourse.id}
                 videos={activeCourse.videos}
                 currentVideoId={activeVideo.ytVideoId}
                 onSelectVideo={video => setActiveVideo(video)}

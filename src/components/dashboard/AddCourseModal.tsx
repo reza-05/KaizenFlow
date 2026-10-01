@@ -163,11 +163,11 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
           <form onSubmit={handleYouTubeSubmit} className="mt-4 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
-                YouTube Playlist Link <span className="text-red-500">*</span>
+                YouTube Video or Playlist Link <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder="https://www.youtube.com/playlist?list=PL..."
+                placeholder="https://www.youtube.com/watch?v=... or playlist link"
                 value={youtubeUrl}
                 onChange={e => setYoutubeUrl(e.target.value)}
                 required

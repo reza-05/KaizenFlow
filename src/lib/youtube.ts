@@ -180,12 +180,57 @@ export const CURATED_STARTER_COURSES: Playlist[] = [
   },
 ];
 
-// Parser that generates a structured Kizen course from any YouTube playlist URL
+// Parser that generates a structured Kizen course from any YouTube playlist or video URL
 export async function parseYouTubePlaylist(urlOrId: string, customName?: string): Promise<Playlist> {
-  const playlistId = extractPlaylistId(urlOrId) || 'PL_custom_' + Date.now().toString(36);
-  
-  // Check if it matches a known starter
-  const matched = CURATED_STARTER_COURSES.find(c => c.ytPlaylistId === playlistId);
+  const singleVideoId = extractVideoId(urlOrId);
+  const playlistId = extractPlaylistId(urlOrId);
+
+  // If a single video was provided or URL contains a video ID
+  if (singleVideoId && !playlistId) {
+    let videoTitle = customName?.trim() || '';
+    let authorName = 'YouTube Instructor';
+    let thumbnailUrl = `https://img.youtube.com/vi/${singleVideoId}/hqdefault.jpg`;
+
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${singleVideoId}&format=json`);
+      if (res.ok) {
+        const data = await res.json();
+        if (!videoTitle && data.title) videoTitle = data.title;
+        if (data.author_name) authorName = data.author_name;
+        if (data.thumbnail_url) thumbnailUrl = data.thumbnail_url;
+      }
+    } catch {}
+
+    const courseTitle = videoTitle || `Course: ${singleVideoId}`;
+    const singleVideoItem: VideoItem = {
+      id: `vid_${singleVideoId}`,
+      ytVideoId: singleVideoId,
+      title: videoTitle || `Lecture: ${courseTitle}`,
+      durationSeconds: 3600, // Will be dynamically auto-calibrated by YouTube Player on load
+      durationFormatted: '1h 00m',
+      thumbnailUrl,
+    };
+
+    return {
+      id: 'pl_' + Date.now().toString(36),
+      userId: 'user_active',
+      ytPlaylistId: `pl_${singleVideoId}`,
+      customTitle: courseTitle,
+      originalTitle: `${courseTitle} (${authorName})`,
+      thumbnailUrl,
+      totalVideos: 1,
+      completedVideos: 0,
+      videos: [singleVideoItem],
+      sourceType: 'youtube_playlist',
+      lastSyncedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  const effectivePlaylistId = playlistId || (singleVideoId ? `PL_${singleVideoId}` : 'PL_custom_' + Date.now().toString(36));
+
+  // Check if it matches a known curated starter
+  const matched = CURATED_STARTER_COURSES.find(c => c.ytPlaylistId === effectivePlaylistId);
   if (matched) {
     return {
       ...matched,
@@ -196,48 +241,58 @@ export async function parseYouTubePlaylist(urlOrId: string, customName?: string)
     };
   }
 
-  // Generate clean default items for user-provided playlist
+  // If a single video was also in playlist URL, use it as the first item
+  const initialId = singleVideoId || 'kqtD5dpn9C8';
+  let initialTitle = '01. Course Introduction & Foundations';
+  try {
+    const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${initialId}&format=json`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.title) initialTitle = data.title;
+    }
+  } catch {}
+
   const defaultVideos: VideoItem[] = [
     {
       id: `vid_1_${Date.now()}`,
-      ytVideoId: 'kqtD5dpn9C8',
-      title: '01. Course Orientation, Foundations & Overview',
-      durationSeconds: 1320,
-      durationFormatted: '22:00',
-      thumbnailUrl: 'https://img.youtube.com/vi/kqtD5dpn9C8/hqdefault.jpg',
+      ytVideoId: initialId,
+      title: initialTitle,
+      durationSeconds: 3600,
+      durationFormatted: 'Dynamic',
+      thumbnailUrl: `https://img.youtube.com/vi/${initialId}/hqdefault.jpg`,
     },
     {
       id: `vid_2_${Date.now()}`,
       ytVideoId: 'rfscVS0vtbw',
-      title: '02. Core Architecture & Environment Setup',
-      durationSeconds: 1740,
-      durationFormatted: '29:00',
+      title: '02. Core Architecture & Deep Dive Implementation',
+      durationSeconds: 2400,
+      durationFormatted: 'Dynamic',
       thumbnailUrl: 'https://img.youtube.com/vi/rfscVS0vtbw/hqdefault.jpg',
     },
     {
       id: `vid_3_${Date.now()}`,
       ytVideoId: 'V9wG42I5x4M',
-      title: '03. Primary Principles, Memory Layout & Syntax',
-      durationSeconds: 1980,
-      durationFormatted: '33:00',
+      title: '03. Advanced Concepts & Practical Exercises',
+      durationSeconds: 2700,
+      durationFormatted: 'Dynamic',
       thumbnailUrl: 'https://img.youtube.com/vi/V9wG42I5x4M/hqdefault.jpg',
     },
     {
       id: `vid_4_${Date.now()}`,
       ytVideoId: 'EAR7De6Goz4',
-      title: '04. Deep Dive: Problem Solving & Advanced Implementation',
-      durationSeconds: 2400,
-      durationFormatted: '40:00',
+      title: '04. Review, Edge Cases & Mastery Assessment',
+      durationSeconds: 3000,
+      durationFormatted: 'Dynamic',
       thumbnailUrl: 'https://img.youtube.com/vi/EAR7De6Goz4/hqdefault.jpg',
     },
   ];
 
-  const title = customName?.trim() || `Course: ${playlistId.slice(0, 14)}`;
+  const title = customName?.trim() || initialTitle || `Course: ${effectivePlaylistId.slice(0, 14)}`;
 
   return {
     id: 'pl_' + Date.now().toString(36),
     userId: 'user_active',
-    ytPlaylistId: playlistId,
+    ytPlaylistId: effectivePlaylistId,
     customTitle: title,
     originalTitle: title,
     thumbnailUrl: defaultVideos[0].thumbnailUrl,

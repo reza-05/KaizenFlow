@@ -14,6 +14,7 @@ import {
 import { VideoItem, StudyNote } from '@/types';
 
 interface StudySidebarProps {
+  playlistId: string;
   videos: VideoItem[];
   currentVideoId: string;
   onSelectVideo: (video: VideoItem) => void;
@@ -25,6 +26,7 @@ interface StudySidebarProps {
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
+  playlistId,
   videos,
   currentVideoId,
   onSelectVideo,
@@ -98,7 +100,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
         <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]">
           {videos.map((vid, idx) => {
             const isPlaying = vid.ytVideoId === currentVideoId;
-            const isVerified = verifiedMap[vid.ytVideoId] || false;
+            const isVerified = Boolean(verifiedMap[`${playlistId}_${vid.ytVideoId}`] || verifiedMap[vid.ytVideoId]);
 
             return (
               <button
