@@ -161,11 +161,10 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     }
 
     const activity = cell.activity;
-    const mins = activity?.minutesWatched || 0;
     const verified = activity?.verifiedCount || 0;
 
-    // Level 0: Blank Inactive day (0 videos verified and < 10 mins watched)
-    if (verified === 0 && mins < 10) {
+    // Level 0: 0 videos verified -> Blank Inactive day (strictly no color)
+    if (verified === 0) {
       return {
         isVisible: true,
         className: 'bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)]',
@@ -174,8 +173,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       };
     }
 
-    // Level 5: 5+ videos verified (or >= 120 mins) — Clash of Clans Roaring Flame
-    if (verified >= 5 || (verified >= 4 && mins >= 120)) {
+    // Level 5: 5+ videos verified -> Deep Forest Green + Clash of Clans Roaring Flame (NO YELLOW!)
+    if (verified >= 5) {
       return {
         isVisible: true,
         className: 'bg-[#047857] dark:bg-[#064e3b] border border-[#065f46] dark:border-[#047857] hover:scale-120 text-white shadow-xs relative overflow-visible',
@@ -184,8 +183,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       };
     }
 
-    // Level 4: 4 videos verified (or >= 90 mins) — Deep Dark Emerald
-    if (verified >= 4 || mins >= 90) {
+    // Level 4: 4 videos verified -> Deep Dark Emerald
+    if (verified === 4) {
       return {
         isVisible: true,
         className: 'bg-[#059669] dark:bg-[#064e3b] border border-[#047857] dark:border-[#059669] hover:scale-115 text-white',
@@ -194,8 +193,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       };
     }
 
-    // Level 3: 3 videos verified (or >= 60 mins) — Medium-Deep Emerald
-    if (verified >= 3 || mins >= 60) {
+    // Level 3: 3 videos verified -> Medium-Deep Emerald
+    if (verified === 3) {
       return {
         isVisible: true,
         className: 'bg-[#10b981] dark:bg-[#047857] border border-[#059669] dark:border-[#10b981] hover:scale-115 text-white',
@@ -204,8 +203,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       };
     }
 
-    // Level 2: 2 videos verified (or >= 30 mins) — Light-Medium Green
-    if (verified >= 2 || mins >= 30) {
+    // Level 2: 2 videos verified -> Light-Medium Green
+    if (verified === 2) {
       return {
         isVisible: true,
         className: 'bg-[#4ade80] dark:bg-[#059669] border border-[#22c55e] dark:border-[#10b981] hover:scale-115 text-white',
@@ -214,7 +213,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       };
     }
 
-    // Level 1: 1 video verified (or >= 10 mins) — Lightest Mint Green
+    // Level 1: 1 video verified -> Lightest Mint Green
     return {
       isVisible: true,
       className: 'bg-[#bbf7d0] dark:bg-[#064e3b] border border-[#86efac] dark:border-[#065f46] hover:scale-115 text-zinc-800 dark:text-white',
@@ -410,32 +409,32 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         <div className="flex items-center gap-1">
           {/* Level 0: 0 videos */}
           <div
-            title="Level 0: 0 videos (<10 mins)"
+            title="Level 0: 0 verified lessons"
             className="w-2.5 h-2.5 rounded-[2px] bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 1: 1 video */}
           <div
-            title="Level 1: 1 video verified"
+            title="Level 1: 1 verified lesson"
             className="w-2.5 h-2.5 rounded-[2px] bg-[#bbf7d0] dark:bg-[#064e3b] border border-[#86efac] dark:border-[#065f46] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 2: 2 videos */}
           <div
-            title="Level 2: 2 videos verified"
+            title="Level 2: 2 verified lessons"
             className="w-2.5 h-2.5 rounded-[2px] bg-[#4ade80] dark:bg-[#059669] border border-[#22c55e] dark:border-[#10b981] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 3: 3 videos */}
           <div
-            title="Level 3: 3 videos verified"
+            title="Level 3: 3 verified lessons"
             className="w-2.5 h-2.5 rounded-[2px] bg-[#10b981] dark:bg-[#047857] border border-[#059669] dark:border-[#10b981] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 4: 4 videos */}
           <div
-            title="Level 4: 4 videos verified"
+            title="Level 4: 4 verified lessons"
             className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#064e3b] border border-[#047857] dark:border-[#064e3b] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 5: 5+ videos + Clash of Clans Roaring Fire */}
           <div
-            title="Level 5: 5+ videos verified — Clash of Clans Roaring Fire 🔥"
+            title="Level 5: 5+ verified lessons — Clash of Clans Roaring Fire 🔥"
             className="w-2.5 h-2.5 rounded-[2px] bg-[#047857] dark:bg-[#064e3b] border border-[#065f46] dark:border-[#047857] flex items-center justify-center cursor-help transition-transform hover:scale-125 overflow-visible"
           >
             <ClashFlame size={9} />
@@ -458,18 +457,22 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
           <p className="font-bold text-[var(--text-primary)] mb-0.5">
             {formatDateDisplay(hoveredCell.date)}
           </p>
-          {hoveredCell.activity && (hoveredCell.activity.minutesWatched > 0 || hoveredCell.activity.verifiedCount > 0) ? (
+          {hoveredCell.activity && hoveredCell.activity.verifiedCount > 0 ? (
             <div className="space-y-0.5 text-[11px] text-[var(--text-secondary)]">
-              <p>⏱️ {Math.round(hoveredCell.activity.minutesWatched)} mins focused study</p>
-              <p>✓ {hoveredCell.activity.verifiedCount} lessons verified</p>
+              <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                ✓ {hoveredCell.activity.verifiedCount} {hoveredCell.activity.verifiedCount === 1 ? 'lesson' : 'lessons'} verified
+              </p>
+              {hoveredCell.activity.minutesWatched > 0 && (
+                <p>⏱️ {Math.round(hoveredCell.activity.minutesWatched)} mins study</p>
+              )}
               {hoveredCell.activity.xpEarned > 0 && (
-                <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                <p className="text-amber-600 dark:text-amber-400 font-medium">
                   +{hoveredCell.activity.xpEarned} XP earned
                 </p>
               )}
             </div>
           ) : (
-            <p className="text-[11px] text-[var(--text-muted)]">No study activity recorded</p>
+            <p className="text-[11px] text-[var(--text-muted)]">No verified lessons completed</p>
           )}
         </div>
       )}
