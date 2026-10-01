@@ -3,17 +3,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  CheckCircle2, 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  Volume2, 
+  VolumeX, 
+  Maximize, 
+  Minimize, 
   Lock, 
   ShieldAlert, 
   Sliders, 
   SkipForward, 
-  Clock,
-  KeyRound,
-  Eye,
-  Check
+  CheckCircle2, 
+  KeyRound, 
+  Eye, 
+  Check, 
+  Clock 
 } from 'lucide-react';
 import { VideoItem, StudyMode } from '@/types';
+
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady: () => void;
+    YT: any;
+  }
+}
 
 interface CinemaPlayerProps {
   video: VideoItem;
@@ -26,7 +40,7 @@ interface CinemaPlayerProps {
 }
 
 interface MilestoneDigit {
-  index: number; // 1, 2, 3, 4
+  index: number;
   digit: string;
   triggerSecond: number;
   revealed: boolean;
@@ -43,10 +57,22 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   hasNextVideo,
   onTimestampCapture,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+
+  const [isPlayerReady, setIsPlayerReady] = useState<boolean>(false);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(video.durationSeconds || 1200);
+  const [maxWatchedTime, setMaxWatchedTime] = useState<number>(0);
+
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [volume, setVolume] = useState<number>(100);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [studyMode, setStudyMode] = useState<StudyMode>('lecture');
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+
+  // Focus trap state
   const [isWindowFocused, setIsWindowFocused] = useState<boolean>(true);
   const [graceCounter, setGraceCounter] = useState<number>(0);
 
@@ -62,20 +88,30 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [verificationError, setVerificationError] = useState<string>('');
   const [isLocallyVerified, setIsLocallyVerified] = useState<boolean>(initialVerified);
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  // 1. Load YouTube IFrame API Script once
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-  // 1. Initialize milestone distribution across actual video duration
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+  }, []);
+
+  // 2. Initialize milestones based on actual video duration
   useEffect(() => {
     setIsLocallyVerified(initialVerified);
     setInputCode('');
     setVerificationError('');
-    setElapsedSeconds(0);
-    setIsPlaying(true);
+    setCurrentTime(0);
+    setMaxWatchedTime(0);
     setActiveFloatingToast(null);
 
-    const totalDuration = Math.max(60, video.durationSeconds || 1200);
+    const actualDuration = Math.max(60, video.durationSeconds || 1200);
+    setDuration(actualDuration);
 
-    // Generate 4 random digits
     const digits = [
       Math.floor(1 + Math.random() * 9).toString(),
       Math.floor(0 + Math.random() * 10).toString(),
@@ -83,72 +119,141 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       Math.floor(1 + Math.random() * 9).toString(),
     ];
 
-    // Distribute randomly across the 4 quarters of the video (up to 75% of duration)
-    // Quarter 1: 10% - 22%
-    // Quarter 2: 26% - 40%
-    // Quarter 3: 44% - 58%
-    // Quarter 4: 62% - 76%
-    const trigger1 = Math.max(10, Math.floor(totalDuration * (0.10 + Math.random() * 0.12)));
-    const trigger2 = Math.max(trigger1 + 15, Math.floor(totalDuration * (0.26 + Math.random() * 0.14)));
-    const trigger3 = Math.max(trigger2 + 15, Math.floor(totalDuration * (0.44 + Math.random() * 0.14)));
-    const trigger4 = Math.max(trigger3 + 15, Math.floor(totalDuration * (0.62 + Math.random() * 0.14)));
+    // Distribute across 4 milestones up to 75%
+    const trigger1 = Math.max(12, Math.floor(actualDuration * (0.12 + Math.random() * 0.10)));
+    const trigger2 = Math.max(trigger1 + 20, Math.floor(actualDuration * (0.28 + Math.random() * 0.12)));
+    const trigger3 = Math.max(trigger2 + 20, Math.floor(actualDuration * (0.45 + Math.random() * 0.12)));
+    const trigger4 = Math.max(trigger3 + 20, Math.floor(actualDuration * (0.62 + Math.random() * 0.12)));
 
-    const generatedMilestones: MilestoneDigit[] = [
+    setMilestones([
       { index: 1, digit: digits[0], triggerSecond: trigger1, revealed: false },
       { index: 2, digit: digits[1], triggerSecond: trigger2, revealed: false },
-      { index: 3, digit: digits[2], triggerSecond: trigger3, revealed: false },
+      { index: 3, digit: digits[3], triggerSecond: trigger3, revealed: false },
       { index: 4, digit: digits[3], triggerSecond: trigger4, revealed: false },
-    ];
-
-    setMilestones(generatedMilestones);
+    ]);
   }, [video.id, initialVerified, video.durationSeconds]);
 
-  // 2. Playback timer & milestone check
+  // 3. Mount or reload YT Player with controls: 0 (completely removes More Videos, Youtube logo, and red seekbar!)
   useEffect(() => {
-    if (!isPlaying || !isWindowFocused) return;
+    let checkInterval: NodeJS.Timeout;
 
-    const interval = setInterval(() => {
-      setElapsedSeconds(prev => {
-        const next = prev + 1;
+    const initPlayer = () => {
+      if (!window.YT || !window.YT.Player) return;
 
-        // Check if any milestone digit should pop up right now
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new window.YT.Player('kizen-custom-player-iframe', {
+        videoId: video.ytVideoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,          // KILLS "More Videos", YouTube Logo, and Native Red Scrubber!
+          disablekb: 1,         // KILLS native keyboard forward skipping!
+          modestbranding: 1,    // Removes YouTube branding
+          rel: 0,               // No related videos
+          showinfo: 0,          // No video title/info overlay
+          iv_load_policy: 3,    // No annotations
+          fs: 0,                // We handle custom fullscreen
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: (event: any) => {
+            setIsPlayerReady(true);
+            const d = event.target.getDuration();
+            if (d && d > 0) setDuration(d);
+            event.target.playVideo();
+            setIsPlaying(true);
+          },
+          onStateChange: (event: any) => {
+            // YT.PlayerState.PLAYING === 1, PAUSED === 2, ENDED === 0
+            if (event.data === 1) setIsPlaying(true);
+            if (event.data === 2) setIsPlaying(false);
+            if (event.data === 0) {
+              setIsPlaying(false);
+              // auto-advance if available
+            }
+          },
+        },
+      });
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+      checkInterval = setInterval(() => {
+        if (window.YT && window.YT.Player) {
+          initPlayer();
+          clearInterval(checkInterval);
+        }
+      }, 200);
+    }
+
+    return () => {
+      clearInterval(checkInterval);
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch {}
+      }
+    };
+  }, [video.ytVideoId]);
+
+  // 4. Synchronize Real Playback Time & STRICT FORWARD-SKIP LOCK
+  useEffect(() => {
+    if (!isPlayerReady) return;
+
+    const syncInterval = setInterval(() => {
+      if (!playerRef.current || typeof playerRef.current.getCurrentTime !== 'function') return;
+
+      try {
+        const current = Math.floor(playerRef.current.getCurrentTime() || 0);
+        setCurrentTime(current);
+
+        // Update maximum legitimate reached point
+        setMaxWatchedTime(prevMax => {
+          // If somehow seeking forward past maxWatchedTime + 3 seconds, SNAP BACK!
+          if (current > prevMax + 3 && !isLocallyVerified) {
+            playerRef.current.seekTo(prevMax, true);
+            return prevMax;
+          }
+          return Math.max(prevMax, current);
+        });
+
+        // Check Milestone Triggers
         milestones.forEach(m => {
-          if (next === m.triggerSecond && !m.revealed) {
-            // Mark milestone as revealed
+          if (current >= m.triggerSecond && !m.revealed) {
             m.revealed = true;
             setActiveFloatingToast({
               index: m.index,
               digit: m.digit,
-              timeLeft: 18, // show for 18 seconds
+              timeLeft: 18,
             });
           }
         });
+      } catch {}
+    }, 500);
 
-        return next;
-      });
-    }, 1000 / playbackSpeed);
+    return () => clearInterval(syncInterval);
+  }, [isPlayerReady, milestones, isLocallyVerified]);
 
-    return () => clearInterval(interval);
-  }, [isPlaying, isWindowFocused, milestones, playbackSpeed]);
-
-  // 3. Floating Toast Countdown timer
+  // 5. Floating Toast Countdown
   useEffect(() => {
     if (!activeFloatingToast) return;
-
-    const toastInterval = setInterval(() => {
+    const interval = setInterval(() => {
       setActiveFloatingToast(prev => {
         if (!prev || prev.timeLeft <= 1) {
-          clearInterval(toastInterval);
+          clearInterval(interval);
           return null;
         }
         return { ...prev, timeLeft: prev.timeLeft - 1 };
       });
     }, 1000);
-
-    return () => clearInterval(toastInterval);
+    return () => clearInterval(interval);
   }, [activeFloatingToast]);
 
-  // 4. In-House Window Blur & Focus Trap (with 3-second grace period)
+  // 6. In-House Window Blur & Focus Trap (3-second grace period)
   useEffect(() => {
     if (studyMode === 'studio') {
       setIsWindowFocused(true);
@@ -163,6 +268,9 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         setGraceCounter(prev => {
           if (prev <= 1) {
             setIsWindowFocused(false);
+            if (playerRef.current?.pauseVideo) {
+              playerRef.current.pauseVideo();
+            }
             clearInterval(graceTimer);
             return 0;
           }
@@ -187,26 +295,90 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     };
   }, [studyMode]);
 
-  // Real 80% duration calculations
-  const totalDuration = Math.max(60, video.durationSeconds || 1200);
-  const requiredSeconds = Math.round(totalDuration * 0.8);
-  const watchPercent = Math.min(100, Math.round((elapsedSeconds / totalDuration) * 100));
-  const isGateUnlocked = elapsedSeconds >= requiredSeconds || isLocallyVerified;
+  // Playback Control Handlers
+  const togglePlay = () => {
+    if (!playerRef.current) return;
+    if (isPlaying) {
+      playerRef.current.pauseVideo();
+      setIsPlaying(false);
+    } else {
+      playerRef.current.playVideo();
+      setIsPlaying(true);
+    }
+  };
 
-  // The full 4-digit code composed from the 4 milestones
+  const handleRewind10 = () => {
+    if (!playerRef.current) return;
+    const target = Math.max(0, currentTime - 10);
+    playerRef.current.seekTo(target, true);
+    setCurrentTime(target);
+  };
+
+  // Custom Scrubber Click: ALLOWS REWINDING TO ANY PAST POINT, BUT PREVENTS FAST-FORWARDING!
+  const handleScrubberClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!playerRef.current || duration <= 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const targetTime = Math.floor(clickRatio * duration);
+
+    // If verified, can seek anywhere. If learning, CANNOT seek past maxWatchedTime!
+    if (targetTime <= maxWatchedTime || isLocallyVerified) {
+      playerRef.current.seekTo(targetTime, true);
+      setCurrentTime(targetTime);
+    } else {
+      // Trying to skip ahead! Snap to max watched time and show warning
+      playerRef.current.seekTo(maxWatchedTime, true);
+      setCurrentTime(maxWatchedTime);
+      setVerificationError('Fast-forward locked. You can rewind to review, but must watch sequentially.');
+      setTimeout(() => setVerificationError(''), 4000);
+    }
+  };
+
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    if (playerRef.current?.setPlaybackRate) {
+      playerRef.current.setPlaybackRate(speed);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!playerRef.current) return;
+    if (isMuted) {
+      playerRef.current.unMute();
+      setIsMuted(false);
+    } else {
+      playerRef.current.mute();
+      setIsMuted(true);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen?.();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.();
+      setIsFullscreen(false);
+    }
+  };
+
+  // Watch-Time 80% Calculations
+  const requiredSeconds = Math.round(duration * 0.8);
+  const watchPercent = Math.min(100, Math.round((maxWatchedTime / duration) * 100));
+  const isGateUnlocked = maxWatchedTime >= requiredSeconds || isLocallyVerified;
+
   const fullExpectedCode = milestones.map(m => m.digit).join('');
 
   const handleVerifySubmission = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!isGateUnlocked) {
       setVerificationError(
-        `Watch-time gate locked. You have watched ${Math.floor(elapsedSeconds / 60)}m. You must watch at least ${Math.floor(requiredSeconds / 60)}m (80%) of this video to unlock.`
+        `Watch-time gate locked. Watched: ${Math.floor(maxWatchedTime / 60)}m. Must complete at least ${Math.floor(requiredSeconds / 60)}m (80%) of this lesson.`
       );
       return;
     }
 
-    // Verify full collected 4-digit code (or master emergency test bypass '8888')
     if (inputCode.trim() === fullExpectedCode || inputCode.trim() === '8888') {
       setIsLocallyVerified(true);
       setVerificationError('');
@@ -214,45 +386,33 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
 
       try {
         confetti({
-          particleCount: 75,
+          particleCount: 80,
           spread: 70,
           origin: { y: 0.75 },
           colors: ['#059669', '#10b981', '#34d399', '#f59e0b'],
         });
       } catch {}
     } else {
-      setVerificationError('Incorrect verification sequence. Enter the exact 4 digits collected across the video milestones.');
+      setVerificationError('Incorrect verification code. Please enter the 4 digits observed across the video milestones.');
     }
   };
 
-  const captureCurrentTime = () => {
-    if (onTimestampCapture) {
-      onTimestampCapture(elapsedSeconds);
-    }
-  };
-
-  const formatSecs = (s: number) => {
-    const mins = Math.floor(s / 60);
-    const secs = s % 60;
-    return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return (
     <div ref={containerRef} className="flex flex-col gap-4 w-full">
-      {/* Cinema Frame */}
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-black shadow-lg">
-        {/* YouTube IFrame */}
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${video.ytVideoId}?autoplay=1&controls=1&modestbranding=1&rel=0&iv_load_policy=3&disablekb=0`}
-          title={video.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-          className="h-full w-full border-0"
-        />
+      {/* 100% PURE CINEMA VIDEO CONTAINER (ZERO YOUTUBE OVERLAYS, NO MORE VIDEOS) */}
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-black shadow-xl group">
+        {/* Mount node for YouTube API */}
+        <div id="kizen-custom-player-iframe" className="h-full w-full pointer-events-none" />
 
-        {/* Dynamic Floating Toast for specific Milestone Digit */}
+        {/* Floating Attention Milestone Toast (18s window) */}
         {activeFloatingToast && !isLocallyVerified && (
-          <div className="absolute top-6 right-6 z-20 animate-float rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md p-4 shadow-2xl transition-all duration-300 min-w-[240px]">
+          <div className="absolute top-6 right-6 z-30 animate-float rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md p-4 shadow-2xl transition-all duration-300 min-w-[240px]">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-2">
               <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#d97706]">
                 <KeyRound className="h-3.5 w-3.5" />
@@ -274,34 +434,103 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                   Digit #{activeFloatingToast.index} Collected!
                 </p>
                 <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                  Remember this digit for the 4-digit final verification.
+                  Keep this digit in mind for the final 4-digit code.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Focus Trap Alert Overlay (Triggers when user leaves tab in Lecture Mode) */}
+        {/* Focus Trap Screen (When leaving tab in Lecture Mode) */}
         {!isWindowFocused && studyMode === 'lecture' && (
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md p-6 text-center text-white">
+          <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 text-red-400 mb-3 border border-red-500/30">
               <ShieldAlert className="h-7 w-7" />
             </div>
             <h3 className="text-lg font-bold text-white">Focus Session Paused</h3>
             <p className="text-xs text-zinc-300 max-w-sm mt-1">
-              You clicked outside the Kizen window. Return here to continue accumulating watch-time and collecting your verification digits.
+              You clicked outside the Kizen window. Return here to resume video playback and collect your attention milestones.
             </p>
             <button
-              onClick={() => setIsWindowFocused(true)}
+              onClick={() => {
+                setIsWindowFocused(true);
+                playerRef.current?.playVideo?.();
+              }}
               className="mt-4 rounded-md bg-white px-4 py-1.5 text-xs font-semibold text-black hover:bg-zinc-200 transition-colors cursor-pointer"
             >
               Resume Focus
             </button>
           </div>
         )}
+
+        {/* OUR OWN CUSTOM BOTTOM CONTROL BAR (ZERO YOUTUBE BRANDING / ZERO MORE VIDEOS) */}
+        <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
+          {/* Custom Anti-Skip Scrubber Bar */}
+          <div
+            onClick={handleScrubberClick}
+            className="relative h-2 w-full rounded-full bg-white/20 cursor-pointer overflow-hidden mb-3"
+            title="Fast-forward is locked. You can rewind anytime."
+          >
+            {/* Max watched buffer line (shows maximum legit reached progress) */}
+            <div
+              className="absolute top-0 bottom-0 left-0 bg-white/30"
+              style={{ width: `${(maxWatchedTime / duration) * 100}%` }}
+            />
+            {/* Current playback position line */}
+            <div
+              className="absolute top-0 bottom-0 left-0 bg-[#059669]"
+              style={{ width: `${(currentTime / duration) * 100}%` }}
+            />
+          </div>
+
+          {/* Player Action Buttons */}
+          <div className="flex items-center justify-between text-white text-xs">
+            <div className="flex items-center gap-3">
+              {/* Play / Pause */}
+              <button
+                onClick={togglePlay}
+                className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/20 transition-colors"
+              >
+                {isPlaying ? <Pause className="h-4 w-4 fill-white" /> : <Play className="h-4 w-4 fill-white ml-0.5" />}
+              </button>
+
+              {/* Rewind 10s */}
+              <button
+                onClick={handleRewind10}
+                title="Rewind 10 seconds"
+                className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/20 transition-colors"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
+
+              {/* Volume / Mute */}
+              <button
+                onClick={toggleMute}
+                className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/20 transition-colors"
+              >
+                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </button>
+
+              {/* Time display */}
+              <span className="font-mono text-[11px] text-zinc-300">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Fullscreen */}
+              <button
+                onClick={toggleFullscreen}
+                className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/20 transition-colors"
+              >
+                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Primary Video Metadata & Controls */}
+      {/* Video Details Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
         <div>
           <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
@@ -311,26 +540,26 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             <span>Duration: {video.durationFormatted}</span>
             <span>&bull;</span>
             <span className="font-mono text-[var(--text-primary)] font-semibold">
-              Watched: {formatSecs(elapsedSeconds)} / Required: {formatSecs(requiredSeconds)} (80%)
+              Watched: {formatTime(maxWatchedTime)} / Required: {formatTime(requiredSeconds)} (80%)
             </span>
             <span>&bull;</span>
             <button
-              onClick={captureCurrentTime}
-              className="text-[var(--text-primary)] hover:underline font-medium"
+              onClick={() => onTimestampCapture?.(currentTime)}
+              className="text-[var(--text-primary)] hover:underline font-medium cursor-pointer"
             >
               + Note Timestamp
             </button>
           </div>
         </div>
 
-        {/* Action Controls & Mode */}
+        {/* Speed & Mode Selectors */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Speed Selector (0.5x to 3.0x, Default 1.0x) */}
+          {/* Custom Speed Slider (0.5x to 3.0x, Default 1.0x) */}
           <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]">
             <Sliders className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
             <select
               value={playbackSpeed}
-              onChange={e => setPlaybackSpeed(Number(e.target.value))}
+              onChange={e => handleSpeedChange(Number(e.target.value))}
               className="bg-transparent font-mono text-xs font-semibold focus:outline-none cursor-pointer"
             >
               {SPEED_OPTIONS.map(speed => (
@@ -345,7 +574,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] p-0.5 text-xs font-medium">
             <button
               onClick={() => setStudyMode('lecture')}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
+              className={`rounded-md px-2.5 py-1 transition-colors cursor-pointer ${
                 studyMode === 'lecture'
                   ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-semibold'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -355,7 +584,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             </button>
             <button
               onClick={() => setStudyMode('studio')}
-              className={`rounded-md px-2.5 py-1 transition-colors ${
+              className={`rounded-md px-2.5 py-1 transition-colors cursor-pointer ${
                 studyMode === 'studio'
                   ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-semibold'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -369,7 +598,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           {hasNextVideo && onNextVideo && (
             <button
               onClick={onNextVideo}
-              className="flex items-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3 py-1.5 text-xs font-semibold hover:opacity-90 transition-opacity"
+              className="flex items-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3 py-1.5 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
             >
               <span>Next Lesson</span>
               <SkipForward className="h-3.5 w-3.5" />
@@ -389,18 +618,18 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               </h3>
             </div>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              Digits float across random points during playback. Collect all 4 digits to unlock verification.
+              Digits float across unpredictable points during video playback. Collect all 4 digits to unlock verification.
             </p>
           </div>
 
           {/* 4 Milestone Indicator Pills */}
           <div className="flex items-center gap-2">
             {milestones.map(m => {
-              const hasTriggered = elapsedSeconds >= m.triggerSecond;
+              const hasTriggered = currentTime >= m.triggerSecond;
               return (
                 <div
                   key={m.index}
-                  title={`Milestone ${m.index}: appears around ${formatSecs(m.triggerSecond)}`}
+                  title={`Milestone ${m.index}: appears around ${formatTime(m.triggerSecond)}`}
                   className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-mono font-bold transition-all ${
                     hasTriggered
                       ? 'border-[#059669] bg-[#059669]/10 text-[#059669]'
@@ -434,7 +663,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                   ? 'Lesson Verified (+50 XP awarded)' 
                   : isGateUnlocked 
                   ? 'Watch Gate Unlocked! Enter the 4 collected digits:' 
-                  : `Locked: Watch ${formatSecs(requiredSeconds - elapsedSeconds)} more to unlock verification`}
+                  : `Locked: Watch ${formatTime(Math.max(0, requiredSeconds - maxWatchedTime))} more to unlock verification`}
               </span>
             </div>
           </div>
@@ -482,11 +711,11 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </p>
         )}
 
-        {/* Overall Watch Progress Bar */}
+        {/* Anti-Cheat Watch Progress Indicator */}
         <div className="mt-3">
           <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono mb-1">
-            <span>Watch Progress: {watchPercent}%</span>
-            <span>Target: 80%</span>
+            <span>Legitimate Watch Progress: {watchPercent}%</span>
+            <span>Target Gate: 80%</span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-surface-subtle)]">
             <div
