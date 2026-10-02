@@ -248,6 +248,13 @@ export function saveVideoPlaybackProgress(
   } catch {}
 }
 
+export function saveAllVideoProgress(allProgress: Record<string, VideoProgress>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(allProgress));
+  } catch {}
+}
+
 export function markVideoVerified(
   playlistId: string,
   ytVideoId: string,
@@ -359,6 +366,13 @@ export function updateDailyActivity(date: string, minutes: number, verified: num
   };
 
   localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(current));
+}
+
+export function saveDailyActivityMap(map: Record<string, DailyActivity>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(map));
+  } catch {}
 }
 
 // Notes Storage

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Award, BookOpen, Sun, Moon, ArrowLeft, Trophy } from 'lucide-react';
+import { Award, BookOpen, Sun, Moon, ArrowLeft, Trophy, LogIn, LogOut, Check, RefreshCw, User } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { ClashFlame } from '@/components/ui/ClashFlame';
 import { IsolationToggle } from '@/components/isolation/IsolationToggle';
 import { calculateLevelFromXP } from '@/lib/rewards';
+import { useAuth } from '@/context/AuthContext';
 
 interface NavbarProps {
   userProfile?: UserProfile;
@@ -23,7 +24,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenRewardsHub,
   isRewardsPage = false,
 }) => {
+  const { user, signOut, syncStatus, syncNow, userProfile: authProfile } = useAuth();
+  const currentProfile = userProfile || authProfile;
+
   const [isDark, setIsDark] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check initial theme from document class
@@ -32,6 +38,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       setIsDark(isDarkMode);
     }
   }, []);
+
+  // Close menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
 
   const toggleTheme = () => {
     if (typeof window === 'undefined') return;
@@ -47,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const levelInfo = calculateLevelFromXP(userProfile?.totalXP || 0);
+  const levelInfo = calculateLevelFromXP(currentProfile?.totalXP || 0);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-sm transition-colors duration-200">
@@ -142,14 +161,102 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Isolation Mode Distraction Shield Toggle */}
           <IsolationToggle />
 
-          {/* Theme Switcher (No AI Cliché, pure clean icon) */}
+          {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
+
+          {/* User Profile / Auth Button */}
+          {user ? (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                title={user.email || 'User Account'}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              >
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.displayName || 'Avatar'}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span>
+                    {(user.displayName || user.email || 'S')[0].toUpperCase()}
+                  </span>
+                )}
+              </button>
+
+              {/* User Dropdown Menu */}
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                  {/* User info */}
+                  <div className="pb-2.5 mb-2.5 border-b border-[var(--border-subtle)]">
+                    <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                      {user.displayName || 'Scholar'}
+                    </p>
+                    <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                      {user.email}
+                    </p>
+
+                    {/* Sync Status Badge */}
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium">
+                        {syncStatus === 'syncing' ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 animate-spin text-amber-500" />
+                            <span className="text-amber-500">Syncing...</span>
+                          </>
+                        ) : syncStatus === 'synced' ? (
+                          <>
+                            <Check className="h-3 w-3 text-emerald-500" />
+                            <span className="text-emerald-500 font-semibold">Cloud Synced</span>
+                          </>
+                        ) : syncStatus === 'error' ? (
+                          <span className="text-rose-500">Sync Error</span>
+                        ) : (
+                          <span className="text-[var(--text-muted)]">Offline Cache</span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={syncNow}
+                        disabled={syncStatus === 'syncing'}
+                        title="Force sync local data with cloud"
+                        className="text-[10px] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer hover:underline disabled:opacity-50"
+                      >
+                        Sync Now
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sign Out */}
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      signOut();
+                    }}
+                    className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer shadow-2xs"
+            >
+              <LogIn className="h-3.5 w-3.5 text-emerald-500" />
+              <span className="hidden xs:inline">Sign In</span>
+            </Link>
+          )}
         </div>
       </div>
     </header>
