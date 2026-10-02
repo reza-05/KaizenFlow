@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Award, Download, FileText, X, CheckCircle2, Sparkles, User, Flame, Clock, Trophy } from 'lucide-react';
+import { Award, Download, FileText, X, CheckCircle2, User, Flame, Clock, Trophy, Target, Lock } from 'lucide-react';
 import { Playlist, UserProfile, EvaluatedBadge } from '@/types';
 import { exportBadgeToPNG, exportBadgeToPDF } from '@/lib/pdfExport';
 import { BadgeEmblem } from '@/components/rewards/BadgeEmblem';
@@ -38,19 +38,27 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ? badge.title 
     : (course?.customTitle || course?.originalTitle || 'Mastery Curriculum');
 
-  const mainCategoryLabel = badge
-    ? badge.category === 'watchtime'
-      ? 'DEEP WORK WATCHTIME MILESTONE'
-      : badge.category === 'streak'
-      ? 'DAILY CONSISTENCY & STREAK MILESTONE'
-      : 'ACADEMIC COURSE MASTERY'
-    : 'COURSE COMPLETION & MASTERY';
+  const getRequirementText = (): string => {
+    if (badge) {
+      switch (badge.category) {
+        case 'watchtime':
+          return `Requires ${badge.targetValue} cumulative hours of verified lecture study time.`;
+        case 'streak':
+          return `Requires an unbroken daily study streak of ${badge.targetValue} consecutive days.`;
+        case 'course':
+          return `Requires completing and conquering ${badge.targetValue} full course curriculums.`;
+        case 'discipline':
+          return `Requires completing ${badge.targetValue} lessons in distraction-free focus mode.`;
+        case 'scholarship':
+          return `Requires writing and saving ${badge.targetValue} timestamped study notes.`;
+        default:
+          return badge.description;
+      }
+    }
+    return `Requires 100% completion of all ${course?.totalVideos || 1} video lessons in this course.`;
+  };
 
-  const verificationHash = badge
-    ? `KF-BADGE-${badge.id.toUpperCase()}-${new Date().getFullYear()}`
-    : course
-    ? `KF-${Math.abs(course.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) * 89).toString(16).toUpperCase()}-${new Date().getFullYear()}`
-    : 'KF-VERIFIED-2026';
+  const requirementText = getRequirementText();
 
   const issueDateFormatted = new Date().toLocaleDateString(undefined, {
     year: 'numeric',
@@ -128,19 +136,19 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
       ctx.stroke();
     });
 
-    // 4. Header: KaizenFlow Crest
+    // 4. Header: KaizenFlow
     ctx.textAlign = 'center';
     ctx.fillStyle = '#10b981';
     ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '6px';
-    ctx.fillText('KAIZENFLOW ACADEMIC DISCIPLINE & FOCUS ENVIRONMENT', W / 2, 190);
+    ctx.fillText('KAIZENFLOW ACADEMIC DISCIPLINE', W / 2, 190);
 
     // Main Certificate Header
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 84px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, serif';
     ctx.letterSpacing = '3px';
     ctx.fillText(
-      isMilestoneBadge ? 'OFFICIAL MILESTONE CERTIFICATE' : 'CERTIFICATE OF COMPLETION',
+      isMilestoneBadge ? 'CERTIFICATE OF ACHIEVEMENT' : 'CERTIFICATE OF COMPLETION',
       W / 2,
       290
     );
@@ -149,7 +157,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fillStyle = '#94a3b8';
     ctx.font = '500 30px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '2px';
-    ctx.fillText('THIS OFFICIALLY CERTIFIES THAT THE SCHOLAR', W / 2, 360);
+    ctx.fillText('THIS CERTIFICATE IS PROUDLY PRESENTED TO', W / 2, 360);
 
     // 5. Recipient Name
     ctx.fillStyle = '#f8fafc';
@@ -172,8 +180,8 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.font = '28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
     const descText = badge
-      ? badge.description.toUpperCase()
-      : 'HAS DEMONSTRATED DEEP MASTERY AND SUCCESSFULLY VERIFIED EVERY LESSON IN';
+      ? 'FOR DEMONSTRATING ACADEMIC DEVOTION AND FULFILLING THE CRITERIA FOR'
+      : 'FOR DEMONSTRATING DEEP DISCIPLINE AND COMPLETING ALL LESSONS IN';
     ctx.fillText(descText, W / 2, 570);
 
     // Course Title or Badge Title
@@ -185,14 +193,16 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     }
     ctx.fillText(activeTitle, W / 2, 650);
 
-    // Verification Stats Pill
+    // Award Condition Pill on Certificate
     const pillText = badge
       ? badge.category === 'watchtime'
-        ? `VERIFIED DEEP WORK  •  ${badge.targetValue} HOURS COMPLETED`
+        ? `AWARD CRITERIA MET  •  ${badge.targetValue} HOURS STUDY COMPLETED`
         : badge.category === 'streak'
-        ? `UNBROKEN FOCUS  •  ${badge.targetValue} CONSECUTIVE DAYS`
-        : `100% VERIFIED  •  ${badge.targetValue} COURSES MASTERED`
-      : `100% VERIFIED  •  ALL ${course?.totalVideos || 1} LESSONS COMPLETED`;
+        ? `AWARD CRITERIA MET  •  ${badge.targetValue} CONSECUTIVE DAYS`
+        : badge.category === 'course'
+        ? `AWARD CRITERIA MET  •  ${badge.targetValue} COURSES CONQUERED`
+        : `AWARD CRITERIA MET  •  ${badge.targetValue} ${badge.unit.toUpperCase()} COMPLETED`
+      : `AWARD CRITERIA MET  •  ALL ${course?.totalVideos || 1} LESSONS FINISHED`;
 
     ctx.fillStyle = '#0f172a';
     ctx.strokeStyle = '#10b981';
@@ -260,8 +270,8 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fillStyle = '#fef3c7';
     ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '3px';
-    ctx.fillText(isMilestoneBadge ? 'VERIFIED MILESTONE' : 'VERIFIED MASTERY', sealCenterX, sealCenterY + 54);
-    ctx.fillText('KAIZENFLOW', sealCenterX, sealCenterY - 36);
+    ctx.fillText('HONOR & DISCIPLINE', sealCenterX, sealCenterY + 54);
+    ctx.fillText('KAIZEN SCHOLAR', sealCenterX, sealCenterY - 36);
 
     // Ribbon tails below seal
     ctx.fillStyle = '#b45309';
@@ -283,12 +293,12 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.closePath();
     ctx.fill();
 
-    // 8. Footer Metadata & Verification Details
+    // 8. Footer Metadata & Criteria Details
     ctx.textAlign = 'left';
     ctx.fillStyle = '#64748b';
     ctx.font = '22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
-    ctx.fillText('ACHIEVEMENT DATE', 160, 1300);
+    ctx.fillText('DATE ISSUED', 160, 1300);
     ctx.fillStyle = '#e2e8f0';
     ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(issueDateFormatted, 160, 1340);
@@ -297,19 +307,22 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fillStyle = '#64748b';
     ctx.font = '22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
-    ctx.fillText('VERIFICATION CODE', W - 160, 1300);
+    ctx.fillText('AWARD CRITERIA', W - 160, 1300);
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 28px "Courier New", Courier, monospace';
-    ctx.letterSpacing = '2px';
-    ctx.fillText(verificationHash, W - 160, 1340);
+    ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.letterSpacing = '1px';
+    const criteriaValue = badge 
+      ? `${badge.targetValue} ${badge.unit.toUpperCase()} COMPLETED` 
+      : '100% SYLLABUS FINISHED';
+    ctx.fillText(criteriaValue, W - 160, 1340);
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#475569';
     ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '2px';
-    ctx.fillText('DISTRACTION-FREE AUTONOMOUS LEARNING PLATFORM  •  STUDENT INTEGRITY SEAL', W / 2, 1400);
+    ctx.fillText('KAIZENFLOW  •  CONTINUOUS IMPROVEMENT THROUGH DISCIPLINED STUDY', W / 2, 1400);
 
-  }, [course, badge, activeTitle, recipientName, issueDateFormatted, verificationHash, isMilestoneBadge]);
+  }, [course, badge, activeTitle, recipientName, issueDateFormatted, isMilestoneBadge]);
 
   useEffect(() => {
     if (isOpen) {
@@ -349,7 +362,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-3">
             {badge ? (
-              <BadgeEmblem badgeId={badge.id} isUnlocked={true} size={48} className="shrink-0" />
+              <BadgeEmblem badgeId={badge.id} isUnlocked={badge.isUnlocked} size={48} className="shrink-0" />
             ) : (
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 shrink-0">
                 <Award className="h-5 w-5 text-amber-500" />
@@ -358,15 +371,29 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-[var(--text-primary)] tracking-tight">
-                  {badge ? `${badge.title} — Official Badge` : 'Course Completion Badge & Certificate'}
+                  {badge ? badge.title : (course?.customTitle || course?.originalTitle || 'Course Certificate')}
                 </h3>
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <Sparkles className="h-3 w-3" />
-                  Verified
-                </span>
+                {badge ? (
+                  badge.isUnlocked ? (
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Condition Met
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 rounded-full bg-[var(--bg-surface-subtle)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+                      <Lock className="h-3 w-3" />
+                      Incomplete (Preview)
+                    </span>
+                  )
+                ) : (
+                  <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Course Completed
+                  </span>
+                )}
               </div>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                {mainCategoryLabel} • Official proof of academic achievement.
+                {badge ? badge.description : 'Official certificate awarded for completing all syllabus lectures.'}
               </p>
             </div>
           </div>
@@ -379,8 +406,30 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
           </button>
         </div>
 
+        {/* Award Condition / Requirement Card (শর্তাবলি) */}
+        <div className="mt-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] p-3 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-start sm:items-center gap-2">
+              <Target className="h-4 w-4 text-amber-500 shrink-0 mt-0.5 sm:mt-0" />
+              <div>
+                <span className="font-semibold text-[var(--text-primary)]">Award Condition: </span>
+                <span className="text-[var(--text-secondary)]">{requirementText}</span>
+              </div>
+            </div>
+
+            {badge && (
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 font-mono text-[11px]">
+                <span className="text-[var(--text-secondary)]">Your Progress:</span>
+                <span className={`font-bold ${badge.isUnlocked ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-primary)]'}`}>
+                  {badge.currentValue} / {badge.targetValue} {badge.unit} ({badge.progressPercent}%)
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Scholar Name Customizer */}
-        <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] p-3">
+        <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] p-3">
           <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
             <User className="h-4 w-4 text-[var(--text-muted)]" />
             <span className="font-medium">Certificate Recipient Name:</span>
@@ -409,8 +458,17 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
         {/* Footer Actions */}
         <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-            <CheckCircle2 className="h-4 w-4 text-[#059669]" />
-            <span>Cryptographically sealed: <code className="text-[var(--text-primary)] font-mono font-medium">{verificationHash}</code></span>
+            {badge?.isUnlocked || course ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span>Condition satisfied. Certificate ready for export.</span>
+              </>
+            ) : (
+              <>
+                <Lock className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
+                <span>Preview mode. Complete the condition to earn this badge.</span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">

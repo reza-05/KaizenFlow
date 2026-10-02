@@ -91,13 +91,13 @@ export default function RewardsPage() {
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)]">
               <Trophy className="h-4 w-4 text-amber-500" />
-              <span>ACADEMIC REPUTATION & DISCIPLINE</span>
+              <span>STUDY MILESTONES & ACHIEVEMENTS</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mt-1">
               Levels & Milestone Badges
             </h1>
             <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-2xl leading-relaxed">
-              Genuine proof of focus and consistency. Unlocked strictly through cumulative deep lecture hours, uninterrupted daily streaks, and verified curriculums.
+              Earn badges by building consistent learning habits — tracked across your cumulative watch hours, daily streaks, and completed courses.
             </p>
           </div>
 
@@ -183,13 +183,13 @@ export default function RewardsPage() {
           <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs flex flex-col justify-between">
             <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
               <Award className="h-3.5 w-3.5 text-[#059669]" />
-              <span>Verified XP</span>
+              <span>Earned XP</span>
             </div>
             <div className="mt-3 text-xl font-bold font-mono text-[var(--text-primary)]">
               {totalXP} <span className="text-xs font-sans text-[var(--text-secondary)]">XP</span>
             </div>
             <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
-              50 XP per verified lesson
+              50 XP per completed lesson
             </div>
           </div>
 
@@ -202,7 +202,7 @@ export default function RewardsPage() {
               {completedCoursesCount} <span className="text-xs font-sans text-[var(--text-secondary)]">Done</span>
             </div>
             <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
-              100% Verified
+              All lessons finished
             </div>
           </div>
         </div>
