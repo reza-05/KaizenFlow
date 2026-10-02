@@ -141,13 +141,13 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     return { lessons, minutes };
   }, [activityMap]);
 
-  // Exact 5-Tier Color & Video Mapping:
-  // Level 0: 0 videos (< 10 mins) -> Blank Inactive
-  // Level 1: 1 video verified -> Lightest Mint Green
-  // Level 2: 2 videos verified -> Light-Medium Green
-  // Level 3: 3 videos verified -> Medium-Deep Emerald
-  // Level 4: 4 videos verified -> Deep Dark Emerald
-  // Level 5: 5+ videos verified -> Deep Forest Green + Clash of Clans Roaring Flame (NO YELLOW!)
+  // Exact 5-Tier Progressive Green Color Mapping:
+  // Level 0: 0 videos -> Blank Inactive
+  // Level 1: 1 video verified -> Light Mint Green (lightest)
+  // Level 2: 2 videos verified -> Medium-Light Green
+  // Level 3: 3 videos verified -> Medium Green
+  // Level 4: 4 videos verified -> Dark Forest Green
+  // Level 5: 5+ videos verified -> Deepest Dark Green + Flame (darkest)
   const getCellDetails = (cell: DayCell | null) => {
     if (!cell) return { isVisible: false, className: '', hasFlame: false, level: 0 };
 
@@ -163,7 +163,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
     const activity = cell.activity;
     const verified = activity?.verifiedCount || 0;
 
-    // Level 0: 0 videos verified -> Blank Inactive day (strictly no color)
+    // Level 0: 0 videos verified -> Blank Inactive day
     if (verified === 0) {
       return {
         isVisible: true,
@@ -173,50 +173,50 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       };
     }
 
-    // Level 5: 5+ videos verified -> Deep Forest Green + Clash of Clans Roaring Flame (NO YELLOW!)
+    // Level 5: 5+ videos verified -> Deepest Dark Green + Clash Flame
     if (verified >= 5) {
       return {
         isVisible: true,
-        className: 'bg-[#047857] dark:bg-[#064e3b] border border-[#065f46] dark:border-[#047857] hover:scale-120 text-white shadow-xs relative overflow-visible',
+        className: 'bg-[#14532d] border border-[#052e16] hover:scale-120 text-white shadow-xs relative overflow-visible',
         hasFlame: true,
         level: 5,
       };
     }
 
-    // Level 4: 4 videos verified -> Deep Dark Emerald
+    // Level 4: 4 videos verified -> Dark Forest Green
     if (verified === 4) {
       return {
         isVisible: true,
-        className: 'bg-[#059669] dark:bg-[#064e3b] border border-[#047857] dark:border-[#059669] hover:scale-115 text-white',
+        className: 'bg-[#166534] border border-[#14532d] hover:scale-115 text-white',
         hasFlame: false,
         level: 4,
       };
     }
 
-    // Level 3: 3 videos verified -> Medium-Deep Emerald
+    // Level 3: 3 videos verified -> Medium Green
     if (verified === 3) {
       return {
         isVisible: true,
-        className: 'bg-[#10b981] dark:bg-[#047857] border border-[#059669] dark:border-[#10b981] hover:scale-115 text-white',
+        className: 'bg-[#16a34a] border border-[#15803d] hover:scale-115 text-white',
         hasFlame: false,
         level: 3,
       };
     }
 
-    // Level 2: 2 videos verified -> Light-Medium Green
+    // Level 2: 2 videos verified -> Medium-Light Green
     if (verified === 2) {
       return {
         isVisible: true,
-        className: 'bg-[#4ade80] dark:bg-[#059669] border border-[#22c55e] dark:border-[#10b981] hover:scale-115 text-white',
+        className: 'bg-[#4ade80] border border-[#22c55e] hover:scale-115 text-zinc-900',
         hasFlame: false,
         level: 2,
       };
     }
 
-    // Level 1: 1 video verified -> Lightest Mint Green
+    // Level 1: 1 video verified -> Light Mint Green (lightest)
     return {
       isVisible: true,
-      className: 'bg-[#bbf7d0] dark:bg-[#064e3b] border border-[#86efac] dark:border-[#065f46] hover:scale-115 text-zinc-800 dark:text-white',
+      className: 'bg-[#bbf7d0] border border-[#86efac] hover:scale-115 text-zinc-900',
       hasFlame: false,
       level: 1,
     };
@@ -403,7 +403,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         </div>
       </div>
 
-      {/* Legend (Exact Video Count Mapping + Clash of Clans Roaring Fire) */}
+      {/* Legend (Exact Video Count Mapping + Clash Flame) */}
       <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)] select-none">
         <span>Less</span>
         <div className="flex items-center gap-1">
@@ -415,27 +415,27 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
           {/* Level 1: 1 video */}
           <div
             title="Level 1: 1 verified lesson"
-            className="w-2.5 h-2.5 rounded-[2px] bg-[#bbf7d0] dark:bg-[#064e3b] border border-[#86efac] dark:border-[#065f46] cursor-help transition-transform hover:scale-125"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#bbf7d0] border border-[#86efac] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 2: 2 videos */}
           <div
             title="Level 2: 2 verified lessons"
-            className="w-2.5 h-2.5 rounded-[2px] bg-[#4ade80] dark:bg-[#059669] border border-[#22c55e] dark:border-[#10b981] cursor-help transition-transform hover:scale-125"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#4ade80] border border-[#22c55e] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 3: 3 videos */}
           <div
             title="Level 3: 3 verified lessons"
-            className="w-2.5 h-2.5 rounded-[2px] bg-[#10b981] dark:bg-[#047857] border border-[#059669] dark:border-[#10b981] cursor-help transition-transform hover:scale-125"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#16a34a] border border-[#15803d] cursor-help transition-transform hover:scale-125"
           />
           {/* Level 4: 4 videos */}
           <div
             title="Level 4: 4 verified lessons"
-            className="w-2.5 h-2.5 rounded-[2px] bg-[#059669] dark:bg-[#064e3b] border border-[#047857] dark:border-[#064e3b] cursor-help transition-transform hover:scale-125"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#166534] border border-[#14532d] cursor-help transition-transform hover:scale-125"
           />
-          {/* Level 5: 5+ videos + Clash of Clans Roaring Fire */}
+          {/* Level 5: 5+ videos + Clash Flame */}
           <div
-            title="Level 5: 5+ verified lessons — Clash of Clans Roaring Fire 🔥"
-            className="w-2.5 h-2.5 rounded-[2px] bg-[#047857] dark:bg-[#064e3b] border border-[#065f46] dark:border-[#047857] flex items-center justify-center cursor-help transition-transform hover:scale-125 overflow-visible"
+            title="Level 5: 5+ verified lessons — Clash Flame 🔥"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#14532d] border border-[#052e16] flex items-center justify-center cursor-help transition-transform hover:scale-125 overflow-visible"
           >
             <ClashFlame size={9} />
           </div>
