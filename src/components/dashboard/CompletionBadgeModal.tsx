@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Award, Download, FileText, X, CheckCircle2, Sparkles, User, Flame, Clock, Trophy } from 'lucide-react';
 import { Playlist, UserProfile, EvaluatedBadge } from '@/types';
 import { exportBadgeToPNG, exportBadgeToPDF } from '@/lib/pdfExport';
+import { BadgeEmblem } from '@/components/rewards/BadgeEmblem';
 
 interface CompletionBadgeModalProps {
   isOpen: boolean;
@@ -347,15 +348,13 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 shrink-0">
-              {badge?.category === 'streak' ? (
-                <Flame className="h-5 w-5 text-orange-500" />
-              ) : badge?.category === 'watchtime' ? (
-                <Clock className="h-5 w-5 text-sky-500" />
-              ) : (
+            {badge ? (
+              <BadgeEmblem badgeId={badge.id} isUnlocked={true} size={48} className="shrink-0" />
+            ) : (
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 shrink-0">
                 <Award className="h-5 w-5 text-amber-500" />
-              )}
-            </div>
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-[var(--text-primary)] tracking-tight">

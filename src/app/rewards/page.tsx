@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { CompletionBadgeModal } from '@/components/dashboard/CompletionBadgeModal';
+import { BadgeEmblem } from '@/components/rewards/BadgeEmblem';
 import { 
   getInitialUserProfile, 
   getPlaylists, 
@@ -35,25 +36,6 @@ import {
   getTotalNotesCount 
 } from '@/lib/rewards';
 import { UserProfile, Playlist, EvaluatedBadge, BadgeCategory, LevelInfo } from '@/types';
-
-function getBadgeIcon(iconName: string, className: string) {
-  switch (iconName) {
-    case 'Compass': return <Compass className={className} />;
-    case 'Layers': return <Layers className={className} />;
-    case 'Zap': return <Zap className={className} />;
-    case 'Shield': return <Shield className={className} />;
-    case 'Crown': return <Crown className={className} />;
-    case 'ShieldCheck': return <ShieldCheck className={className} />;
-    case 'Clock': return <Clock className={className} />;
-    case 'Medal': return <Medal className={className} />;
-    case 'Award': return <Award className={className} />;
-    case 'CheckCircle2': return <CheckCircle2 className={className} />;
-    case 'BookOpen': return <BookOpen className={className} />;
-    case 'Trophy': return <Trophy className={className} />;
-    case 'FileText': return <FileText className={className} />;
-    default: return <Award className={className} />;
-  }
-}
 
 export default function RewardsPage() {
   const [mounted, setMounted] = useState(false);
@@ -309,29 +291,39 @@ export default function RewardsPage() {
                 }`}
               >
                 <div>
-                  {/* Top Bar with Icon & Target */}
+                  {/* Top Bar with Custom Handcrafted Emblem & Target */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
-                      {getBadgeIcon(badge.iconName, 'h-5 w-5')}
-                    </div>
+                    <BadgeEmblem badgeId={badge.id} isUnlocked={isUnlocked} size={56} />
 
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-[11px] font-semibold text-[var(--text-secondary)] bg-[var(--bg-surface-subtle)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
+                      <span className="font-mono text-[11px] font-semibold text-[var(--text-secondary)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 rounded-md border border-[var(--border-subtle)]">
                         {badge.targetValue} {badge.unit}
                       </span>
                       {!isUnlocked && (
-                        <span title="Locked badge" className="p-1 rounded bg-[var(--bg-surface-subtle)] text-[var(--text-muted)]">
+                        <span title="Locked milestone" className="p-1 rounded bg-[var(--bg-surface-subtle)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
                           <Lock className="h-3 w-3" />
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Title & Description */}
-                  <h3 className="text-sm font-bold tracking-tight text-[var(--text-primary)] mt-3">
-                    {badge.title}
-                  </h3>
-                  <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+                  {/* Tier & Title */}
+                  <div className="mt-3.5 flex items-center gap-2">
+                    <span className={`text-[10px] font-bold font-mono uppercase px-1.5 py-0.5 rounded border shrink-0 ${
+                      badge.colorScheme === 'emerald' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                      badge.colorScheme === 'gold' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                      badge.colorScheme === 'platinum' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' :
+                      badge.colorScheme === 'obsidian' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' :
+                      badge.colorScheme === 'silver' ? 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20' :
+                      'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20'
+                    }`}>
+                      Tier {badge.tier}
+                    </span>
+                    <h3 className="text-sm font-bold tracking-tight text-[var(--text-primary)] truncate">
+                      {badge.title}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-relaxed">
                     {badge.description}
                   </p>
                 </div>
