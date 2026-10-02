@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Award, Download, FileText, X, CheckCircle2, Sparkles, User } from 'lucide-react';
-import { Playlist, UserProfile } from '@/types';
+import { Award, Download, FileText, X, CheckCircle2, Sparkles, User, Flame, Clock, Trophy } from 'lucide-react';
+import { Playlist, UserProfile, EvaluatedBadge } from '@/types';
 import { exportBadgeToPNG, exportBadgeToPDF } from '@/lib/pdfExport';
 
 interface CompletionBadgeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  course: Playlist | null;
+  course?: Playlist | null;
+  badge?: EvaluatedBadge | null;
   userProfile?: UserProfile | null;
 }
 
@@ -16,6 +17,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
   isOpen,
   onClose,
   course,
+  badge,
   userProfile,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,8 +31,23 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     }
   }, [userProfile?.name]);
 
-  // Deterministic certificate verification hash based on course ID and date
-  const verificationHash = course 
+  // Determine certificate metadata
+  const isMilestoneBadge = Boolean(badge);
+  const activeTitle = badge 
+    ? `${badge.title} (${badge.bengaliTitle})` 
+    : (course?.customTitle || course?.originalTitle || 'Mastery Curriculum');
+
+  const mainCategoryLabel = badge
+    ? badge.category === 'watchtime'
+      ? 'DEEP WORK WATCHTIME MILESTONE'
+      : badge.category === 'streak'
+      ? 'DAILY CONSISTENCY & STREAK MILESTONE'
+      : 'ACADEMIC COURSE MASTERY'
+    : 'COURSE COMPLETION & MASTERY';
+
+  const verificationHash = badge
+    ? `KF-BADGE-${badge.id.toUpperCase()}-${new Date().getFullYear()}`
+    : course
     ? `KF-${Math.abs(course.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) * 89).toString(16).toUpperCase()}-${new Date().getFullYear()}`
     : 'KF-VERIFIED-2026';
 
@@ -43,7 +60,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
   // Draw high-resolution certificate/badge on canvas
   const drawBadge = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !course) return;
+    if (!canvas || (!course && !badge)) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -63,8 +80,16 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
 
     // 2. Ambient Gold & Emerald Glows
     const radialGlow = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, 800);
-    radialGlow.addColorStop(0, 'rgba(16, 185, 129, 0.08)');
-    radialGlow.addColorStop(0.6, 'rgba(217, 119, 6, 0.05)');
+    if (badge?.colorScheme === 'emerald' || !badge) {
+      radialGlow.addColorStop(0, 'rgba(16, 185, 129, 0.09)');
+      radialGlow.addColorStop(0.6, 'rgba(217, 119, 6, 0.05)');
+    } else if (badge.colorScheme === 'platinum' || badge.colorScheme === 'silver') {
+      radialGlow.addColorStop(0, 'rgba(56, 189, 248, 0.08)');
+      radialGlow.addColorStop(0.6, 'rgba(148, 163, 184, 0.05)');
+    } else {
+      radialGlow.addColorStop(0, 'rgba(245, 158, 11, 0.09)');
+      radialGlow.addColorStop(0.6, 'rgba(16, 185, 129, 0.05)');
+    }
     radialGlow.addColorStop(1, 'transparent');
     ctx.fillStyle = radialGlow;
     ctx.fillRect(0, 0, W, H);
@@ -113,7 +138,11 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 84px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, serif';
     ctx.letterSpacing = '3px';
-    ctx.fillText('CERTIFICATE OF COMPLETION', W / 2, 290);
+    ctx.fillText(
+      isMilestoneBadge ? 'OFFICIAL MILESTONE CERTIFICATE' : 'CERTIFICATE OF COMPLETION',
+      W / 2,
+      290
+    );
 
     // Sub-title
     ctx.fillStyle = '#94a3b8';
@@ -137,35 +166,41 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fillStyle = lineGrad;
     ctx.fillRect(W / 2 - nameWidth / 2, 500, nameWidth, 4);
 
-    // 6. Course accomplishment description
+    // 6. Accomplishment statement
     ctx.fillStyle = '#94a3b8';
     ctx.font = '28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
-    ctx.fillText('HAS DEMONSTRATED DEEP MASTERY AND SUCCESSFULLY VERIFIED EVERY LESSON IN', W / 2, 570);
+    const descText = badge
+      ? badge.description.toUpperCase()
+      : 'HAS DEMONSTRATED DEEP MASTERY AND SUCCESSFULLY VERIFIED EVERY LESSON IN';
+    ctx.fillText(descText, W / 2, 570);
 
-    // Course Title
+    // Course Title or Badge Title
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
-    
-    // Wrap long course titles if needed
-    const courseTitle = course.customTitle || course.originalTitle || 'Mastery Curriculum';
-    if (courseTitle.length > 55) {
+    if (activeTitle.length > 55) {
       ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     }
-    ctx.fillText(courseTitle, W / 2, 650);
+    ctx.fillText(activeTitle, W / 2, 650);
 
     // Verification Stats Pill
-    const totalLessons = course.totalVideos || course.completedVideos || 1;
+    const pillText = badge
+      ? badge.category === 'watchtime'
+        ? `VERIFIED DEEP WORK  •  ${badge.targetValue} HOURS COMPLETED`
+        : badge.category === 'streak'
+        ? `UNBROKEN FOCUS  •  ${badge.targetValue} CONSECUTIVE DAYS`
+        : `100% VERIFIED  •  ${badge.targetValue} COURSES MASTERED`
+      : `100% VERIFIED  •  ALL ${course?.totalVideos || 1} LESSONS COMPLETED`;
+
     ctx.fillStyle = '#0f172a';
     ctx.strokeStyle = '#10b981';
     ctx.lineWidth = 2;
-    const pillW = 680;
+    const pillW = Math.max(700, pillText.length * 20);
     const pillH = 64;
     const pillX = W / 2 - pillW / 2;
     const pillY = 710;
     
-    // Draw rounded pill
     ctx.beginPath();
     ctx.roundRect(pillX, pillY, pillW, pillH, 32);
     ctx.fill();
@@ -174,7 +209,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fillStyle = '#10b981';
     ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
-    ctx.fillText(`100% VERIFIED  •  ALL ${totalLessons} LESSONS COMPLETED`, W / 2, pillY + 43);
+    ctx.fillText(pillText, W / 2, pillY + 43);
 
     // 7. Golden Medal & Seal (Center Bottom)
     const sealCenterX = W / 2;
@@ -219,12 +254,12 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     // Medal Star & Emblem
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 54px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('★', sealCenterX, sealCenterY + 14);
+    ctx.fillText(badge?.category === 'streak' ? '🔥' : '★', sealCenterX, sealCenterY + 14);
 
     ctx.fillStyle = '#fef3c7';
     ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '3px';
-    ctx.fillText('VERIFIED MASTERY', sealCenterX, sealCenterY + 54);
+    ctx.fillText(isMilestoneBadge ? 'VERIFIED MILESTONE' : 'VERIFIED MASTERY', sealCenterX, sealCenterY + 54);
     ctx.fillText('KAIZENFLOW', sealCenterX, sealCenterY - 36);
 
     // Ribbon tails below seal
@@ -248,17 +283,15 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.fill();
 
     // 8. Footer Metadata & Verification Details
-    // Left: Date
     ctx.textAlign = 'left';
     ctx.fillStyle = '#64748b';
     ctx.font = '22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '1px';
-    ctx.fillText('COMPLETION DATE', 160, 1300);
+    ctx.fillText('ACHIEVEMENT DATE', 160, 1300);
     ctx.fillStyle = '#e2e8f0';
     ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(issueDateFormatted, 160, 1340);
 
-    // Right: Verification ID & Signature
     ctx.textAlign = 'right';
     ctx.fillStyle = '#64748b';
     ctx.font = '22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -269,31 +302,30 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     ctx.letterSpacing = '2px';
     ctx.fillText(verificationHash, W - 160, 1340);
 
-    // Center bottom watermark
     ctx.textAlign = 'center';
     ctx.fillStyle = '#475569';
     ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.letterSpacing = '2px';
     ctx.fillText('DISTRACTION-FREE AUTONOMOUS LEARNING PLATFORM  •  STUDENT INTEGRITY SEAL', W / 2, 1400);
 
-  }, [course, recipientName, issueDateFormatted, verificationHash]);
+  }, [course, badge, activeTitle, recipientName, issueDateFormatted, verificationHash, isMilestoneBadge]);
 
-  // Redraw when modal opens or inputs change
   useEffect(() => {
     if (isOpen) {
-      // Small timeout to allow canvas to be mounted in DOM
       const timer = setTimeout(drawBadge, 50);
       return () => clearTimeout(timer);
     }
   }, [isOpen, drawBadge]);
 
-  if (!isOpen || !course) return null;
+  if (!isOpen || (!course && !badge)) return null;
+
+  const exportFilename = badge ? badge.title : (course?.customTitle || 'Course');
 
   const handleDownloadPng = () => {
     if (!canvasRef.current) return;
     setIsExporting(true);
     try {
-      exportBadgeToPNG(canvasRef.current, course.customTitle || course.originalTitle);
+      exportBadgeToPNG(canvasRef.current, exportFilename);
     } finally {
       setIsExporting(false);
     }
@@ -303,7 +335,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
     if (!canvasRef.current) return;
     setIsExporting(true);
     try {
-      exportBadgeToPDF(canvasRef.current, course.customTitle || course.originalTitle);
+      exportBadgeToPDF(canvasRef.current, exportFilename);
     } finally {
       setIsExporting(false);
     }
@@ -316,20 +348,26 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <Award className="h-5 w-5" />
+              {badge?.category === 'streak' ? (
+                <Flame className="h-5 w-5 text-orange-400" />
+              ) : badge?.category === 'watchtime' ? (
+                <Clock className="h-5 w-5 text-sky-400" />
+              ) : (
+                <Award className="h-5 w-5 text-amber-400" />
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white tracking-tight">
-                  Course Completion Badge & Certificate
+                  {badge ? `${badge.title} — Official Badge` : 'Course Completion Badge & Certificate'}
                 </h3>
                 <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
                   <Sparkles className="h-3 w-3" />
-                  100% Verified
+                  Verified
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Download your official proof of completion as high-res PNG or printable PDF.
+                {mainCategoryLabel} • Official proof of academic achievement.
               </p>
             </div>
           </div>

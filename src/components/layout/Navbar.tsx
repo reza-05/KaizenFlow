@@ -2,21 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Award, BookOpen, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { Award, BookOpen, Sun, Moon, ArrowLeft, Trophy } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { ClashFlame } from '@/components/ui/ClashFlame';
 import { IsolationToggle } from '@/components/isolation/IsolationToggle';
+import { calculateLevelFromXP } from '@/lib/rewards';
 
 interface NavbarProps {
   userProfile?: UserProfile;
   activeCourseTitle?: string;
   onBackToDashboard?: () => void;
+  onOpenRewardsHub?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   activeCourseTitle,
   onBackToDashboard,
+  onOpenRewardsHub,
 }) => {
   const [isDark, setIsDark] = useState(false);
 
@@ -41,6 +44,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       localStorage.setItem('kizen_theme', 'dark');
     }
   };
+
+  const levelInfo = calculateLevelFromXP(userProfile?.totalXP || 0);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-sm transition-colors duration-200">
@@ -78,25 +83,40 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Action & Stats Bar */}
         <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Level & Rank Pill (Click to open Rewards Hub) */}
+          <button
+            onClick={onOpenRewardsHub}
+            title={`Scholar Level ${levelInfo.level}: ${levelInfo.title} (${levelInfo.bengaliTitle}) • Click to view Badges & Rewards`}
+            className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-2 sm:px-2.5 py-1 text-xs font-semibold text-amber-500 transition-all cursor-pointer shadow-2xs"
+          >
+            <Trophy className="h-3.5 w-3.5 text-amber-500" />
+            <span>Lvl {levelInfo.level}</span>
+            <span className="hidden md:inline text-amber-400/90 font-medium text-[11px] truncate max-w-[120px]">
+              • {levelInfo.title}
+            </span>
+          </button>
+
           {/* Daily Streak Counter */}
-          <div
-            title="Daily Study Streak"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
+          <button
+            onClick={onOpenRewardsHub}
+            title="Daily Study Streak • Click to view Badges & Rewards"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-orange-500/40 px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
           >
             <ClashFlame size={14} />
             <span>{userProfile?.currentStreak || 0}</span>
             <span className="hidden sm:inline text-[var(--text-secondary)] font-normal text-[11px]">Streak</span>
-          </div>
+          </button>
 
           {/* XP Badge */}
-          <div
-            title="Total Earned XP"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs"
+          <button
+            onClick={onOpenRewardsHub}
+            title="Total Earned XP • Click to view Badges & Rewards"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-emerald-500/40 px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
           >
             <Award className="h-3.5 w-3.5 text-[#059669]" />
             <span>{userProfile?.totalXP || 0}</span>
             <span className="hidden sm:inline text-[var(--text-secondary)] font-normal text-[11px]">XP</span>
-          </div>
+          </button>
 
           {/* Quota Badge */}
           {userProfile && (
