@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { Plus, Flame, Award, BookOpen, Layers, CheckCircle2, Compass, ArrowRight } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { CourseCard } from '@/components/dashboard/CourseCard';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { AddCourseModal } from '@/components/dashboard/AddCourseModal';
+import { CompletionBadgeModal } from '@/components/dashboard/CompletionBadgeModal';
 import { CinemaPlayer } from '@/components/player/CinemaPlayer';
 import { StudySidebar } from '@/components/player/StudySidebar';
 import { 
@@ -31,6 +33,7 @@ export default function KaizenFlowApp() {
   const [activeCourse, setActiveCourse] = useState<Playlist | null>(null);
   const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedBadgeCourse, setSelectedBadgeCourse] = useState<Playlist | null>(null);
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
   const [activityMap, setActivityMap] = useState(getDailyActivityMap());
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -127,12 +130,36 @@ export default function KaizenFlowApp() {
     const { xpEarned, newStreak } = markVideoVerified(playlistId, videoId, title);
     
     // Update local verified state
-    setProgressMap(prev => ({ ...prev, [`${playlistId}_${videoId}`]: true }));
+    const updatedProgress = { ...progressMap, [`${playlistId}_${videoId}`]: true };
+    setProgressMap(updatedProgress);
     
     // Refresh user profile and activity heatmap
     setActivityMap(getDailyActivityMap());
     setUserProfile(getInitialUserProfile());
-    setPlaylists(getPlaylists());
+    const updatedPlaylists = getPlaylists();
+    setPlaylists(updatedPlaylists);
+
+    // Detect if this verification completed 100% of the course!
+    const targetCourse = updatedPlaylists.find(p => p.id === playlistId);
+    if (targetCourse && targetCourse.videos.length > 0) {
+      const isCourseCompleted = targetCourse.videos.every(
+        v => updatedProgress[`${playlistId}_${v.ytVideoId}`]
+      );
+      if (isCourseCompleted) {
+        // Celebratory confetti burst
+        confetti({
+          particleCount: 140,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#f59e0b', '#10b981', '#38bdf8', '#ffffff'],
+        });
+
+        // Automatically present Completion Badge & Certificate modal
+        setTimeout(() => {
+          setSelectedBadgeCourse(targetCourse);
+        }, 600);
+      }
+    }
   };
 
   const handleNextVideo = () => {
@@ -233,6 +260,8 @@ export default function KaizenFlowApp() {
                 onAddNote={handleAddStudyNote}
                 onDeleteNote={handleDeleteStudyNote}
                 activeTimestampSeconds={activeTimestampSeconds}
+                courseTitle={activeCourse.customTitle}
+                videoTitle={activeVideo.title}
               />
             </div>
           </div>
@@ -275,6 +304,7 @@ export default function KaizenFlowApp() {
                   onOpenCourse={handleOpenCourse}
                   onDeleteCourse={handleDeleteCourse}
                   onRenameCourse={handleRenameCourse}
+                  onViewBadge={c => setSelectedBadgeCourse(c)}
                 />
               ))}
 
@@ -306,6 +336,14 @@ export default function KaizenFlowApp() {
         onClose={() => setIsAddModalOpen(false)}
         onAddCourse={handleAddCourse}
         currentCount={playlists.length}
+      />
+
+      {/* Course Completion Badge & Certificate Modal */}
+      <CompletionBadgeModal
+        isOpen={Boolean(selectedBadgeCourse)}
+        onClose={() => setSelectedBadgeCourse(null)}
+        course={selectedBadgeCourse}
+        userProfile={userProfile}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, MoreVertical, Trash2, Edit2, CheckCircle2, BookOpen, Check } from 'lucide-react';
+import { Play, MoreVertical, Trash2, Edit2, CheckCircle2, BookOpen, Check, Award } from 'lucide-react';
 import { Playlist } from '@/types';
 
 interface CourseCardProps {
@@ -9,6 +9,7 @@ interface CourseCardProps {
   onOpenCourse: (course: Playlist) => void;
   onDeleteCourse: (courseId: string) => void;
   onRenameCourse: (courseId: string, newTitle: string) => void;
+  onViewBadge?: (course: Playlist) => void;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
@@ -16,6 +17,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onOpenCourse,
   onDeleteCourse,
   onRenameCourse,
+  onViewBadge,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(course.customTitle);
@@ -104,7 +106,16 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 </button>
 
                 {showMenu && (
-                  <div className="absolute right-0 top-6 z-30 w-36 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-1 shadow-lg text-xs">
+                  <div className="absolute right-0 top-6 z-30 w-44 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-1 shadow-lg text-xs">
+                    {percent === 100 && onViewBadge && (
+                      <button
+                        onClick={() => { onViewBadge(course); setShowMenu(false); }}
+                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-amber-500 hover:bg-[var(--bg-surface-subtle)] font-medium"
+                      >
+                        <Award className="h-3.5 w-3.5" />
+                        <span>View Badge & Cert</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => { setIsEditingTitle(true); setShowMenu(false); }}
                       className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)]"
@@ -143,19 +154,34 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Card Footer Button */}
-        <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
+        <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
           <button
             onClick={() => onOpenCourse(course)}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)] hover:underline"
+            className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)] hover:underline cursor-pointer"
           >
             <span>{percent === 100 ? 'Review Course' : course.completedVideos > 0 ? 'Resume Lesson' : 'Start Course'}</span>
             <Play className="h-3 w-3 fill-current" />
           </button>
 
           {percent === 100 && (
-            <div className="flex items-center gap-1 text-[11px] font-semibold text-[#059669]">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>Complete</span>
+            <div className="flex items-center gap-2">
+              {onViewBadge && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewBadge(course);
+                  }}
+                  className="flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[11px] font-bold text-amber-500 hover:bg-amber-500/20 transition-all cursor-pointer shadow-2xs"
+                  title="View and download completion badge and certificate"
+                >
+                  <Award className="h-3 w-3" />
+                  <span>Badge</span>
+                </button>
+              )}
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-[#059669]">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Complete</span>
+              </div>
             </div>
           )}
         </div>

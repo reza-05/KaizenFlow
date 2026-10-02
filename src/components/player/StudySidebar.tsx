@@ -12,6 +12,7 @@ import {
   Clock 
 } from 'lucide-react';
 import { VideoItem, StudyNote } from '@/types';
+import { exportNotesToPDF } from '@/lib/pdfExport';
 
 interface StudySidebarProps {
   playlistId: string;
@@ -23,6 +24,8 @@ interface StudySidebarProps {
   onAddNote: (content: string, timestampSeconds: number) => void;
   onDeleteNote: (noteId: string) => void;
   activeTimestampSeconds: number;
+  courseTitle?: string;
+  videoTitle?: string;
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
@@ -35,6 +38,8 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   onAddNote,
   onDeleteNote,
   activeTimestampSeconds,
+  courseTitle,
+  videoTitle,
 }) => {
   const [activeTab, setActiveTab] = useState<'queue' | 'notes'>('queue');
   const [newNoteContent, setNewNoteContent] = useState<string>('');
@@ -49,17 +54,12 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
   const handleExportNotes = () => {
     if (notes.length === 0) return;
-    const markdownContent = notes
-      .map(n => `### [${n.timestampFormatted}]\n${n.content}\n\n*Created: ${new Date(n.createdAt).toLocaleDateString()}*\n`)
-      .join('\n---\n\n');
-
-    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `kaizenflow_notes_${currentVideoId}.md`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const currentVideo = videos.find(v => v.ytVideoId === currentVideoId);
+    exportNotesToPDF({
+      courseTitle: courseTitle || 'Course Study Notes',
+      videoTitle: videoTitle || currentVideo?.title || 'Lesson Notes',
+      notes,
+    });
   };
 
   const currentMins = Math.floor(activeTimestampSeconds / 60);
@@ -157,10 +157,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 <button
                   type="button"
                   onClick={handleExportNotes}
-                  className="flex items-center gap-1 text-[11px] font-medium text-[var(--text-primary)] hover:underline"
+                  className="flex items-center gap-1 text-[11px] font-semibold text-[var(--text-primary)] hover:underline cursor-pointer"
+                  title="Export study notes as PDF"
                 >
                   <Download className="h-3 w-3" />
-                  <span>Export</span>
+                  <span>Export PDF</span>
                 </button>
               )}
             </div>
