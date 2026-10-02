@@ -390,3 +390,32 @@ export function deleteNote(videoId: string, noteId: string): StudyNote[] {
   }
   return updated;
 }
+
+// 1-Time Certificate Download Registry
+const DOWNLOADED_CERTIFICATES_KEY = 'kaizenflow_downloaded_certificates';
+
+export function getDownloadedCertificateIds(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(DOWNLOADED_CERTIFICATES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function recordCertificateDownload(id: string): void {
+  if (typeof window === 'undefined' || !id) return;
+  try {
+    const list = getDownloadedCertificateIds();
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(DOWNLOADED_CERTIFICATES_KEY, JSON.stringify(list));
+    }
+  } catch {}
+}
+
+export function isCertificateDownloaded(id: string): boolean {
+  if (typeof window === 'undefined' || !id) return false;
+  return getDownloadedCertificateIds().includes(id);
+}

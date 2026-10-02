@@ -5,6 +5,7 @@ import { Award, Download, FileText, X, CheckCircle2, User, Flame, Clock, Trophy,
 import { Playlist, UserProfile, EvaluatedBadge } from '@/types';
 import { exportBadgeToPNG, exportBadgeToPDF } from '@/lib/pdfExport';
 import { BadgeEmblem } from '@/components/rewards/BadgeEmblem';
+import { recordCertificateDownload, isCertificateDownloaded } from '@/lib/storage';
 
 interface CompletionBadgeModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface CompletionBadgeModalProps {
   course?: Playlist | null;
   badge?: EvaluatedBadge | null;
   userProfile?: UserProfile | null;
+  onDownloadComplete?: (id: string) => void;
 }
 
 export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
@@ -20,10 +22,19 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
   course,
   badge,
   userProfile,
+  onDownloadComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [recipientName, setRecipientName] = useState(userProfile?.name || 'Scholar');
   const [isExporting, setIsExporting] = useState(false);
+  const certId = badge?.id || (course ? `course_${course.id}` : '');
+  const [isDownloaded, setIsDownloaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (certId) {
+      setIsDownloaded(isCertificateDownloaded(certId));
+    }
+  }, [certId, isOpen]);
 
   // Sync recipient name if profile updates
   useEffect(() => {
@@ -336,20 +347,30 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
   const exportFilename = badge ? badge.title : (course?.customTitle || 'Course');
 
   const handleDownloadPng = () => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || isDownloaded) return;
     setIsExporting(true);
     try {
       exportBadgeToPNG(canvasRef.current, exportFilename);
+      if (certId) {
+        recordCertificateDownload(certId);
+        setIsDownloaded(true);
+        onDownloadComplete?.(certId);
+      }
     } finally {
       setIsExporting(false);
     }
   };
 
   const handleDownloadPdf = () => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || isDownloaded) return;
     setIsExporting(true);
     try {
       exportBadgeToPDF(canvasRef.current, exportFilename);
+      if (certId) {
+        recordCertificateDownload(certId);
+        setIsDownloaded(true);
+        onDownloadComplete?.(certId);
+      }
     } finally {
       setIsExporting(false);
     }
@@ -458,37 +479,46 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
         {/* Footer Actions */}
         <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-            {badge?.isUnlocked || course ? (
+            {isDownloaded ? (
               <>
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span>Condition satisfied. Certificate ready for export.</span>
+                <span>Certificate already issued (1-time download completed).</span>
               </>
             ) : (
               <>
-                <Lock className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
-                <span>Preview mode. Complete the condition to earn this badge.</span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span>Condition satisfied. 1-time certificate download available.</span>
               </>
             )}
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button
-              onClick={handleDownloadPng}
-              disabled={isExporting}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
-            >
-              <Download className="h-4 w-4 text-amber-500" />
-              <span>Download PNG</span>
-            </button>
+            {isDownloaded ? (
+              <span className="flex items-center gap-2 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] px-4 py-2 text-xs font-semibold text-[var(--text-secondary)] select-none">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span>Certificate Claimed</span>
+              </span>
+            ) : (
+              <>
+                <button
+                  onClick={handleDownloadPng}
+                  disabled={isExporting}
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                >
+                  <Download className="h-4 w-4 text-amber-500" />
+                  <span>Download PNG (1-Time)</span>
+                </button>
 
-            <button
-              onClick={handleDownloadPdf}
-              disabled={isExporting}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-[var(--text-primary)] hover:opacity-90 text-[var(--bg-canvas)] px-4 py-2 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Download PDF</span>
-            </button>
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isExporting}
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-[var(--text-primary)] hover:opacity-90 text-[var(--bg-canvas)] px-4 py-2 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Download PDF (1-Time)</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

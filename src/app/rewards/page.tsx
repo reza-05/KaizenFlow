@@ -18,7 +18,6 @@ import {
   Crown, 
   Medal, 
   FileText, 
-  Eye, 
   ArrowLeft 
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
@@ -27,7 +26,8 @@ import { BadgeEmblem } from '@/components/rewards/BadgeEmblem';
 import { 
   getInitialUserProfile, 
   getPlaylists, 
-  getVideoProgressList 
+  getVideoProgressList,
+  getDownloadedCertificateIds 
 } from '@/lib/storage';
 import { 
   calculateLevelFromXP, 
@@ -43,11 +43,13 @@ export default function RewardsPage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | BadgeCategory>('all');
   const [selectedBadge, setSelectedBadge] = useState<EvaluatedBadge | null>(null);
+  const [downloadedIds, setDownloadedIds] = useState<string[]>([]);
 
   useEffect(() => {
     setMounted(true);
     setUserProfile(getInitialUserProfile());
     setPlaylists(getPlaylists());
+    setDownloadedIds(getDownloadedCertificateIds());
   }, []);
 
   if (!mounted) {
@@ -332,18 +334,25 @@ export default function RewardsPage() {
                 <div className="mt-5 pt-3 border-t border-[var(--border-subtle)]">
                   {isUnlocked ? (
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-[#059669]">
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span>Unlocked</span>
+                        <span>Condition Met</span>
                       </div>
 
-                      <button
-                        onClick={() => setSelectedBadge(badge)}
-                        className="flex items-center gap-1 rounded-md bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)] px-2.5 py-1 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer border border-[var(--border-subtle)] shadow-2xs"
-                      >
-                        <Award className="h-3.5 w-3.5 text-amber-500" />
-                        <span>View & Export</span>
-                      </button>
+                      {downloadedIds.includes(badge.id) ? (
+                        <span className="flex items-center gap-1 rounded-md bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)] border border-[var(--border-subtle)] select-none">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                          <span>Certificate Issued</span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setSelectedBadge(badge)}
+                          className="flex items-center gap-1.5 rounded-md bg-[var(--text-primary)] hover:opacity-90 text-[var(--bg-canvas)] px-3 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                        >
+                          <Award className="h-3.5 w-3.5" />
+                          <span>Claim Certificate</span>
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -351,18 +360,14 @@ export default function RewardsPage() {
                         <span className="font-mono text-[var(--text-secondary)]">
                           {badge.currentValue} / {badge.targetValue} {badge.unit}
                         </span>
-                        <button
-                          onClick={() => setSelectedBadge(badge)}
-                          className="flex items-center gap-1 text-[11px] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
-                        >
-                          <Eye className="h-3 w-3" />
-                          <span>Preview</span>
-                        </button>
+                        <span className="text-[10px] text-[var(--text-muted)] font-medium">
+                          {Math.max(0, badge.targetValue - badge.currentValue)} {badge.unit} remaining
+                        </span>
                       </div>
 
                       <div className="h-1.5 w-full rounded-full bg-[var(--bg-surface-subtle)] overflow-hidden">
                         <div
-                          className="h-full bg-[var(--text-primary)] rounded-full transition-all duration-300"
+                          className="h-full bg-[var(--text-secondary)]/40 rounded-full transition-all duration-300"
                           style={{ width: `${badge.progressPercent}%` }}
                         />
                       </div>
@@ -375,12 +380,15 @@ export default function RewardsPage() {
         </div>
       </main>
 
-      {/* Universal Certificate & Badge Export Modal */}
+      {/* Certificate Modal (Only openable when condition is met) */}
       <CompletionBadgeModal
         isOpen={Boolean(selectedBadge)}
         onClose={() => setSelectedBadge(null)}
         badge={selectedBadge}
         userProfile={userProfile}
+        onDownloadComplete={(id) => {
+          setDownloadedIds(prev => prev.includes(id) ? prev : [...prev, id]);
+        }}
       />
     </div>
   );
