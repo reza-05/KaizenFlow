@@ -34,7 +34,7 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
   // Determine certificate metadata
   const isMilestoneBadge = Boolean(badge);
   const activeTitle = badge 
-    ? `${badge.title} (${badge.bengaliTitle})` 
+    ? badge.title 
     : (course?.customTitle || course?.originalTitle || 'Mastery Curriculum');
 
   const mainCategoryLabel = badge
@@ -342,31 +342,31 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-2xl overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 shrink-0">
               {badge?.category === 'streak' ? (
-                <Flame className="h-5 w-5 text-orange-400" />
+                <Flame className="h-5 w-5 text-orange-500" />
               ) : badge?.category === 'watchtime' ? (
-                <Clock className="h-5 w-5 text-sky-400" />
+                <Clock className="h-5 w-5 text-sky-500" />
               ) : (
-                <Award className="h-5 w-5 text-amber-400" />
+                <Award className="h-5 w-5 text-amber-500" />
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white tracking-tight">
+                <h3 className="text-base font-bold text-[var(--text-primary)] tracking-tight">
                   {badge ? `${badge.title} — Official Badge` : 'Course Completion Badge & Certificate'}
                 </h3>
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   <Sparkles className="h-3 w-3" />
                   Verified
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {mainCategoryLabel} • Official proof of academic achievement.
               </p>
             </div>
@@ -374,16 +374,16 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
 
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+            className="rounded-lg p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Scholar Name Customizer */}
-        <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 p-3">
-          <div className="flex items-center gap-2 text-xs text-zinc-300">
-            <User className="h-4 w-4 text-zinc-400" />
+        <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] p-3">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <User className="h-4 w-4 text-[var(--text-muted)]" />
             <span className="font-medium">Certificate Recipient Name:</span>
           </div>
           <div className="flex-1 max-w-xs">
@@ -393,13 +393,13 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
               onChange={e => setRecipientName(e.target.value)}
               placeholder="Enter your full name"
               maxLength={40}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+              className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--text-primary)] focus:outline-none transition-colors"
             />
           </div>
         </div>
 
         {/* High-Resolution Certificate Canvas Preview */}
-        <div className="mt-4 relative aspect-[16/10] w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 shadow-inner flex items-center justify-center">
+        <div className="mt-4 relative aspect-[16/10] w-full rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-zinc-950 shadow-inner flex items-center justify-center">
           <canvas
             ref={canvasRef}
             className="w-full h-full object-contain rounded-xl"
@@ -408,28 +408,28 @@ export const CompletionBadgeModal: React.FC<CompletionBadgeModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-6 pt-4 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-            <span>Cryptographically sealed: <code className="text-zinc-300 font-mono">{verificationHash}</code></span>
+        <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <CheckCircle2 className="h-4 w-4 text-[#059669]" />
+            <span>Cryptographically sealed: <code className="text-[var(--text-primary)] font-mono font-medium">{verificationHash}</code></span>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={handleDownloadPng}
               disabled={isExporting}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 text-xs font-semibold border border-zinc-700 hover:border-zinc-600 transition-all cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
             >
-              <Download className="h-4 w-4 text-amber-400" />
+              <Download className="h-4 w-4 text-amber-500" />
               <span>Download PNG</span>
             </button>
 
             <button
               onClick={handleDownloadPdf}
               disabled={isExporting}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black px-4 py-2.5 text-xs font-bold shadow-lg shadow-amber-500/10 transition-all cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-xl bg-[var(--text-primary)] hover:opacity-90 text-[var(--bg-canvas)] px-4 py-2 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
             >
-              <FileText className="h-4 w-4 text-black" />
+              <FileText className="h-4 w-4" />
               <span>Download PDF</span>
             </button>
           </div>

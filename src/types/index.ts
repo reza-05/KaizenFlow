@@ -82,10 +82,9 @@ export interface BadgeDefinition {
   category: BadgeCategory;
   tier: number;
   title: string;
-  bengaliTitle: string;
   description: string;
-  targetValue: number; // hours for watchtime, days for streak, count for course
-  unit: 'hours' | 'days' | 'courses';
+  targetValue: number;
+  unit: string;
   iconName: string;
   colorScheme: 'bronze' | 'silver' | 'gold' | 'platinum' | 'obsidian' | 'emerald';
 }
@@ -100,7 +99,6 @@ export interface EvaluatedBadge extends BadgeDefinition {
 export interface LevelInfo {
   level: number;
   title: string;
-  bengaliTitle: string;
   currentXP: number;
   minXP: number;
   nextLevelXP: number;

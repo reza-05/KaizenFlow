@@ -8,7 +8,6 @@ import { CourseCard } from '@/components/dashboard/CourseCard';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { AddCourseModal } from '@/components/dashboard/AddCourseModal';
 import { CompletionBadgeModal } from '@/components/dashboard/CompletionBadgeModal';
-import { RewardsHubModal } from '@/components/dashboard/RewardsHubModal';
 import { CinemaPlayer } from '@/components/player/CinemaPlayer';
 import { StudySidebar } from '@/components/player/StudySidebar';
 import { 
@@ -25,7 +24,7 @@ import {
   addNote,
   deleteNote
 } from '@/lib/storage';
-import { Playlist, VideoItem, UserProfile, StudyNote, EvaluatedBadge } from '@/types';
+import { Playlist, VideoItem, UserProfile, StudyNote } from '@/types';
 
 export default function KaizenFlowApp() {
   const [mounted, setMounted] = useState(false);
@@ -35,8 +34,6 @@ export default function KaizenFlowApp() {
   const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedBadgeCourse, setSelectedBadgeCourse] = useState<Playlist | null>(null);
-  const [isRewardsHubOpen, setIsRewardsHubOpen] = useState(false);
-  const [selectedExportBadge, setSelectedExportBadge] = useState<EvaluatedBadge | null>(null);
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
   const [activityMap, setActivityMap] = useState(getDailyActivityMap());
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -212,7 +209,6 @@ export default function KaizenFlowApp() {
         userProfile={userProfile || undefined}
         activeCourseTitle={activeCourse?.customTitle}
         onBackToDashboard={activeCourse ? handleBackToDashboard : undefined}
-        onOpenRewardsHub={() => setIsRewardsHubOpen(true)}
       />
 
       {/* Floating Dynamic Island HUD Pill (Zero layout-shift, high-end feel) */}
@@ -342,24 +338,11 @@ export default function KaizenFlowApp() {
         currentCount={playlists.length}
       />
 
-      {/* Academic Levels & Badges Hub Modal */}
-      <RewardsHubModal
-        isOpen={isRewardsHubOpen}
-        onClose={() => setIsRewardsHubOpen(false)}
-        userProfile={userProfile}
-        completedCoursesCount={playlists.filter(p => p.totalVideos > 0 && p.completedVideos >= p.totalVideos).length}
-        onSelectBadgeForExport={b => setSelectedExportBadge(b)}
-      />
-
-      {/* Course Completion & Milestone Badge Certificate Modal */}
+      {/* Course Completion Badge & Certificate Modal */}
       <CompletionBadgeModal
-        isOpen={Boolean(selectedBadgeCourse || selectedExportBadge)}
-        onClose={() => {
-          setSelectedBadgeCourse(null);
-          setSelectedExportBadge(null);
-        }}
+        isOpen={Boolean(selectedBadgeCourse)}
+        onClose={() => setSelectedBadgeCourse(null)}
         course={selectedBadgeCourse}
-        badge={selectedExportBadge}
         userProfile={userProfile}
       />
     </div>

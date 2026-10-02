@@ -13,6 +13,7 @@ interface NavbarProps {
   activeCourseTitle?: string;
   onBackToDashboard?: () => void;
   onOpenRewardsHub?: () => void;
+  isRewardsPage?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -20,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeCourseTitle,
   onBackToDashboard,
   onOpenRewardsHub,
+  isRewardsPage = false,
 }) => {
   const [isDark, setIsDark] = useState(false);
 
@@ -55,12 +57,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onBackToDashboard ? (
             <button
               onClick={onBackToDashboard}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0 cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden xs:inline">Back to Library</span>
               <span className="xs:hidden">Back</span>
             </button>
+          ) : isRewardsPage ? (
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0 border border-[var(--border-subtle)]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Library</span>
+            </Link>
           ) : (
             <Link href="/" className="flex items-baseline gap-2 group shrink-0">
               <span className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
@@ -83,40 +93,40 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Action & Stats Bar */}
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Level & Rank Pill (Click to open Rewards Hub) */}
-          <button
-            onClick={onOpenRewardsHub}
-            title={`Scholar Level ${levelInfo.level}: ${levelInfo.title} (${levelInfo.bengaliTitle}) • Click to view Badges & Rewards`}
-            className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-2 sm:px-2.5 py-1 text-xs font-semibold text-amber-500 transition-all cursor-pointer shadow-2xs"
+          {/* Level & Rank Pill (Links to /rewards page) */}
+          <Link
+            href="/rewards"
+            title={`Scholar Level ${levelInfo.level}: ${levelInfo.title} • View Levels & Badges`}
+            className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)]/70 px-2.5 py-1 text-xs font-semibold text-[var(--text-primary)] transition-all cursor-pointer shadow-xs"
           >
             <Trophy className="h-3.5 w-3.5 text-amber-500" />
             <span>Lvl {levelInfo.level}</span>
-            <span className="hidden md:inline text-amber-400/90 font-medium text-[11px] truncate max-w-[120px]">
+            <span className="hidden md:inline text-[var(--text-secondary)] font-normal text-[11px] truncate max-w-[130px]">
               • {levelInfo.title}
             </span>
-          </button>
+          </Link>
 
           {/* Daily Streak Counter */}
-          <button
-            onClick={onOpenRewardsHub}
-            title="Daily Study Streak • Click to view Badges & Rewards"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-orange-500/40 px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
+          <Link
+            href="/rewards"
+            title="Daily Study Streak • View Badges & Streaks"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
           >
             <ClashFlame size={14} />
             <span>{userProfile?.currentStreak || 0}</span>
             <span className="hidden sm:inline text-[var(--text-secondary)] font-normal text-[11px]">Streak</span>
-          </button>
+          </Link>
 
           {/* XP Badge */}
-          <button
-            onClick={onOpenRewardsHub}
-            title="Total Earned XP • Click to view Badges & Rewards"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-emerald-500/40 px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
+          <Link
+            href="/rewards"
+            title="Total Earned XP • View Level Progression"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
           >
             <Award className="h-3.5 w-3.5 text-[#059669]" />
             <span>{userProfile?.totalXP || 0}</span>
             <span className="hidden sm:inline text-[var(--text-secondary)] font-normal text-[11px]">XP</span>
-          </button>
+          </Link>
 
           {/* Quota Badge */}
           {userProfile && (
