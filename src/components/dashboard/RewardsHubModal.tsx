@@ -19,10 +19,11 @@ import {
   Shield, 
   Crown, 
   Medal,
-  TrendingUp
+  FileText,
+  Eye
 } from 'lucide-react';
 import { UserProfile, EvaluatedBadge, LevelInfo, BadgeCategory } from '@/types';
-import { calculateLevelFromXP, evaluateUserBadges, getTotalWatchTimeStats } from '@/lib/rewards';
+import { calculateLevelFromXP, evaluateUserBadges, getTotalWatchTimeStats, getTotalNotesCount } from '@/lib/rewards';
 
 interface RewardsHubModalProps {
   isOpen: boolean;
@@ -49,6 +50,7 @@ function getBadgeIcon(iconName: string, className: string) {
     case 'CheckCircle2': return <CheckCircle2 className={className} />;
     case 'BookOpen': return <BookOpen className={className} />;
     case 'Trophy': return <Trophy className={className} />;
+    case 'FileText': return <FileText className={className} />;
     default: return <Award className={className} />;
   }
 }
@@ -57,8 +59,8 @@ function getBadgeIcon(iconName: string, className: string) {
 function getColorClasses(scheme: string, isUnlocked: boolean) {
   if (!isUnlocked) {
     return {
-      border: 'border-zinc-800 bg-zinc-900/40 opacity-75',
-      iconBg: 'bg-zinc-800/80 text-zinc-500',
+      border: 'border-zinc-800 bg-zinc-900/40 opacity-85',
+      iconBg: 'bg-zinc-800/80 text-zinc-500 border border-zinc-700/40',
       badge: 'bg-zinc-800 text-zinc-400',
       bar: 'bg-zinc-700',
     };
@@ -119,12 +121,16 @@ export const RewardsHubModal: React.FC<RewardsHubModalProps> = ({
   const totalXP = userProfile?.totalXP || 0;
   const levelInfo: LevelInfo = calculateLevelFromXP(totalXP);
   const watchStats = getTotalWatchTimeStats();
+  const notesCount = getTotalNotesCount();
+  const verifiedCount = Math.floor(totalXP / 50);
 
   const evaluatedBadges = evaluateUserBadges({
     totalWatchHours: watchStats.totalHours,
     currentStreak: userProfile?.currentStreak || 0,
     longestStreak: userProfile?.longestStreak || userProfile?.currentStreak || 0,
     completedCoursesCount,
+    verifiedLessonsCount: verifiedCount,
+    notesCount,
   });
 
   const filteredBadges = activeTab === 'all'
@@ -314,7 +320,29 @@ export const RewardsHubModal: React.FC<RewardsHubModalProps> = ({
               }`}
             >
               <BookOpen className="h-3 w-3 text-emerald-400" />
-              <span>Course Mastery</span>
+              <span>Courses (1–10)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('discipline')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
+                activeTab === 'discipline'
+                  ? 'bg-zinc-800 text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+              }`}
+            >
+              <ShieldCheck className="h-3 w-3 text-purple-400" />
+              <span>Focus Discipline</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('scholarship')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
+                activeTab === 'scholarship'
+                  ? 'bg-zinc-800 text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+              }`}
+            >
+              <FileText className="h-3 w-3 text-amber-400" />
+              <span>Notes & Scribe</span>
             </button>
           </div>
 
@@ -379,17 +407,29 @@ export const RewardsHubModal: React.FC<RewardsHubModalProps> = ({
                         </button>
                       </>
                     ) : (
-                      <div className="w-full space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                          <span>Progress: {badge.currentValue} / {badge.targetValue} {badge.unit}</span>
-                          <span>{badge.progressPercent}%</span>
+                      <div className="w-full flex items-center justify-between gap-3">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                            <span>Progress: {badge.currentValue} / {badge.targetValue} {badge.unit}</span>
+                            <span>{badge.progressPercent}%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-300 ${colors.bar}`}
+                              style={{ width: `${badge.progressPercent}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-300 ${colors.bar}`}
-                            style={{ width: `${badge.progressPercent}%` }}
-                          />
-                        </div>
+
+                        {/* Interactive Preview Button for Inspection */}
+                        <button
+                          onClick={() => onSelectBadgeForExport(badge)}
+                          className="shrink-0 flex items-center gap-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white px-2.5 py-1 text-[11px] font-medium border border-zinc-700/60 transition-colors cursor-pointer"
+                          title="Preview full badge & certificate design"
+                        >
+                          <Eye className="h-3 w-3 text-sky-400" />
+                          <span>Preview</span>
+                        </button>
                       </div>
                     )}
                   </div>

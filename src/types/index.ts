@@ -75,7 +75,7 @@ export interface StudyNote {
 
 export type StudyMode = 'lecture' | 'studio';
 
-export type BadgeCategory = 'watchtime' | 'streak' | 'course';
+export type BadgeCategory = 'watchtime' | 'streak' | 'course' | 'discipline' | 'scholarship';
 
 export interface BadgeDefinition {
   id: string;

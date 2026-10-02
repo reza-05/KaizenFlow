@@ -176,19 +176,31 @@ export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = [
     colorScheme: 'platinum',
   },
   {
-    id: 'st_100d',
+    id: 'st_60d',
     category: 'streak',
     tier: 5,
+    title: 'Diamond Habit',
+    bengaliTitle: 'হীরক সংকল্প',
+    description: 'Two continuous months (60 days) of sustained study devotion.',
+    targetValue: 60,
+    unit: 'days',
+    iconName: 'Sparkles',
+    colorScheme: 'obsidian',
+  },
+  {
+    id: 'st_100d',
+    category: 'streak',
+    tier: 6,
     title: 'Kaizen Centurion',
     bengaliTitle: 'শতদিনের সংকল্প',
     description: 'Legendary 100-day unbroken streak of daily verified improvement.',
     targetValue: 100,
     unit: 'days',
     iconName: 'Award',
-    colorScheme: 'obsidian',
+    colorScheme: 'emerald',
   },
 
-  // --- C. Course Mastery Badges (1, 3, 5 Courses) ---
+  // --- C. Course Mastery Badges (1, 3, 5, 10 Courses) ---
   {
     id: 'cm_1c',
     category: 'course',
@@ -223,9 +235,92 @@ export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = [
     targetValue: 5,
     unit: 'courses',
     iconName: 'Trophy',
+    colorScheme: 'platinum',
+  },
+  {
+    id: 'cm_10c',
+    category: 'course',
+    tier: 4,
+    title: 'Decathlon Polymath',
+    bengaliTitle: 'দশ শাস্ত্রবিদ',
+    description: 'Maximum quota mastery: 10 full curriculums mastered and verified.',
+    targetValue: 10,
+    unit: 'courses',
+    iconName: 'Crown',
     colorScheme: 'emerald',
   },
+
+  // --- D. Focus Discipline & Shield Badges ---
+  {
+    id: 'dc_10s',
+    category: 'discipline',
+    tier: 1,
+    title: 'Zero Distraction Warden',
+    bengaliTitle: 'একনিষ্ঠ সাধক',
+    description: 'Mastered 10 verified lessons under distraction-free focus isolation.',
+    targetValue: 10,
+    unit: 'lessons' as any,
+    iconName: 'ShieldCheck',
+    colorScheme: 'silver',
+  },
+  {
+    id: 'dc_50s',
+    category: 'discipline',
+    tier: 2,
+    title: 'Iron Fortress',
+    bengaliTitle: 'লৌহ দুর্গ',
+    description: 'Surpassed 50 verified lessons with uncompromising academic focus.',
+    targetValue: 50,
+    unit: 'lessons' as any,
+    iconName: 'Shield',
+    colorScheme: 'obsidian',
+  },
+
+  // --- E. Scholarship & Study Notes Badges ---
+  {
+    id: 'sc_25n',
+    category: 'scholarship',
+    tier: 1,
+    title: 'Master Scribe',
+    bengaliTitle: 'দক্ষ লিপিকার',
+    description: 'Captured 25 timestamped study notes and formulas during lectures.',
+    targetValue: 25,
+    unit: 'notes' as any,
+    iconName: 'FileText',
+    colorScheme: 'bronze',
+  },
+  {
+    id: 'sc_100n',
+    category: 'scholarship',
+    tier: 2,
+    title: 'Academic Archivist',
+    bengaliTitle: 'জ্ঞানসংগ্রাহক',
+    description: 'Built a rich intellectual repository of 100+ timestamped study notes.',
+    targetValue: 100,
+    unit: 'notes' as any,
+    iconName: 'Layers',
+    colorScheme: 'gold',
+  },
 ];
+
+// Helper to count total study notes in local storage
+export function getTotalNotesCount(): number {
+  if (typeof window === 'undefined') return 0;
+  let count = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('kaizenflow_study_notes_') || key.startsWith('kizen_study_notes_'))) {
+        const val = localStorage.getItem(key);
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) count += parsed.length;
+        }
+      }
+    }
+  } catch {}
+  return count;
+}
 
 // 3. Aggregate Total Watch Time across user progress
 export function getTotalWatchTimeStats(): {
@@ -263,8 +358,12 @@ export function evaluateUserBadges(stats: {
   currentStreak: number;
   longestStreak: number;
   completedCoursesCount: number;
+  verifiedLessonsCount?: number;
+  notesCount?: number;
 }): EvaluatedBadge[] {
   const maxStreak = Math.max(stats.currentStreak, stats.longestStreak);
+  const verifiedCount = stats.verifiedLessonsCount ?? 0;
+  const notesCount = stats.notesCount ?? 0;
 
   return ALL_BADGE_DEFINITIONS.map(badge => {
     let currentValue = 0;
@@ -275,6 +374,10 @@ export function evaluateUserBadges(stats: {
       currentValue = maxStreak;
     } else if (badge.category === 'course') {
       currentValue = stats.completedCoursesCount;
+    } else if (badge.category === 'discipline') {
+      currentValue = verifiedCount;
+    } else if (badge.category === 'scholarship') {
+      currentValue = notesCount;
     }
 
     const isUnlocked = currentValue >= badge.targetValue;
