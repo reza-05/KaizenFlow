@@ -58,8 +58,8 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
         setCustomCourseTitle('');
         onClose();
       }
-    } catch {
-      setErrorMessage('Could not process YouTube playlist. Please check the URL format.');
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Could not process YouTube playlist. Please check the URL format or connectivity.');
     } finally {
       setIsSubmitting(false);
     }
