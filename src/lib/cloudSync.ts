@@ -1,6 +1,7 @@
 import { doc, getDoc, writeBatch } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import {
+  setActiveUserScope,
   getInitialUserProfile,
   saveUserProfile,
   getPlaylists,
@@ -10,19 +11,17 @@ import {
   getDailyActivityMap,
   saveDailyActivityMap,
   getDownloadedCertificateIds,
-  recordCertificateDownload,
-  calculateStreaksFromActivity,
+  saveDownloadedCertificateIds,
 } from './storage';
 import { UserProfile, Playlist, VideoProgress, DailyActivity } from '@/types';
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
 
 let lastHeartbeatTime = 0;
-const MIN_HEARTBEAT_INTERVAL_MS = 60 * 1000; // 60 seconds minimum between periodic background cloud writes
+const MIN_HEARTBEAT_INTERVAL_MS = 60 * 1000;
 
 /**
  * Push all local study stats to Firestore in a single atomic batch write.
- * Protects Firestore quotas by consolidating profile, courses, and heatmap into 1 network batch.
  */
 export async function syncLocalDataToCloud(uid: string): Promise<boolean> {
   if (!isFirebaseConfigured || !db || !uid) return false;
@@ -57,7 +56,7 @@ export async function syncLocalDataToCloud(uid: string): Promise<boolean> {
       { merge: true }
     );
 
-    // 2. Activity Document: users/{uid}/data/activity (Entire year's heatmap in 1 document)
+    // 2. Activity Document: users/{uid}/data/activity (Entire year's heatmap)
     const activityDocRef = doc(db, 'users', uid, 'data', 'activity');
     batch.set(
       activityDocRef,
@@ -68,7 +67,7 @@ export async function syncLocalDataToCloud(uid: string): Promise<boolean> {
       { merge: true }
     );
 
-    // 3. Courses Document: users/{uid}/data/courses (All courses + video progress in 1 document)
+    // 3. Courses Document: users/{uid}/data/courses (All courses + video progress)
     const coursesDocRef = doc(db, 'users', uid, 'data', 'courses');
     batch.set(
       coursesDocRef,
@@ -90,17 +89,31 @@ export async function syncLocalDataToCloud(uid: string): Promise<boolean> {
 
 /**
  * Load cloud data into local storage on login.
- * Executes exactly 3 document reads, merges with local state, and caches locally.
+ * For returning users: loads ONLY their own cloud data.
+ * For new users: starts 100% clean and fresh (0 playlists, 0 progress, 0 streak, 0 XP).
  */
 export async function loadCloudDataToLocal(
   uid: string,
   userEmail?: string | null,
   displayName?: string | null
 ): Promise<{ success: boolean; profile: UserProfile }> {
-  const localProfile = getInitialUserProfile();
+  // Set storage isolation scope strictly to this user's UID
+  setActiveUserScope(uid);
 
   if (!isFirebaseConfigured || !db || !uid) {
-    return { success: false, profile: localProfile };
+    const fallbackProfile: UserProfile = {
+      id: uid,
+      name: displayName || 'Scholar',
+      email: userEmail || 'learner@kaizenflow.study',
+      totalXP: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastStudyDate: '',
+      activePlaylistsCount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    saveUserProfile(fallbackProfile);
+    return { success: false, profile: fallbackProfile };
   }
 
   try {
@@ -108,124 +121,86 @@ export async function loadCloudDataToLocal(
     const activityDocRef = doc(db, 'users', uid, 'data', 'activity');
     const coursesDocRef = doc(db, 'users', uid, 'data', 'courses');
 
-    // Fetch all 3 aggregated documents in parallel (total 3 reads)
     const [userSnap, activitySnap, coursesSnap] = await Promise.all([
       getDoc(userDocRef),
       getDoc(activityDocRef),
       getDoc(coursesDocRef),
     ]);
 
-    let mergedProfile = { ...localProfile };
-    let needsPushBack = false;
-
-    // 1. Process Profile
     if (userSnap.exists()) {
-      const data = userSnap.data();
-      mergedProfile = {
+      // EXISTING USER: Load THEIR own cloud records cleanly
+      const userData = userSnap.data();
+      const activityData = activitySnap.exists()
+        ? ((activitySnap.data().activityMap || {}) as Record<string, DailyActivity>)
+        : {};
+      const coursesData = coursesSnap.exists()
+        ? ((coursesSnap.data().playlists || []) as Playlist[])
+        : [];
+      const progressData = coursesSnap.exists()
+        ? ((coursesSnap.data().progressList || {}) as Record<string, VideoProgress>)
+        : {};
+      const certsData = Array.isArray(userData.downloadedCertificates)
+        ? userData.downloadedCertificates
+        : [];
+
+      const profile: UserProfile = {
         id: uid,
-        name: displayName || data.name || localProfile.name || 'Scholar',
-        email: userEmail || data.email || localProfile.email,
-        totalXP: Math.max(data.totalXP || 0, localProfile.totalXP || 0),
-        currentStreak: Math.max(data.currentStreak || 0, localProfile.currentStreak || 0),
-        longestStreak: Math.max(data.longestStreak || 0, localProfile.longestStreak || 0),
-        lastStudyDate: data.lastStudyDate || localProfile.lastStudyDate,
-        activePlaylistsCount: data.activePlaylistsCount || localProfile.activePlaylistsCount,
-        createdAt: data.createdAt || localProfile.createdAt,
+        name: displayName || userData.name || 'Scholar',
+        email: userEmail || userData.email || 'learner@kaizenflow.study',
+        totalXP: userData.totalXP || 0,
+        currentStreak: userData.currentStreak || 0,
+        longestStreak: userData.longestStreak || 0,
+        lastStudyDate: userData.lastStudyDate || '',
+        activePlaylistsCount: coursesData.length,
+        createdAt: userData.createdAt || new Date().toISOString(),
       };
 
-      // Merge certificates
-      if (Array.isArray(data.downloadedCertificates)) {
-        data.downloadedCertificates.forEach((certId: string) => {
-          recordCertificateDownload(certId);
-        });
-      }
+      saveUserProfile(profile);
+      savePlaylists(coursesData);
+      saveAllVideoProgress(progressData);
+      saveDailyActivityMap(activityData);
+      saveDownloadedCertificateIds(certsData);
+
+      return { success: true, profile };
     } else {
-      // First-time cloud user: seed with current local progress
-      mergedProfile.id = uid;
-      if (displayName) mergedProfile.name = displayName;
-      if (userEmail) mergedProfile.email = userEmail;
-      needsPushBack = true;
-    }
+      // BRAND NEW USER: Starts 100% fresh with NO courses and 0 progress!
+      const freshProfile: UserProfile = {
+        id: uid,
+        name: displayName || 'Scholar',
+        email: userEmail || 'learner@kaizenflow.study',
+        totalXP: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastStudyDate: '',
+        activePlaylistsCount: 0,
+        createdAt: new Date().toISOString(),
+      };
 
-    // 2. Process Activity Map (Heatmap)
-    if (activitySnap.exists()) {
-      const cloudActivity = (activitySnap.data().activityMap || {}) as Record<string, DailyActivity>;
-      const localActivity = getDailyActivityMap();
-      const mergedActivity: Record<string, DailyActivity> = { ...localActivity };
+      saveUserProfile(freshProfile);
+      savePlaylists([]);
+      saveAllVideoProgress({});
+      saveDailyActivityMap({});
+      saveDownloadedCertificateIds([]);
 
-      Object.entries(cloudActivity).forEach(([date, act]) => {
-        if (!mergedActivity[date]) {
-          mergedActivity[date] = act;
-        } else {
-          mergedActivity[date] = {
-            date,
-            minutesWatched: Math.max(mergedActivity[date].minutesWatched, act.minutesWatched || 0),
-            verifiedCount: Math.max(mergedActivity[date].verifiedCount, act.verifiedCount || 0),
-            xpEarned: Math.max(mergedActivity[date].xpEarned, act.xpEarned || 0),
-          };
-        }
-      });
-
-      saveDailyActivityMap(mergedActivity);
-      const recalculatedStreaks = calculateStreaksFromActivity(mergedActivity);
-      mergedProfile.currentStreak = recalculatedStreaks.currentStreak;
-      mergedProfile.longestStreak = Math.max(mergedProfile.longestStreak, recalculatedStreaks.longestStreak);
-    } else {
-      needsPushBack = true;
-    }
-
-    // 3. Process Playlists & Progress
-    if (coursesSnap.exists()) {
-      const cloudPlaylists = (coursesSnap.data().playlists || []) as Playlist[];
-      const cloudProgress = (coursesSnap.data().progressList || {}) as Record<string, VideoProgress>;
-      const localPlaylists = getPlaylists();
-      const localProgress = getVideoProgressList();
-
-      // Merge playlists: keep unique playlists by id
-      const playlistMap = new Map<string, Playlist>();
-      cloudPlaylists.forEach(p => playlistMap.set(p.id, p));
-      localPlaylists.forEach(p => {
-        if (!playlistMap.has(p.id)) playlistMap.set(p.id, p);
-      });
-      const mergedPlaylists = Array.from(playlistMap.values());
-      savePlaylists(mergedPlaylists);
-      mergedProfile.activePlaylistsCount = mergedPlaylists.length;
-
-      // Merge video progress
-      const mergedProgress = { ...localProgress };
-      Object.entries(cloudProgress).forEach(([key, prog]) => {
-        const localP = mergedProgress[key];
-        if (!localP || (prog.isVerified && !localP.isVerified) || (prog.watchedSeconds > (localP.watchedSeconds || 0))) {
-          mergedProgress[key] = prog;
-        }
-      });
-      saveAllVideoProgress(mergedProgress);
-    } else {
-      needsPushBack = true;
-    }
-
-    saveUserProfile(mergedProfile);
-
-    // If local had unsynced progress, push the unified merged state to Firestore in 1 atomic batch
-    if (needsPushBack) {
+      // Create pristine cloud records for this new user in Firestore
       await syncLocalDataToCloud(uid);
-    }
 
-    return { success: true, profile: mergedProfile };
+      return { success: true, profile: freshProfile };
+    }
   } catch (error) {
     console.error('Error loading cloud data:', error);
-    return { success: false, profile: localProfile };
+    const p = getInitialUserProfile();
+    return { success: false, profile: p };
   }
 }
 
 /**
- * Throttled periodic heartbeat sync.
- * Guarantees that active video watchers sync at most ONCE every 60 seconds.
+ * Throttled periodic heartbeat sync (max 1 write per 60s).
  */
 export async function debouncedHeartbeatSync(uid: string): Promise<void> {
   const now = Date.now();
   if (now - lastHeartbeatTime < MIN_HEARTBEAT_INTERVAL_MS) {
-    return; // Skip write to save quota
+    return;
   }
   lastHeartbeatTime = now;
   await syncLocalDataToCloud(uid);

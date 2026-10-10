@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { loadCloudDataToLocal, syncLocalDataToCloud, SyncStatus } from '@/lib/cloudSync';
-import { getInitialUserProfile, saveUserProfile } from '@/lib/storage';
+import { getInitialUserProfile, saveUserProfile, setActiveUserScope } from '@/lib/storage';
 import { UserProfile } from '@/types';
 
 interface AuthContextType {
@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        setActiveUserScope(firebaseUser.uid);
         setSyncStatus('syncing');
         try {
           const { profile } = await loadCloudDataToLocal(
@@ -65,6 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setSyncStatus('error');
         }
       } else {
+        setActiveUserScope(null);
         setUserProfile(getInitialUserProfile());
         setSyncStatus('idle');
       }
@@ -135,6 +137,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (auth) {
       await firebaseSignOut(auth);
     }
+    setActiveUserScope(null);
     setUser(null);
     const guest = getInitialUserProfile();
     setUserProfile(guest);

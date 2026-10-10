@@ -4,12 +4,13 @@ import { Playlist, UserProfile, VideoProgress, DailyActivity, StudyNote } from '
 import { CURATED_STARTER_COURSES } from './youtube';
 
 const STORAGE_KEYS = {
-  USER: 'kaizenflow_user_profile',
-  PLAYLISTS: 'kaizenflow_playlists',
-  PROGRESS: 'kaizenflow_video_progress',
-  ACTIVITY: 'kaizenflow_daily_activity',
-  NOTES: 'kaizenflow_study_notes',
-  THEME: 'kaizenflow_theme_mode',
+  USER: 'user_profile',
+  PLAYLISTS: 'playlists',
+  PROGRESS: 'video_progress',
+  ACTIVITY: 'daily_activity',
+  NOTES: 'study_notes',
+  THEME: 'theme_mode',
+  CERTIFICATES: 'downloaded_certificates',
 };
 
 const LEGACY_STORAGE_KEYS = {
@@ -19,13 +20,76 @@ const LEGACY_STORAGE_KEYS = {
   ACTIVITY: 'kizen_daily_activity',
   NOTES: 'kizen_study_notes',
   THEME: 'kizen_theme_mode',
+  CERTIFICATES: 'kaizenflow_downloaded_certificates',
 };
 
-function getStoredValue(key: keyof typeof STORAGE_KEYS, suffix: string = ''): string | null {
+let inMemoryActiveScope: string | null = null;
+
+export function setActiveUserScope(uid: string | null): void {
+  inMemoryActiveScope = uid || null;
+  if (typeof window !== 'undefined') {
+    if (uid) {
+      localStorage.setItem('kaizenflow_active_uid', uid);
+    } else {
+      localStorage.removeItem('kaizenflow_active_uid');
+    }
+  }
+}
+
+export function getActiveUserScope(): string | null {
+  if (inMemoryActiveScope) return inMemoryActiveScope;
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('kaizenflow_active_uid') || null;
+  }
+  return null;
+}
+
+function resolveStorageKey(key: keyof typeof STORAGE_KEYS, suffix: string = ''): string {
+  const scope = getActiveUserScope();
+  if (scope) {
+    const base = `kaizenflow_u_${scope}_${STORAGE_KEYS[key]}`;
+    return suffix ? `${base}_${suffix}` : base;
+  }
+  const base = `kaizenflow_${STORAGE_KEYS[key]}`;
+  return suffix ? `${base}_${suffix}` : base;
+}
+
+export function getStoredValue(key: keyof typeof STORAGE_KEYS, suffix: string = ''): string | null {
   if (typeof window === 'undefined') return null;
-  const primaryKey = suffix ? `${STORAGE_KEYS[key]}_${suffix}` : STORAGE_KEYS[key];
-  const legacyKey = suffix ? `${LEGACY_STORAGE_KEYS[key]}_${suffix}` : LEGACY_STORAGE_KEYS[key];
-  return localStorage.getItem(primaryKey) || localStorage.getItem(legacyKey);
+  const primaryKey = resolveStorageKey(key, suffix);
+  const val = localStorage.getItem(primaryKey);
+  if (val) return val;
+
+  // Only check legacy / un-scoped guest fallback if NO authenticated user scope is active
+  if (!getActiveUserScope()) {
+    const legacyKey = suffix ? `${LEGACY_STORAGE_KEYS[key]}_${suffix}` : LEGACY_STORAGE_KEYS[key];
+    const unPrefixed = suffix ? `kaizenflow_${STORAGE_KEYS[key]}_${suffix}` : `kaizenflow_${STORAGE_KEYS[key]}`;
+    return localStorage.getItem(unPrefixed) || localStorage.getItem(legacyKey);
+  }
+  return null;
+}
+
+export function setStoredValue(key: keyof typeof STORAGE_KEYS, value: string, suffix: string = ''): void {
+  if (typeof window === 'undefined') return;
+  const primaryKey = resolveStorageKey(key, suffix);
+  localStorage.setItem(primaryKey, value);
+}
+
+// Clear all local data associated with a specific user
+export function clearActiveUserStorage(targetUid?: string): void {
+  if (typeof window === 'undefined') return;
+  const uid = targetUid || getActiveUserScope();
+  if (!uid) return;
+
+  const prefix = `kaizenflow_u_${uid}_`;
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(prefix)) {
+      keysToRemove.push(k);
+    }
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
 // Calculate genuine streaks strictly from verified lessons (Code verification required)
@@ -80,19 +144,20 @@ export function calculateStreaksFromActivity(activityMap: Record<string, DailyAc
 
 // Initial default user profile (Pure genuine user stats, 0 fake numbers)
 export function getInitialUserProfile(): UserProfile {
-  if (typeof window === 'undefined') {
-    return {
-      id: 'usr_local',
-      name: 'Scholar',
-      email: 'learner@kaizenflow.study',
-      totalXP: 0,
-      currentStreak: 0,
-      longestStreak: 0,
-      lastStudyDate: '',
-      activePlaylistsCount: CURATED_STARTER_COURSES.length,
-      createdAt: new Date().toISOString(),
-    };
-  }
+  const scope = getActiveUserScope();
+  const defaultProfile: UserProfile = {
+    id: scope || 'usr_guest',
+    name: scope ? 'Scholar' : 'Guest Scholar',
+    email: scope ? 'scholar@kaizenflow.study' : 'guest@kaizenflow.study',
+    totalXP: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastStudyDate: '',
+    activePlaylistsCount: 0,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (typeof window === 'undefined') return defaultProfile;
 
   const stored = getStoredValue('USER');
   const activityMap = getDailyActivityMap();
@@ -103,12 +168,11 @@ export function getInitialUserProfile(): UserProfile {
   if (stored) {
     try {
       const parsed: UserProfile = JSON.parse(stored);
-      // Enforce true verified stats so legacy fake seed (e.g. 350 XP, 4 day streak, 12 longest) is corrected
-      parsed.totalXP = Math.max(parsed.totalXP, genuineXP);
+      parsed.totalXP = Math.max(parsed.totalXP || 0, genuineXP);
       parsed.currentStreak = streaks.currentStreak;
       parsed.longestStreak = Math.max(streaks.longestStreak, streaks.currentStreak);
       parsed.lastStudyDate = streaks.currentStreak > 0 ? (parsed.lastStudyDate || new Date().toISOString().split('T')[0]) : '';
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(parsed));
+      setStoredValue('USER', JSON.stringify(parsed));
       return parsed;
     } catch {
       // fallback
@@ -116,28 +180,32 @@ export function getInitialUserProfile(): UserProfile {
   }
 
   const profile: UserProfile = {
-    id: 'usr_local',
-    name: 'Scholar',
-    email: 'learner@kaizenflow.study',
+    id: scope || 'usr_guest',
+    name: scope ? 'Scholar' : 'Guest Scholar',
+    email: scope ? 'scholar@kaizenflow.study' : 'guest@kaizenflow.study',
     totalXP: genuineXP,
     currentStreak: streaks.currentStreak,
     longestStreak: streaks.longestStreak,
     lastStudyDate: streaks.currentStreak > 0 ? new Date().toISOString().split('T')[0] : '',
-    activePlaylistsCount: CURATED_STARTER_COURSES.length,
+    activePlaylistsCount: scope ? 0 : CURATED_STARTER_COURSES.length,
     createdAt: new Date().toISOString(),
   };
-  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile));
+  setStoredValue('USER', JSON.stringify(profile));
   return profile;
 }
 
 export function saveUserProfile(profile: UserProfile): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile));
+  setStoredValue('USER', JSON.stringify(profile));
 }
 
-// Initial playlists (Preloaded with our 2 curated starters)
+// Playlists retrieval:
+// For logged-in users, defaults to [] (completely empty, 0 starter courses)
+// For unauthenticated guests, provides starter courses to preview
 export function getPlaylists(): Playlist[] {
-  if (typeof window === 'undefined') return CURATED_STARTER_COURSES;
+  const scope = getActiveUserScope();
+  if (typeof window === 'undefined') return scope ? [] : CURATED_STARTER_COURSES;
+
   const stored = getStoredValue('PLAYLISTS');
   if (stored) {
     try {
@@ -147,13 +215,19 @@ export function getPlaylists(): Playlist[] {
     }
   }
 
-  localStorage.setItem(STORAGE_KEYS.PLAYLISTS, JSON.stringify(CURATED_STARTER_COURSES));
+  // Authenticated user starts completely empty!
+  if (scope) {
+    return [];
+  }
+
+  // Guest preview mode
+  setStoredValue('PLAYLISTS', JSON.stringify(CURATED_STARTER_COURSES));
   return CURATED_STARTER_COURSES;
 }
 
 export function savePlaylists(playlists: Playlist[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.PLAYLISTS, JSON.stringify(playlists));
+  setStoredValue('PLAYLISTS', JSON.stringify(playlists));
 }
 
 // Add a new playlist with strict 10-quota enforcement
@@ -230,7 +304,7 @@ export function saveVideoPlaybackProgress(
   );
 
   allProgress[progressKey] = {
-    userId: 'usr_local',
+    userId: getActiveUserScope() || 'usr_local',
     playlistId,
     ytVideoId,
     watchedSeconds: maxWatchedSeconds,
@@ -243,16 +317,12 @@ export function saveVideoPlaybackProgress(
     updatedAt: new Date().toISOString(),
   };
 
-  try {
-    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(allProgress));
-  } catch {}
+  setStoredValue('PROGRESS', JSON.stringify(allProgress));
 }
 
 export function saveAllVideoProgress(allProgress: Record<string, VideoProgress>): void {
   if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(allProgress));
-  } catch {}
+  setStoredValue('PROGRESS', JSON.stringify(allProgress));
 }
 
 export function markVideoVerified(
@@ -268,7 +338,7 @@ export function markVideoVerified(
   const xpEarned = alreadyVerified ? 0 : 50;
 
   allProgress[progressKey] = {
-    userId: 'usr_local',
+    userId: getActiveUserScope() || 'usr_local',
     playlistId,
     ytVideoId,
     watchedSeconds: existing?.watchedSeconds || 1200,
@@ -281,9 +351,7 @@ export function markVideoVerified(
     updatedAt: new Date().toISOString(),
   };
 
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(allProgress));
-  }
+  setStoredValue('PROGRESS', JSON.stringify(allProgress));
 
   // Update User Profile & Streak
   const profile = getInitialUserProfile();
@@ -298,7 +366,7 @@ export function markVideoVerified(
       if (profile.lastStudyDate === yesterday) {
         profile.currentStreak += 1;
       } else {
-        profile.currentStreak = 1; // streak reset/start
+        profile.currentStreak = 1;
       }
       if (profile.currentStreak > profile.longestStreak) {
         profile.longestStreak = profile.currentStreak;
@@ -324,33 +392,16 @@ export function markVideoVerified(
   return { xpEarned, newStreak: profile.currentStreak };
 }
 
-// 365-Day Activity Log for Heatmap (100% Genuine User Records, strictly verified lessons)
+// 365-Day Activity Log for Heatmap (strictly genuine verified lessons)
 export function getDailyActivityMap(): Record<string, DailyActivity> {
   if (typeof window === 'undefined') return {};
-
-  const allProgress = getVideoProgressList();
-  const genuineProgressList = Object.values(allProgress);
-  const genuineVerified = genuineProgressList.filter(p => p.isVerified);
-
-  // Build the clean real activity map strictly from user verified lessons
-  const cleanMap: Record<string, DailyActivity> = {};
-  genuineVerified.forEach(p => {
-    const dateStr = (p.completedAt || p.updatedAt || new Date().toISOString()).split('T')[0];
-    if (!cleanMap[dateStr]) {
-      cleanMap[dateStr] = {
-        date: dateStr,
-        minutesWatched: 0,
-        verifiedCount: 0,
-        xpEarned: 0,
-      };
-    }
-    cleanMap[dateStr].verifiedCount += 1;
-    cleanMap[dateStr].minutesWatched += Math.max(20, Math.round((p.watchedSeconds || 1200) / 60));
-    cleanMap[dateStr].xpEarned += 50;
-  });
-
-  localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(cleanMap));
-  return cleanMap;
+  const stored = getStoredValue('ACTIVITY');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {}
+  }
+  return {};
 }
 
 export function updateDailyActivity(date: string, minutes: number, verified: number, xp: number): void {
@@ -365,14 +416,12 @@ export function updateDailyActivity(date: string, minutes: number, verified: num
     xpEarned: existing.xpEarned + xp,
   };
 
-  localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(current));
+  setStoredValue('ACTIVITY', JSON.stringify(current));
 }
 
 export function saveDailyActivityMap(map: Record<string, DailyActivity>): void {
   if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(map));
-  } catch {}
+  setStoredValue('ACTIVITY', JSON.stringify(map));
 }
 
 // Notes Storage
@@ -390,32 +439,32 @@ export function getNotes(videoId: string): StudyNote[] {
 export function addNote(note: StudyNote): StudyNote[] {
   const current = getNotes(note.videoId);
   const updated = [note, ...current];
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(`${STORAGE_KEYS.NOTES}_${note.videoId}`, JSON.stringify(updated));
-  }
+  setStoredValue('NOTES', JSON.stringify(updated), note.videoId);
   return updated;
 }
 
 export function deleteNote(videoId: string, noteId: string): StudyNote[] {
   const current = getNotes(videoId);
   const updated = current.filter(n => n.id !== noteId);
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(`${STORAGE_KEYS.NOTES}_${videoId}`, JSON.stringify(updated));
-  }
+  setStoredValue('NOTES', JSON.stringify(updated), videoId);
   return updated;
 }
 
-// 1-Time Certificate Download Registry
-const DOWNLOADED_CERTIFICATES_KEY = 'kaizenflow_downloaded_certificates';
-
+// 1-Time Certificate Download Registry (Isolated by user)
 export function getDownloadedCertificateIds(): string[] {
   if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(DOWNLOADED_CERTIFICATES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
+  const stored = getStoredValue('CERTIFICATES');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {}
   }
+  return [];
+}
+
+export function saveDownloadedCertificateIds(ids: string[]): void {
+  if (typeof window === 'undefined') return;
+  setStoredValue('CERTIFICATES', JSON.stringify(ids));
 }
 
 export function recordCertificateDownload(id: string): void {
@@ -424,7 +473,7 @@ export function recordCertificateDownload(id: string): void {
     const list = getDownloadedCertificateIds();
     if (!list.includes(id)) {
       list.push(id);
-      localStorage.setItem(DOWNLOADED_CERTIFICATES_KEY, JSON.stringify(list));
+      saveDownloadedCertificateIds(list);
     }
   } catch {}
 }

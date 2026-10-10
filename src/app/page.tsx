@@ -25,8 +25,10 @@ import {
   deleteNote
 } from '@/lib/storage';
 import { Playlist, VideoItem, UserProfile, StudyNote } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function KaizenFlowApp() {
+  const { user, userProfile: authProfile } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -35,7 +37,7 @@ export default function KaizenFlowApp() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedBadgeCourse, setSelectedBadgeCourse] = useState<Playlist | null>(null);
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
-  const [activityMap, setActivityMap] = useState(getDailyActivityMap());
+  const [activityMap, setActivityMap] = useState<Record<string, any>>({});
   const [notes, setNotes] = useState<StudyNote[]>([]);
   const [activeTimestampSeconds, setActiveTimestampSeconds] = useState(0);
   const [focusWarning, setFocusWarning] = useState<string | null>(null);
@@ -52,11 +54,12 @@ export default function KaizenFlowApp() {
     return () => window.removeEventListener('kaizenflow-focus-return', handleFocusReturn);
   }, []);
 
+  // Reload user data whenever auth user changes
   useEffect(() => {
     setMounted(true);
     const cleanActivity = getDailyActivityMap();
     setActivityMap(cleanActivity);
-    const profile = getInitialUserProfile();
+    const profile = user ? authProfile : getInitialUserProfile();
     setUserProfile(profile);
 
     const loadedPlaylists = getPlaylists();
@@ -70,7 +73,7 @@ export default function KaizenFlowApp() {
       }
     });
     setProgressMap(verifiedStatus);
-  }, []);
+  }, [user?.uid, authProfile]);
 
   // Sync notes when active video changes
   useEffect(() => {
@@ -295,37 +298,58 @@ export default function KaizenFlowApp() {
               </button>
             </div>
 
-            {/* Courses Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {playlists.map(course => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onOpenCourse={handleOpenCourse}
-                  onDeleteCourse={handleDeleteCourse}
-                  onRenameCourse={handleRenameCourse}
-                  onViewBadge={c => setSelectedBadgeCourse(c)}
-                />
-              ))}
-
-              {/* Add New Course Placeholder Card (if under 10) */}
-              {playlists.length < 10 && (
-                <div
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-8 text-center cursor-pointer hover:border-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]/70 transition-all duration-200 min-h-[260px] group"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:scale-105 transition-all">
-                    <Plus className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-xs font-bold text-[var(--text-primary)] mt-3">
-                    Add Another Course
-                  </h3>
-                  <p className="text-[11px] text-[var(--text-muted)] max-w-xs mt-1">
-                    Paste YouTube playlist URL or map your exam syllabus ({10 - playlists.length} slots left)
-                  </p>
+            {/* Courses Grid or Empty State */}
+            {playlists.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-12 text-center my-2">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] mb-4">
+                  <BookOpen className="h-6 w-6" />
                 </div>
-              )}
-            </div>
+                <h3 className="text-base font-bold text-[var(--text-primary)]">
+                  Welcome to your study library!
+                </h3>
+                <p className="text-xs text-[var(--text-muted)] max-w-md mt-1.5 mb-6 leading-relaxed">
+                  You have no active courses yet. Import any YouTube playlist URL or search a topic to lock in and begin your learning journey.
+                </p>
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex items-center gap-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-canvas)] px-5 py-2.5 text-xs font-semibold hover:opacity-90 shadow-sm transition-all cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Import Your First Course</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {playlists.map(course => (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    onOpenCourse={handleOpenCourse}
+                    onDeleteCourse={handleDeleteCourse}
+                    onRenameCourse={handleRenameCourse}
+                    onViewBadge={c => setSelectedBadgeCourse(c)}
+                  />
+                ))}
+
+                {/* Add New Course Placeholder Card (if under 10) */}
+                {playlists.length < 10 && (
+                  <div
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-8 text-center cursor-pointer hover:border-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]/70 transition-all duration-200 min-h-[260px] group"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:scale-105 transition-all">
+                      <Plus className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xs font-bold text-[var(--text-primary)] mt-3">
+                      Add Another Course
+                    </h3>
+                    <p className="text-[11px] text-[var(--text-muted)] max-w-xs mt-1">
+                      Paste YouTube playlist URL or map your exam syllabus ({10 - playlists.length} slots left)
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
         </main>
       )}
