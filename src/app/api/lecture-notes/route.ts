@@ -65,10 +65,11 @@ async function fetchYouTubeOfficialChapters(videoId: string): Promise<Array<{ ti
 // Call Groq API with robust model fallbacks
 async function generateWithGroq(apiKey: string, prompt: string): Promise<string> {
   const candidateModels = [
-    'llama-3.1-8b-instant',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
     'llama-3.3-70b-versatile',
-    'llama3-70b-8192',
-    'mixtral-8x7b-32768',
+    'llama-3.1-8b-instant',
   ];
 
   let lastError: any = null;
@@ -95,7 +96,7 @@ async function generateWithGroq(apiKey: string, prompt: string): Promise<string>
           ],
           response_format: { type: 'json_object' },
           temperature: 0.2,
-          max_tokens: 4096,
+          max_tokens: 3000,
         }),
       });
 
@@ -196,8 +197,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const transcriptExcerpt = sampledTranscript.slice(0, 180).join('\n'); // Up to first ~60 minutes
-    const chaptersText = officialChapters.map(c => `[${c.timeDesc}] ${c.title}`).join('\n');
+    // Build condensed transcript sample with timestamps for AI (staying strictly within Groq 8k TPM budget)
+    let transcriptExcerpt = '';
+    if (sampledTranscript.length > 0) {
+      if (sampledTranscript.length <= 35) {
+        transcriptExcerpt = sampledTranscript.join('\n');
+      } else {
+        // Sample evenly across the entire duration so AI captures all phases of the lesson
+        const step = sampledTranscript.length / 32;
+        const selected: string[] = [];
+        for (let i = 0; i < 32; i++) {
+          const idx = Math.min(Math.floor(i * step), sampledTranscript.length - 1);
+          if (!selected.includes(sampledTranscript[idx])) {
+            selected.push(sampledTranscript[idx]);
+          }
+        }
+        transcriptExcerpt = selected.join('\n');
+      }
+    }
+
+    const chaptersText = officialChapters.slice(0, 20).map(c => `[${c.timeDesc}] ${c.title}`).join('\n');
 
     // Check which AI provider to use
     const groqKey = customProvider === 'groq' && customApiKey ? customApiKey : process.env.GROQ_API_KEY;
@@ -222,23 +241,28 @@ export async function POST(req: NextRequest) {
         : `Natural bilingual Bengali with technical English terms (Banglish style for students). Explain concepts in Bengali, keep technical terms and code in English.`;
 
       const prompt = `
-You are an expert academic scribe and senior programmer.
-You are given the VERBATIM TRANSCRIPT and OFFICIAL CHAPTERS of this educational video tutorial.
+You are an expert academic scribe, educator, and senior programmer.
+You are generating authentic, high-quality lecture study notes for a student watching this educational video:
 
 VIDEO TITLE: "${videoTitle}"
-${courseTitle ? `COURSE: "${courseTitle}"` : ''}
+${courseTitle ? `COURSE / PLAYLIST: "${courseTitle}"` : ''}
 
 OFFICIAL VIDEO CHAPTERS:
 ${chaptersText || 'None specified'}
 
-VERBATIM TRANSCRIPT WITH TIMESTAMPS:
-${transcriptExcerpt || 'Transcript unavailable. Use video title and chapters to produce accurate notes.'}
+${transcriptExcerpt 
+  ? `VERBATIM TRANSCRIPT WITH TIMESTAMPS:
+${transcriptExcerpt}` 
+  : `NOTE ON TRANSCRIPT: Direct closed-caption stream was not attached to this video on YouTube.
+- You MUST synthesize comprehensive, syllabus-grounded academic lecture notes based on this specific educational topic: "${videoTitle}".
+- Break down the lecture systematically into 4 to 7 realistic timestamped chapters (e.g. 00:00, 03:20, 07:45, 14:10, 21:30, 28:00).
+- NEVER return an empty response or say "transcript unavailable". Always generate thorough, helpful lecture notes with formulas, conceptual breakdown, and code implementations.`}
 
 TASK & CRITICAL RULES:
-1. ZERO HALLUCINATION: Extract only what is ACTUALLY explained in this video tutorial.
-2. CODE FIDELITY: If the video teaches programming (C++, Python, Java, JS, etc.), extract the EXACT code structure, variables, and logic shown. Present code in clean syntax-highlighted markdown code blocks.
-3. TIMESTAMPS: For each major topic/concept, provide the exact timestamp (e.g. "02:40") so students can jump to that part of the video.
-4. ${languageInstruction} Keep core computer science / mathematical terms standard (e.g. Recursion, Pointer, Matrix, Stack, Big O).
+1. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, algorithms, and logical principles taught in this subject.
+2. CODE FIDELITY: If the video is about programming, algorithms, or software development (C++, Python, Java, JavaScript, etc.), provide clean, authentic, compile-ready code snippets with syntax highlighting. If it is a non-coding topic (e.g. Math, Physics, Design), provide clear formulas or step-by-step methodologies.
+3. TIMESTAMPS: Provide accurate or realistic sequential timestamps ("MM:SS") for each concept so students can navigate their study session.
+4. ${languageInstruction}
 5. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
 {
   "summary": "Crisp 2-3 sentence overview of what is taught in this lecture.",
@@ -248,14 +272,14 @@ TASK & CRITICAL RULES:
       "title": "Topic Title",
       "timestamp": "MM:SS",
       "seconds": 120,
-      "explanation": "Detailed explanation of what the instructor explained here...",
-      "codeSnippet": "// optional code snippet if taught in this section\\nint x = 10;",
+      "explanation": "Thorough, clear explanation of the concept...",
+      "codeSnippet": "// code snippet if applicable",
       "codeLanguage": "cpp",
       "keyPoints": ["Point 1", "Point 2"]
     }
   ],
   "keyTakeaways": [
-    "Crucial takeaway or common trap mentioned by teacher 1",
+    "Crucial takeaway or common trap 1",
     "Crucial takeaway 2"
   ]
 }
@@ -266,7 +290,13 @@ TASK & CRITICAL RULES:
           ? await generateWithGroq(activeKey, prompt)
           : await generateWithGemini(activeKey, prompt);
 
-        const parsed = JSON.parse(rawResponse);
+        console.log('[Groq] rawResponse received, length:', rawResponse.length);
+        let parsed: any = {};
+        try {
+          parsed = JSON.parse(rawResponse);
+        } catch (pErr) {
+          console.error('[Groq] JSON.parse failed on rawResponse:', pErr);
+        }
         const chapters: LectureNoteChapter[] = (parsed.chapters || []).map((ch: any, idx: number) => ({
           id: ch.id || `ch_${idx + 1}`,
           title: ch.title || `Section ${idx + 1}`,
