@@ -232,6 +232,9 @@ export async function POST(req: NextRequest) {
 
     const chaptersText = officialChapters.slice(0, 20).map(c => `[${c.timeDesc}] ${c.title}`).join('\n');
 
+    // Detect whether this course/video is about programming vs academic science/humanities
+    const isCodingTopic = /c\+\+|cpp|\b(c|java|python|javascript|typescript|golang|rust|ruby|php|swift|kotlin|c#|sql|html|css|react|next\.?js|node\.?js|angular|vue|django|flask|spring|laravel)\b|coding|programmer|programming|software|data structures?|\bdsa\b|web dev|frontend|backend|full stack|leetcode|codeforces|git|github/i.test(`${videoTitle} ${courseTitle}`);
+
     // Check which AI provider to use
     const groqKey = customProvider === 'groq' && customApiKey ? customApiKey : process.env.GROQ_API_KEY;
     const geminiKey = customProvider === 'gemini' && customApiKey ? customApiKey : process.env.GEMINI_API_KEY;
@@ -244,12 +247,10 @@ export async function POST(req: NextRequest) {
         ? `MANDATORY TRANSLATION TO BENGALI (বাংলা):
 - The instructor in this video tutorial may be speaking in Hindi, Hinglish, or English. You MUST translate and explain all concepts, chapter titles, summary, and key takeaways into natural, high-quality BENGALI (বাংলা).
 - Under NO circumstance should Hindi words, Hindi sentences, or Devanagari script appear in the explanation. Translate it completely to Bengali!
-- Keep all programming code (e.g., C++, Python, Java, JavaScript, logic, variables) in authentic English code blocks.
-- Keep standard computer science / science terms in English (e.g., Variable, Loop, Function, Pointer, Reaction, Molarity, Titration).`
+- Keep standard computer science / science terms in English (e.g., Variable, Loop, Function, Pointer, Reaction, Molarity, Titration, Isotope).`
         : targetLanguage === 'en'
         ? `MANDATORY TRANSLATION TO ENGLISH:
-- Even if the instructor is speaking in Hindi or Hinglish, translate and synthesize all explanations and notes into clear, academic ENGLISH. Do NOT output Hindi/Devanagari text in the explanation.
-- Keep code in standard English code blocks.`
+- Even if the instructor is speaking in Hindi or Hinglish, translate and synthesize all explanations and notes into clear, academic ENGLISH. Do NOT output Hindi/Devanagari text in the explanation.`
         : targetLanguage === 'hi'
         ? `Generate explanations in clear Hindi / Hinglish, keeping all code and technical terms in English.`
         : `Natural bilingual Bengali with technical English terms (Banglish style for students). Explain concepts in Bengali, keep technical terms and code in English.`;
@@ -275,9 +276,9 @@ ${transcriptExcerpt}`
 
 TASK & CRITICAL RULES:
 1. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, chemical formulas/reactions, physics laws, or algorithms taught in this subject.
-2. WHITEBOARD & CODE FIDELITY:
-- If this is a Science / Chemistry / Physics / Math lecture: provide full mathematical formulas, reaction equations, law derivations, and step-by-step problem-solving methods.
-- If this is a Programming lecture: provide clean, authentic code snippets with syntax highlighting.
+2. ${isCodingTopic 
+  ? `PROGRAMMING CODE FIDELITY: This is a programming course. Provide clean, authentic code snippets with syntax highlighting in 'codeSnippet' and specify 'codeLanguage' (e.g. cpp, python, java, js).`
+  : `STRICT PROHIBITION OF PROGRAMMING CODE: This is a Science / Chemistry / Math / Academic lecture, NOT a programming class. You MUST NOT generate any programming code, Python scripts, or algorithms! 'codeSnippet' and 'codeLanguage' MUST BE null! All mathematical formulas (e.g., A = Z + N, Ksp, etc.), reaction equations, and derivations must be written directly in 'explanation' and 'keyPoints'.`}
 3. TIMESTAMPS: Provide accurate or realistic sequential timestamps ("MM:SS") for each concept so students can navigate their study session.
 4. ${languageInstruction}
 5. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
@@ -290,8 +291,8 @@ TASK & CRITICAL RULES:
       "timestamp": "MM:SS",
       "seconds": 120,
       "explanation": "Thorough, clear explanation of the concept...",
-      "codeSnippet": "// code snippet if applicable",
-      "codeLanguage": "cpp",
+      "codeSnippet": ${isCodingTopic ? '"// code snippet if taught in this section"' : 'null'},
+      "codeLanguage": ${isCodingTopic ? '"cpp"' : 'null'},
       "keyPoints": ["Point 1", "Point 2"]
     }
   ],
@@ -314,16 +315,20 @@ TASK & CRITICAL RULES:
         } catch (pErr) {
           console.error('[Groq] JSON.parse failed on rawResponse:', pErr);
         }
-        const chapters: LectureNoteChapter[] = (parsed.chapters || []).map((ch: any, idx: number) => ({
-          id: ch.id || `ch_${idx + 1}`,
-          title: ch.title || `Section ${idx + 1}`,
-          timestamp: ch.timestamp || '00:00',
-          seconds: typeof ch.seconds === 'number' ? ch.seconds : parseTimestampToSeconds(ch.timestamp || '00:00'),
-          explanation: ch.explanation || '',
-          codeSnippet: (ch.codeSnippet && typeof ch.codeSnippet === 'string' && ch.codeSnippet.trim() !== '' && !ch.codeSnippet.includes('optional code snippet') && ch.codeSnippet.trim().toLowerCase() !== 'none' && ch.codeSnippet.trim().toLowerCase() !== 'n/a') ? ch.codeSnippet.trim() : undefined,
-          codeLanguage: ch.codeLanguage || undefined,
-          keyPoints: Array.isArray(ch.keyPoints) ? ch.keyPoints : [],
-        }));
+        const chapters: LectureNoteChapter[] = (parsed.chapters || []).map((ch: any, idx: number) => {
+          const hasValidCode = isCodingTopic && ch.codeSnippet && typeof ch.codeSnippet === 'string' && ch.codeSnippet.trim() !== '' && !ch.codeSnippet.includes('optional code snippet') && !ch.codeSnippet.includes('code snippet if taught') && ch.codeSnippet.trim().toLowerCase() !== 'none' && ch.codeSnippet.trim().toLowerCase() !== 'null' && ch.codeSnippet.trim().toLowerCase() !== 'n/a';
+
+          return {
+            id: ch.id || `ch_${idx + 1}`,
+            title: ch.title || `Section ${idx + 1}`,
+            timestamp: ch.timestamp || '00:00',
+            seconds: typeof ch.seconds === 'number' ? ch.seconds : parseTimestampToSeconds(ch.timestamp || '00:00'),
+            explanation: ch.explanation || '',
+            codeSnippet: hasValidCode ? ch.codeSnippet.trim() : undefined,
+            codeLanguage: hasValidCode ? (ch.codeLanguage || undefined) : undefined,
+            keyPoints: Array.isArray(ch.keyPoints) ? ch.keyPoints : [],
+          };
+        });
 
         // Generate clean markdown representation
         let markdown = `# ${videoTitle}\n\n${parsed.summary || ''}\n\n`;
