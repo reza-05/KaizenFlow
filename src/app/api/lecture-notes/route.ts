@@ -303,7 +303,7 @@ TASK & CRITICAL RULES:
           timestamp: ch.timestamp || '00:00',
           seconds: typeof ch.seconds === 'number' ? ch.seconds : parseTimestampToSeconds(ch.timestamp || '00:00'),
           explanation: ch.explanation || '',
-          codeSnippet: ch.codeSnippet || undefined,
+          codeSnippet: (ch.codeSnippet && typeof ch.codeSnippet === 'string' && ch.codeSnippet.trim() !== '' && !ch.codeSnippet.includes('optional code snippet') && ch.codeSnippet.trim().toLowerCase() !== 'none' && ch.codeSnippet.trim().toLowerCase() !== 'n/a') ? ch.codeSnippet.trim() : undefined,
           codeLanguage: ch.codeLanguage || undefined,
           keyPoints: Array.isArray(ch.keyPoints) ? ch.keyPoints : [],
         }));
