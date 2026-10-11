@@ -1,0 +1,383 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getSubtitles } from 'youtube-caption-extractor';
+import { AILectureNotes, LectureNoteChapter } from '@/types';
+import { decodeHtmlEntities } from '@/lib/youtube';
+
+// Helper to convert seconds into "MM:SS" or "HH:MM:SS"
+function formatSecondsToTimestamp(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+
+  if (hours > 0) {
+    return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
+// Convert "02:45" or "1:15:30" string into seconds
+function parseTimestampToSeconds(ts: string): number {
+  if (!ts) return 0;
+  const parts = ts.trim().replace(/[\[\]]/g, '').split(':').map(p => parseInt(p, 10));
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+    return parts[0] * 60 + parts[1];
+  }
+  if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+  return 0;
+}
+
+// Scrape official YouTube chapter markers from watch page
+async function fetchYouTubeOfficialChapters(videoId: string): Promise<Array<{ title: string; timeDesc: string; seconds: number }>> {
+  try {
+    const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+
+    const html = await res.text();
+    const chapters: Array<{ title: string; timeDesc: string; seconds: number }> = [];
+
+    // MacroMarkers match
+    const regex = /"macroMarkersListItemRenderer":\{"title":\{"simpleText":"(.*?)"\}.*?"timeDescription":\{"simpleText":"(.*?)"\}/g;
+    let m;
+    while ((m = regex.exec(html)) !== null) {
+      const title = decodeHtmlEntities(m[1]);
+      const timeDesc = m[2];
+      const seconds = parseTimestampToSeconds(timeDesc);
+      if (!chapters.some(c => c.seconds === seconds)) {
+        chapters.push({ title, timeDesc, seconds });
+      }
+    }
+
+    return chapters.sort((a, b) => a.seconds - b.seconds);
+  } catch (err) {
+    console.warn('Failed to extract video chapters:', err);
+    return [];
+  }
+}
+
+// Call Groq API
+async function generateWithGroq(apiKey: string, prompt: string): Promise<string> {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey.trim()}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an elite academic scribe and software engineering lecturer. You write strictly grounded, authentic lecture notes based ONLY on verbatim video transcripts. You never hallucinate or invent topics.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.2,
+      max_tokens: 4096,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Groq API Error (${res.status}): ${errText}`);
+  }
+
+  const json = await res.json();
+  return json.choices?.[0]?.message?.content || '{}';
+}
+
+// Call Gemini API
+async function generateWithGemini(apiKey: string, prompt: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.2,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API Error (${res.status}): ${errText}`);
+  }
+
+  const json = await res.json();
+  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  return text || '{}';
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const videoId = (body.videoId || '').trim();
+    const videoTitle = (body.videoTitle || 'Lecture Video').trim();
+    const courseTitle = (body.courseTitle || '').trim();
+    const targetLanguage = (body.language || 'en').trim(); // 'en', 'bn', 'hi', 'mixed'
+    const customApiKey = (body.customApiKey || '').trim();
+    const customProvider = (body.customProvider || 'groq').trim(); // 'groq' | 'gemini'
+
+    if (!videoId) {
+      return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+    }
+
+    // 1. Fetch verbatim transcript lines
+    let subtitles: Array<{ start: string | number; text: string }> = [];
+    try {
+      subtitles = await getSubtitles({ videoID: videoId, lang: targetLanguage === 'bn' ? 'bn' : targetLanguage === 'hi' ? 'hi' : 'en' });
+    } catch {
+      try {
+        subtitles = await getSubtitles({ videoID: videoId });
+      } catch (err) {
+        console.warn('Subtitles not available for video:', err);
+      }
+    }
+
+    // 2. Fetch official chapter markers
+    const officialChapters = await fetchYouTubeOfficialChapters(videoId);
+
+    // Build condensed transcript sample with timestamps for AI
+    const sampledTranscript: string[] = [];
+    if (subtitles.length > 0) {
+      // Group lines every ~15-20 seconds to keep tokens compact while preserving verbatim context
+      let currentGroup: string[] = [];
+      let groupStart = 0;
+
+      subtitles.forEach((s, idx) => {
+        const sec = typeof s.start === 'string' ? parseFloat(s.start) : s.start;
+        if (idx === 0) groupStart = Math.floor(sec);
+
+        currentGroup.push(s.text);
+
+        if (sec - groupStart >= 20 || idx === subtitles.length - 1) {
+          sampledTranscript.push(`[${formatSecondsToTimestamp(groupStart)}] ${currentGroup.join(' ')}`);
+          currentGroup = [];
+          groupStart = Math.floor(sec);
+        }
+      });
+    }
+
+    const transcriptExcerpt = sampledTranscript.slice(0, 180).join('\n'); // Up to first ~60 minutes
+    const chaptersText = officialChapters.map(c => `[${c.timeDesc}] ${c.title}`).join('\n');
+
+    // Check which AI provider to use
+    const groqKey = customProvider === 'groq' && customApiKey ? customApiKey : process.env.GROQ_API_KEY;
+    const geminiKey = customProvider === 'gemini' && customApiKey ? customApiKey : process.env.GEMINI_API_KEY;
+    const activeKey = customApiKey || groqKey || geminiKey;
+    const activeProvider = customApiKey ? customProvider : groqKey ? 'groq' : geminiKey ? 'gemini' : null;
+
+    // IF an AI key is available, run deep LLM synthesis
+    if (activeKey && activeProvider) {
+      const languageInstruction = targetLanguage === 'bn' 
+        ? 'Generate explanations in natural Bengali (বাংলা), keeping all code and technical terms in English.'
+        : targetLanguage === 'hi'
+        ? 'Generate explanations in natural Hindi / Hinglish, keeping all code and technical terms in English.'
+        : 'Generate explanations in clear, professional English.';
+
+      const prompt = `
+You are an expert academic scribe and senior programmer.
+You are given the VERBATIM TRANSCRIPT and OFFICIAL CHAPTERS of this educational video tutorial.
+
+VIDEO TITLE: "${videoTitle}"
+${courseTitle ? `COURSE: "${courseTitle}"` : ''}
+
+OFFICIAL VIDEO CHAPTERS:
+${chaptersText || 'None specified'}
+
+VERBATIM TRANSCRIPT WITH TIMESTAMPS:
+${transcriptExcerpt || 'Transcript unavailable. Use video title and chapters to produce accurate notes.'}
+
+TASK & CRITICAL RULES:
+1. ZERO HALLUCINATION: Extract only what is ACTUALLY explained in this video tutorial.
+2. CODE FIDELITY: If the video teaches programming (C++, Python, Java, JS, etc.), extract the EXACT code structure, variables, and logic shown. Present code in clean syntax-highlighted markdown code blocks.
+3. TIMESTAMPS: For each major topic/concept, provide the exact timestamp (e.g. "02:40") so students can jump to that part of the video.
+4. ${languageInstruction} Keep core computer science / mathematical terms standard (e.g. Recursion, Pointer, Matrix, Stack, Big O).
+5. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
+{
+  "summary": "Crisp 2-3 sentence overview of what is taught in this lecture.",
+  "chapters": [
+    {
+      "id": "ch_1",
+      "title": "Topic Title",
+      "timestamp": "MM:SS",
+      "seconds": 120,
+      "explanation": "Detailed explanation of what the instructor explained here...",
+      "codeSnippet": "// optional code snippet if taught in this section\\nint x = 10;",
+      "codeLanguage": "cpp",
+      "keyPoints": ["Point 1", "Point 2"]
+    }
+  ],
+  "keyTakeaways": [
+    "Crucial takeaway or common trap mentioned by teacher 1",
+    "Crucial takeaway 2"
+  ]
+}
+`;
+
+      try {
+        const rawResponse = activeProvider === 'groq'
+          ? await generateWithGroq(activeKey, prompt)
+          : await generateWithGemini(activeKey, prompt);
+
+        const parsed = JSON.parse(rawResponse);
+        const chapters: LectureNoteChapter[] = (parsed.chapters || []).map((ch: any, idx: number) => ({
+          id: ch.id || `ch_${idx + 1}`,
+          title: ch.title || `Section ${idx + 1}`,
+          timestamp: ch.timestamp || '00:00',
+          seconds: typeof ch.seconds === 'number' ? ch.seconds : parseTimestampToSeconds(ch.timestamp || '00:00'),
+          explanation: ch.explanation || '',
+          codeSnippet: ch.codeSnippet || undefined,
+          codeLanguage: ch.codeLanguage || undefined,
+          keyPoints: Array.isArray(ch.keyPoints) ? ch.keyPoints : [],
+        }));
+
+        // Generate clean markdown representation
+        let markdown = `# ${videoTitle}\n\n${parsed.summary || ''}\n\n`;
+        chapters.forEach(ch => {
+          markdown += `### [${ch.timestamp}] ${ch.title}\n${ch.explanation}\n\n`;
+          if (ch.codeSnippet) {
+            markdown += `\`\`\`${ch.codeLanguage || 'text'}\n${ch.codeSnippet}\n\`\`\`\n\n`;
+          }
+          if (ch.keyPoints && ch.keyPoints.length > 0) {
+            ch.keyPoints.forEach(kp => {
+              markdown += `- ${kp}\n`;
+            });
+            markdown += '\n';
+          }
+        });
+
+        if (parsed.keyTakeaways && parsed.keyTakeaways.length > 0) {
+          markdown += `### 💡 Key Takeaways & Exam Tips\n`;
+          parsed.keyTakeaways.forEach((kt: string) => {
+            markdown += `- ${kt}\n`;
+          });
+        }
+
+        const notes: AILectureNotes = {
+          videoId,
+          videoTitle,
+          language: targetLanguage,
+          summary: parsed.summary || `Lecture notes for ${videoTitle}`,
+          chapters,
+          keyTakeaways: Array.isArray(parsed.keyTakeaways) ? parsed.keyTakeaways : [],
+          fullMarkdown: markdown,
+          generatedAt: new Date().toISOString(),
+          isRealTranscriptGrounded: subtitles.length > 0,
+        };
+
+        return NextResponse.json(notes);
+      } catch (aiErr: any) {
+        console.error('AI synthesis failed, falling back to grounded transcript extractor:', aiErr);
+      }
+    }
+
+    // FALLBACK (No API Key or AI error): Grounded Transcript & Chapter Synthesizer
+    // Builds 100% genuine timestamped notes directly from real chapters & verbatim transcript!
+    const generatedChapters: LectureNoteChapter[] = [];
+
+    if (officialChapters.length > 0) {
+      officialChapters.forEach((oc, idx) => {
+        const nextSec = officialChapters[idx + 1]?.seconds || 99999;
+        // Find transcript lines belonging to this chapter
+        const matchingLines = subtitles
+          .filter(s => {
+            const sec = typeof s.start === 'string' ? parseFloat(s.start) : s.start;
+            return sec >= oc.seconds && sec < nextSec;
+          })
+          .map(s => s.text)
+          .slice(0, 15);
+
+        const explanation = matchingLines.length > 0 
+          ? matchingLines.join(' ') 
+          : `Core topic covered in this section by the instructor. Review the timestamp to study the video explanation.`;
+
+        generatedChapters.push({
+          id: `oc_${idx + 1}`,
+          title: oc.title,
+          timestamp: oc.timeDesc,
+          seconds: oc.seconds,
+          explanation,
+          keyPoints: [
+            `Covered at [${oc.timeDesc}] in lecture`,
+            `Follow along with the instructor's code and examples`,
+          ],
+        });
+      });
+    } else if (subtitles.length > 0) {
+      // Chunk transcript every ~3-5 minutes
+      const intervalSec = 180;
+      let lastStart = 0;
+      let bucket: string[] = [];
+
+      subtitles.forEach((s, idx) => {
+        const sec = typeof s.start === 'string' ? parseFloat(s.start) : s.start;
+        bucket.push(s.text);
+
+        if (sec - lastStart >= intervalSec || idx === subtitles.length - 1) {
+          const ts = formatSecondsToTimestamp(lastStart);
+          generatedChapters.push({
+            id: `seg_${generatedChapters.length + 1}`,
+            title: `Part ${generatedChapters.length + 1}: ${bucket.slice(0, 3).join(' ')}...`,
+            timestamp: ts,
+            seconds: Math.floor(lastStart),
+            explanation: bucket.slice(0, 10).join(' '),
+            keyPoints: [`Verbatim lecture segment starting at [${ts}]`],
+          });
+          bucket = [];
+          lastStart = sec;
+        }
+      });
+    } else {
+      // Minimal template if no transcript available
+      generatedChapters.push({
+        id: 'ch_1',
+        title: 'Core Lecture Overview',
+        timestamp: '00:00',
+        seconds: 0,
+        explanation: `Comprehensive lecture on ${videoTitle}. Watch the video and capture personal timestamps in the notes tab.`,
+        keyPoints: ['Full video session', 'Interactive timeline ready'],
+      });
+    }
+
+    const fallbackSummary = `Lecture notes directly extracted from "${videoTitle}". Covers ${generatedChapters.length} key timestamped segments.`;
+    let fallbackMarkdown = `# ${videoTitle}\n\n${fallbackSummary}\n\n`;
+    generatedChapters.forEach(ch => {
+      fallbackMarkdown += `### [${ch.timestamp}] ${ch.title}\n${ch.explanation}\n\n`;
+    });
+
+    const fallbackNotes: AILectureNotes = {
+      videoId,
+      videoTitle,
+      language: targetLanguage,
+      summary: fallbackSummary,
+      chapters: generatedChapters,
+      keyTakeaways: [
+        'Watch sequentially and solve problems along with the instructor.',
+        'Click any timestamp to seek the video player to that exact concept.',
+      ],
+      fullMarkdown: fallbackMarkdown,
+      generatedAt: new Date().toISOString(),
+      isRealTranscriptGrounded: subtitles.length > 0,
+    };
+
+    return NextResponse.json(fallbackNotes);
+  } catch (err: any) {
+    console.error('Error generating lecture notes:', err);
+    return NextResponse.json({ error: err.message || 'Failed to generate lecture notes' }, { status: 500 });
+  }
+}

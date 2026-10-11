@@ -572,6 +572,32 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     };
   }, [studyMode]);
 
+  // Global Seek Listener (for clickable timestamps in AI Lecture Notes)
+  useEffect(() => {
+    const handleSeekToEvent = (e: Event) => {
+      const customEvt = e as CustomEvent<{ seconds: number }>;
+      const targetSec = customEvt.detail?.seconds;
+      if (typeof targetSec === 'number' && targetSec >= 0) {
+        if (!hasStartedPlaying) {
+          handleStartPlayback(targetSec);
+        } else if (playerRef.current) {
+          try {
+            playerRef.current.seekTo(targetSec, true);
+            setCurrentTime(targetSec);
+            currentTimeRef.current = targetSec;
+            if (!isPlaying) {
+              playerRef.current.playVideo();
+              setIsPlaying(true);
+            }
+          } catch {}
+        }
+      }
+    };
+
+    window.addEventListener('kaizenflow-seek-to', handleSeekToEvent);
+    return () => window.removeEventListener('kaizenflow-seek-to', handleSeekToEvent);
+  }, [hasStartedPlaying, isPlaying]);
+
   // User starts playback directly from clean Kizen Poster (optionally with seek)
   const handleStartPlayback = (seekTarget?: number) => {
     const targetSecond = typeof seekTarget === 'number' ? seekTarget : savedResumeTime;

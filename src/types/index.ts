@@ -105,3 +105,26 @@ export interface LevelInfo {
   progressPercent: number;
   statusBadge: string;
 }
+
+export interface LectureNoteChapter {
+  id: string;
+  title: string;
+  timestamp: string; // e.g. "04:20"
+  seconds: number;
+  explanation: string;
+  codeSnippet?: string;
+  codeLanguage?: string;
+  keyPoints?: string[];
+}
+
+export interface AILectureNotes {
+  videoId: string;
+  videoTitle: string;
+  language: string;
+  summary: string;
+  chapters: LectureNoteChapter[];
+  keyTakeaways: string[];
+  fullMarkdown: string;
+  generatedAt: string;
+  isRealTranscriptGrounded: boolean;
+}
