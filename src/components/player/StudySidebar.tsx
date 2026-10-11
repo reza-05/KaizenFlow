@@ -57,7 +57,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   // AI Notes State
   const [aiNotes, setAiNotes] = useState<AILectureNotes | null>(null);
   const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
-  const [aiLanguage, setAiLanguage] = useState<'en' | 'bn' | 'hi' | 'mixed'>('en');
+  const [aiLanguage, setAiLanguage] = useState<'en' | 'bn' | 'hi' | 'mixed'>('bn');
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [copiedAllNotes, setCopiedAllNotes] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -305,12 +305,12 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               <select
                 value={aiLanguage}
                 onChange={e => setAiLanguage(e.target.value as any)}
-                className="rounded border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none"
+                className="rounded border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none font-medium"
               >
-                <option value="en">English (Default)</option>
-                <option value="bn">বাংলা (Bengali)</option>
+                <option value="bn">বাংলা (Bengali - Default)</option>
+                <option value="en">English (ইংরেজি)</option>
+                <option value="mixed">Mixed (বাংলা + English Terms)</option>
                 <option value="hi">हिन्दी (Hindi)</option>
-                <option value="mixed">Natural Mixed</option>
               </select>
             </div>
 

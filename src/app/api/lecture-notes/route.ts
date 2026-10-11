@@ -208,10 +208,18 @@ export async function POST(req: NextRequest) {
     // IF an AI key is available, run deep LLM synthesis
     if (activeKey && activeProvider) {
       const languageInstruction = targetLanguage === 'bn' 
-        ? 'Generate explanations in natural Bengali (বাংলা), keeping all code and technical terms in English.'
+        ? `MANDATORY TRANSLATION TO BENGALI (বাংলা):
+- The instructor in this video tutorial may be speaking in Hindi, Hinglish, or English. You MUST translate and explain all concepts, chapter titles, summary, and key takeaways into natural, high-quality BENGALI (বাংলা).
+- Under NO circumstance should Hindi words, Hindi sentences, or Devanagari script appear in the explanation. Translate it completely to Bengali!
+- Keep all programming code (e.g., C++, Python, Java, JavaScript, logic, variables) in authentic English code blocks.
+- Keep standard computer science terms in English (e.g., Variable, Loop, Function, Pointer, Array, Recursion, Time Complexity).`
+        : targetLanguage === 'en'
+        ? `MANDATORY TRANSLATION TO ENGLISH:
+- Even if the instructor is speaking in Hindi or Hinglish, translate and synthesize all explanations and notes into clear, academic ENGLISH. Do NOT output Hindi/Devanagari text in the explanation.
+- Keep code in standard English code blocks.`
         : targetLanguage === 'hi'
-        ? 'Generate explanations in natural Hindi / Hinglish, keeping all code and technical terms in English.'
-        : 'Generate explanations in clear, professional English.';
+        ? `Generate explanations in clear Hindi / Hinglish, keeping all code and technical terms in English.`
+        : `Natural bilingual Bengali with technical English terms (Banglish style for students). Explain concepts in Bengali, keep technical terms and code in English.`;
 
       const prompt = `
 You are an expert academic scribe and senior programmer.
