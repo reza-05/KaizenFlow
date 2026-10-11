@@ -62,39 +62,63 @@ async function fetchYouTubeOfficialChapters(videoId: string): Promise<Array<{ ti
   }
 }
 
-// Call Groq API
+// Call Groq API with robust model fallbacks
 async function generateWithGroq(apiKey: string, prompt: string): Promise<string> {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey.trim()}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an elite academic scribe and software engineering lecturer. You write strictly grounded, authentic lecture notes based ONLY on verbatim video transcripts. You never hallucinate or invent topics.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.2,
-      max_tokens: 4096,
-    }),
-  });
+  const candidateModels = [
+    'llama-3.1-8b-instant',
+    'llama-3.3-70b-versatile',
+    'llama3-70b-8192',
+    'mixtral-8x7b-32768',
+  ];
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Groq API Error (${res.status}): ${errText}`);
+  let lastError: any = null;
+
+  for (const model of candidateModels) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey.trim()}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an elite academic scribe and software engineering lecturer. You write strictly grounded, authentic lecture notes based ONLY on verbatim video transcripts. You never hallucinate or invent topics. Respond strictly in valid JSON.',
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+          max_tokens: 4096,
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.warn(`Groq model ${model} failed (${res.status}):`, errText);
+        lastError = new Error(`Groq API Error (${res.status}) on ${model}: ${errText}`);
+        continue;
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content;
+      if (content) {
+        console.log(`[Groq] Successfully generated lecture notes with model: ${model}`);
+        return content;
+      }
+    } catch (err) {
+      console.warn(`[Groq] Request failed for model ${model}:`, err);
+      lastError = err;
+    }
   }
 
-  const json = await res.json();
-  return json.choices?.[0]?.message?.content || '{}';
+  throw lastError || new Error('All Groq candidate models failed to generate response');
 }
 
 // Call Gemini API
