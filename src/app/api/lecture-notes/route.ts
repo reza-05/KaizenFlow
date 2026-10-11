@@ -87,7 +87,7 @@ async function generateWithGroq(apiKey: string, prompt: string): Promise<string>
           messages: [
             {
               role: 'system',
-              content: 'You are an elite academic scribe and software engineering lecturer. You write strictly grounded, authentic lecture notes based ONLY on verbatim video transcripts. You never hallucinate or invent topics. Respond strictly in valid JSON.',
+              content: 'You are an elite academic educator, master scribe, and curriculum specialist. You write comprehensive, authentic, high-yield lecture study notes in the requested language (e.g. Bengali/বাংলা) covering the full curriculum, formulas, whiteboard derivations, step-by-step problem-solving, and code. Respond strictly in valid JSON matching the requested schema with all chapters and summary populated.',
             },
             {
               role: 'user',
@@ -176,28 +176,42 @@ export async function POST(req: NextRequest) {
     // 2. Fetch official chapter markers
     const officialChapters = await fetchYouTubeOfficialChapters(videoId);
 
-    // Build condensed transcript sample with timestamps for AI
+    // Clean and verify if transcript has actual educational speech (ignore background music [Music], applause, etc.)
+    const cleanedTranscriptWords = subtitles
+      .map(s => s.text.replace(/\[.*?\]|\(.*?\)|[♪♫]/g, '').trim())
+      .filter(t => t.length > 0)
+      .join(' ')
+      .split(/\s+/)
+      .filter(w => w.length > 1);
+
+    const hasMeaningfulSpeech = cleanedTranscriptWords.length >= 25;
+
+    // Build condensed transcript sample with timestamps for AI (staying strictly within Groq 8k TPM budget)
     const sampledTranscript: string[] = [];
-    if (subtitles.length > 0) {
-      // Group lines every ~15-20 seconds to keep tokens compact while preserving verbatim context
+    if (hasMeaningfulSpeech) {
       let currentGroup: string[] = [];
       let groupStart = 0;
 
       subtitles.forEach((s, idx) => {
+        // Skip pure music/bracket lines
+        const cleanLine = s.text.replace(/\[.*?\]|\(.*?\)|[♪♫]/g, '').trim();
+        if (!cleanLine) return;
+
         const sec = typeof s.start === 'string' ? parseFloat(s.start) : s.start;
         if (idx === 0) groupStart = Math.floor(sec);
 
-        currentGroup.push(s.text);
+        currentGroup.push(cleanLine);
 
         if (sec - groupStart >= 20 || idx === subtitles.length - 1) {
-          sampledTranscript.push(`[${formatSecondsToTimestamp(groupStart)}] ${currentGroup.join(' ')}`);
+          if (currentGroup.length > 0) {
+            sampledTranscript.push(`[${formatSecondsToTimestamp(groupStart)}] ${currentGroup.join(' ')}`);
+          }
           currentGroup = [];
           groupStart = Math.floor(sec);
         }
       });
     }
 
-    // Build condensed transcript sample with timestamps for AI (staying strictly within Groq 8k TPM budget)
     let transcriptExcerpt = '';
     if (sampledTranscript.length > 0) {
       if (sampledTranscript.length <= 35) {
@@ -231,7 +245,7 @@ export async function POST(req: NextRequest) {
 - The instructor in this video tutorial may be speaking in Hindi, Hinglish, or English. You MUST translate and explain all concepts, chapter titles, summary, and key takeaways into natural, high-quality BENGALI (বাংলা).
 - Under NO circumstance should Hindi words, Hindi sentences, or Devanagari script appear in the explanation. Translate it completely to Bengali!
 - Keep all programming code (e.g., C++, Python, Java, JavaScript, logic, variables) in authentic English code blocks.
-- Keep standard computer science terms in English (e.g., Variable, Loop, Function, Pointer, Array, Recursion, Time Complexity).`
+- Keep standard computer science / science terms in English (e.g., Variable, Loop, Function, Pointer, Reaction, Molarity, Titration).`
         : targetLanguage === 'en'
         ? `MANDATORY TRANSLATION TO ENGLISH:
 - Even if the instructor is speaking in Hindi or Hinglish, translate and synthesize all explanations and notes into clear, academic ENGLISH. Do NOT output Hindi/Devanagari text in the explanation.
@@ -241,7 +255,7 @@ export async function POST(req: NextRequest) {
         : `Natural bilingual Bengali with technical English terms (Banglish style for students). Explain concepts in Bengali, keep technical terms and code in English.`;
 
       const prompt = `
-You are an expert academic scribe, educator, and senior programmer.
+You are an expert academic scribe, educator, and master tutor.
 You are generating authentic, high-quality lecture study notes for a student watching this educational video:
 
 VIDEO TITLE: "${videoTitle}"
@@ -250,17 +264,20 @@ ${courseTitle ? `COURSE / PLAYLIST: "${courseTitle}"` : ''}
 OFFICIAL VIDEO CHAPTERS:
 ${chaptersText || 'None specified'}
 
-${transcriptExcerpt 
+${hasMeaningfulSpeech && transcriptExcerpt 
   ? `VERBATIM TRANSCRIPT WITH TIMESTAMPS:
 ${transcriptExcerpt}` 
-  : `NOTE ON TRANSCRIPT: Direct closed-caption stream was not attached to this video on YouTube.
-- You MUST synthesize comprehensive, syllabus-grounded academic lecture notes based on this specific educational topic: "${videoTitle}".
-- Break down the lecture systematically into 4 to 7 realistic timestamped chapters (e.g. 00:00, 03:20, 07:45, 14:10, 21:30, 28:00).
-- NEVER return an empty response or say "transcript unavailable". Always generate thorough, helpful lecture notes with formulas, conceptual breakdown, and code implementations.`}
+  : `NOTE ON LECTURE FORMAT: In this video tutorial, the instructor teaches and solves problems by writing on an OpenBoard digital whiteboard / blackboard (হোয়াইটবোর্ডে হাতে-কলমে সূত্র প্রতিপাদন, থিওরি ও গাণিতিক সমস্যা সমাধান করছেন)।
+- You MUST construct complete, thorough, syllabus-grounded academic lecture notes for: "${videoTitle}" ${courseTitle ? `(Course: "${courseTitle}")` : ''}.
+- Provide the full formulas, step-by-step mathematical derivations, reaction equations / concepts, solved practice examples, and MCQ shortcut techniques.
+- Break down the lecture systematically into 5 to 8 realistic timestamped chapters (e.g. 00:00, 06:15, 14:30, 26:10, 39:45, 54:00, 68:30).
+- NEVER return empty chapters or say "only music was played". Synthesize complete, high-yield academic study notes as taught on the whiteboard.`}
 
 TASK & CRITICAL RULES:
-1. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, algorithms, and logical principles taught in this subject.
-2. CODE FIDELITY: If the video is about programming, algorithms, or software development (C++, Python, Java, JavaScript, etc.), provide clean, authentic, compile-ready code snippets with syntax highlighting. If it is a non-coding topic (e.g. Math, Physics, Design), provide clear formulas or step-by-step methodologies.
+1. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, chemical formulas/reactions, physics laws, or algorithms taught in this subject.
+2. WHITEBOARD & CODE FIDELITY:
+- If this is a Science / Chemistry / Physics / Math lecture: provide full mathematical formulas, reaction equations, law derivations, and step-by-step problem-solving methods.
+- If this is a Programming lecture: provide clean, authentic code snippets with syntax highlighting.
 3. TIMESTAMPS: Provide accurate or realistic sequential timestamps ("MM:SS") for each concept so students can navigate their study session.
 4. ${languageInstruction}
 5. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
@@ -339,7 +356,7 @@ TASK & CRITICAL RULES:
           keyTakeaways: Array.isArray(parsed.keyTakeaways) ? parsed.keyTakeaways : [],
           fullMarkdown: markdown,
           generatedAt: new Date().toISOString(),
-          isRealTranscriptGrounded: subtitles.length > 0,
+          isRealTranscriptGrounded: hasMeaningfulSpeech,
         };
 
         return NextResponse.json(notes);
