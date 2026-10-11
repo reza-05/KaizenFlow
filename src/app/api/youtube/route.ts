@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CURATED_STARTER_COURSES, extractPlaylistId, extractVideoId } from '@/lib/youtube';
+import { CURATED_STARTER_COURSES, extractPlaylistId, extractVideoId, decodeHtmlEntities } from '@/lib/youtube';
 import { Playlist, VideoItem } from '@/types';
 
 // Convert formatted timestamp (e.g. "4:08" or "1:15:30") to seconds
@@ -22,13 +22,13 @@ export async function POST(req: NextRequest) {
     const customName = (body.customName || '').trim();
 
     if (!urlOrId) {
-      return NextResponse.json({ error: 'Please provide a valid YouTube URL' }, { status: 400 });
+      return NextResponse.json({ error: 'Please enter a YouTube playlist URL, video link, or study topic.' }, { status: 400 });
     }
 
     const playlistId = extractPlaylistId(urlOrId);
     const singleVideoId = extractVideoId(urlOrId);
 
-    // 1. Check if user pasted a curated starter course
+    // 1. Check if user pasted a curated starter course ID
     if (playlistId) {
       const matchedStarter = CURATED_STARTER_COURSES.find(c => c.ytPlaylistId === playlistId);
       if (matchedStarter) {
@@ -68,15 +68,15 @@ export async function POST(req: NextRequest) {
             const data = JSON.parse(match[1]);
 
             // Extract Playlist Title
-            realTitle = data?.metadata?.playlistMetadataRenderer?.title ||
+            const candidateTitle = data?.metadata?.playlistMetadataRenderer?.title ||
               data?.header?.playlistHeaderRenderer?.title?.simpleText ||
-              data?.header?.playlistHeaderRenderer?.title?.runs?.[0]?.text ||
-              realTitle;
+              data?.header?.playlistHeaderRenderer?.title?.runs?.[0]?.text;
+            if (candidateTitle) realTitle = decodeHtmlEntities(candidateTitle);
 
             // Extract Playlist Creator
-            author = data?.header?.playlistHeaderRenderer?.ownerText?.runs?.[0]?.text ||
-              data?.metadata?.playlistMetadataRenderer?.author ||
-              author;
+            const candidateAuthor = data?.header?.playlistHeaderRenderer?.ownerText?.runs?.[0]?.text ||
+              data?.metadata?.playlistMetadataRenderer?.author;
+            if (candidateAuthor) author = decodeHtmlEntities(candidateAuthor);
 
             // Extract Videos from sections
             const tabs = data.contents?.twoColumnBrowseResultsRenderer?.tabs || [];
@@ -99,15 +99,18 @@ export async function POST(req: NextRequest) {
                   const durationSeconds = parseDurationText(durationFormatted);
                   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
-                  if (videoId) {
-                    extractedVideos.push({
-                      id: `vid_${videoId}_${extractedVideos.length}`,
-                      ytVideoId: videoId,
-                      title: title || `Lesson ${extractedVideos.length + 1}`,
-                      durationSeconds,
-                      durationFormatted,
-                      thumbnailUrl,
-                    });
+                  if (videoId && videoId.length >= 10) {
+                    const cleanTitle = decodeHtmlEntities(title || `Lesson ${extractedVideos.length + 1}`);
+                    if (!cleanTitle.toLowerCase().includes('[private video]') && !cleanTitle.toLowerCase().includes('[deleted video]')) {
+                      extractedVideos.push({
+                        id: `vid_${videoId}_${extractedVideos.length}`,
+                        ytVideoId: videoId,
+                        title: cleanTitle,
+                        durationSeconds,
+                        durationFormatted,
+                        thumbnailUrl,
+                      });
+                    }
                   }
                 }
 
@@ -115,20 +118,23 @@ export async function POST(req: NextRequest) {
                 if (item.playlistVideoRenderer) {
                   const pvr = item.playlistVideoRenderer;
                   const videoId = pvr.videoId;
-                  const title = pvr.title?.runs?.[0]?.text || pvr.title?.simpleText;
+                  const rawTitle = pvr.title?.runs?.[0]?.text || pvr.title?.simpleText;
                   const durationFormatted = pvr.lengthText?.simpleText || 'Dynamic';
                   const durationSeconds = parseDurationText(durationFormatted);
                   const thumbnailUrl = pvr.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
-                  if (videoId) {
-                    extractedVideos.push({
-                      id: `vid_${videoId}_${extractedVideos.length}`,
-                      ytVideoId: videoId,
-                      title: title || `Lesson ${extractedVideos.length + 1}`,
-                      durationSeconds,
-                      durationFormatted,
-                      thumbnailUrl,
-                    });
+                  if (videoId && videoId.length >= 10) {
+                    const cleanTitle = decodeHtmlEntities(rawTitle || `Lesson ${extractedVideos.length + 1}`);
+                    if (!cleanTitle.toLowerCase().includes('[private video]') && !cleanTitle.toLowerCase().includes('[deleted video]')) {
+                      extractedVideos.push({
+                        id: `vid_${videoId}_${extractedVideos.length}`,
+                        ytVideoId: videoId,
+                        title: cleanTitle,
+                        durationSeconds,
+                        durationFormatted,
+                        thumbnailUrl,
+                      });
+                    }
                   }
                 }
               }
@@ -141,20 +147,23 @@ export async function POST(req: NextRequest) {
                 if (item.playlistVideoRenderer) {
                   const pvr = item.playlistVideoRenderer;
                   const videoId = pvr.videoId;
-                  const title = pvr.title?.runs?.[0]?.text || pvr.title?.simpleText;
+                  const rawTitle = pvr.title?.runs?.[0]?.text || pvr.title?.simpleText;
                   const durationFormatted = pvr.lengthText?.simpleText || 'Dynamic';
                   const durationSeconds = parseDurationText(durationFormatted);
                   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
-                  if (videoId) {
-                    extractedVideos.push({
-                      id: `vid_${videoId}_${extractedVideos.length}`,
-                      ytVideoId: videoId,
-                      title: title || `Lesson ${extractedVideos.length + 1}`,
-                      durationSeconds,
-                      durationFormatted,
-                      thumbnailUrl,
-                    });
+                  if (videoId && videoId.length >= 10) {
+                    const cleanTitle = decodeHtmlEntities(rawTitle || `Lesson ${extractedVideos.length + 1}`);
+                    if (!cleanTitle.toLowerCase().includes('[private video]') && !cleanTitle.toLowerCase().includes('[deleted video]')) {
+                      extractedVideos.push({
+                        id: `vid_${videoId}_${extractedVideos.length}`,
+                        ytVideoId: videoId,
+                        title: cleanTitle,
+                        durationSeconds,
+                        durationFormatted,
+                        thumbnailUrl,
+                      });
+                    }
                   }
                 }
               }
@@ -174,11 +183,11 @@ export async function POST(req: NextRequest) {
             const xml = await rssRes.text();
             const titleMatch = xml.match(/<title>([^<]+)<\/title>/);
             if (titleMatch && (!realTitle || realTitle.startsWith('Playlist ('))) {
-              realTitle = titleMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+              realTitle = decodeHtmlEntities(titleMatch[1]);
             }
             const authorMatch = xml.match(/<author>[\s\S]*?<name>([^<]+)<\/name>/);
             if (authorMatch && (!author || author === 'YouTube Creator')) {
-              author = authorMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+              author = decodeHtmlEntities(authorMatch[1]);
             }
 
             const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
@@ -189,21 +198,22 @@ export async function POST(req: NextRequest) {
               const titleM = entryXml.match(/<title>([^<]+)<\/title>/);
               const thumbM = entryXml.match(/<media:thumbnail[^>]+url="([^"]+)"/);
 
-              if (vidMatch && vidMatch[1]) {
+              if (vidMatch && vidMatch[1] && vidMatch[1].length >= 10) {
                 const vid = vidMatch[1];
-                const itemTitle = titleM
-                  ? titleM[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-                  : `Lesson ${extractedVideos.length + 1}`;
+                const rawTitle = titleM ? titleM[1] : `Lesson ${extractedVideos.length + 1}`;
+                const itemTitle = decodeHtmlEntities(rawTitle);
                 const thumb = thumbM ? thumbM[1] : `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
 
-                extractedVideos.push({
-                  id: `vid_${vid}_${extractedVideos.length}`,
-                  ytVideoId: vid,
-                  title: itemTitle,
-                  durationSeconds: 1200,
-                  durationFormatted: 'Video',
-                  thumbnailUrl: thumb,
-                });
+                if (!itemTitle.toLowerCase().includes('[private video]') && !itemTitle.toLowerCase().includes('[deleted video]')) {
+                  extractedVideos.push({
+                    id: `vid_${vid}_${extractedVideos.length}`,
+                    ytVideoId: vid,
+                    title: itemTitle,
+                    durationSeconds: 1200,
+                    durationFormatted: 'Video',
+                    thumbnailUrl: thumb,
+                  });
+                }
               }
             }
           }
@@ -233,7 +243,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. If it's a Single Video URL
+    // 3. If it's a Single Video URL (or watch link where playlist had 0 videos)
     if (singleVideoId) {
       let videoTitle = customName || '';
       let authorName = 'YouTube Instructor';
@@ -243,8 +253,8 @@ export async function POST(req: NextRequest) {
         const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${singleVideoId}&format=json`);
         if (oembedRes.ok) {
           const oembedData = await oembedRes.json();
-          if (!videoTitle && oembedData.title) videoTitle = oembedData.title;
-          if (oembedData.author_name) authorName = oembedData.author_name;
+          if (!videoTitle && oembedData.title) videoTitle = decodeHtmlEntities(oembedData.title);
+          if (oembedData.author_name) authorName = decodeHtmlEntities(oembedData.author_name);
           if (oembedData.thumbnail_url) thumbnailUrl = oembedData.thumbnail_url;
         }
       } catch {}
@@ -277,7 +287,76 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(course);
     }
 
-    return NextResponse.json({ error: 'Could not resolve playlist or video from provided URL' }, { status: 404 });
+    // 4. Intelligent Topic / Keyword Search Fallback
+    // If the input is a study topic query (e.g. "Learn Python Bangla", "SSC Physics", "Linear Algebra")
+    try {
+      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(urlOrId)}`;
+      const searchRes = await fetch(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+        cache: 'no-store',
+      });
+
+      if (searchRes.ok) {
+        const searchHtml = await searchRes.text();
+        const searchMatch = searchHtml.match(/var ytInitialData = ({[\s\S]*?});<\/script>/) || searchHtml.match(/ytInitialData = ({[\s\S]*?});/);
+        if (searchMatch) {
+          const sData = JSON.parse(searchMatch[1]);
+          const sSections = sData.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+          const searchVideos: VideoItem[] = [];
+
+          for (const sSec of sSections) {
+            const sItems = sSec.itemSectionRenderer?.contents || [];
+            for (const sItem of sItems) {
+              if (sItem.videoRenderer) {
+                const vr = sItem.videoRenderer;
+                const vId = vr.videoId;
+                const rawVTitle = vr.title?.runs?.[0]?.text || vr.title?.simpleText || '';
+                const vTitle = decodeHtmlEntities(rawVTitle);
+                const vDuration = vr.lengthText?.simpleText || 'Dynamic';
+                const vThumb = vr.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://img.youtube.com/vi/${vId}/hqdefault.jpg`;
+
+                if (vId && vTitle && !vTitle.toLowerCase().includes('[private') && searchVideos.length < 10) {
+                  searchVideos.push({
+                    id: `vid_${vId}_${searchVideos.length}`,
+                    ytVideoId: vId,
+                    title: vTitle,
+                    durationSeconds: parseDurationText(vDuration),
+                    durationFormatted: vDuration,
+                    thumbnailUrl: vThumb,
+                  });
+                }
+              }
+            }
+          }
+
+          if (searchVideos.length > 0) {
+            const courseTitle = customName || `Course: ${urlOrId}`;
+            const course: Playlist = {
+              id: 'pl_' + Date.now().toString(36),
+              userId: 'user_active',
+              ytPlaylistId: `search_${Date.now().toString(36)}`,
+              customTitle: courseTitle,
+              originalTitle: `Topic: ${urlOrId}`,
+              thumbnailUrl: searchVideos[0].thumbnailUrl,
+              totalVideos: searchVideos.length,
+              completedVideos: 0,
+              videos: searchVideos,
+              sourceType: 'youtube_playlist',
+              lastSyncedAt: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+            };
+            return NextResponse.json(course);
+          }
+        }
+      }
+    } catch (searchErr) {
+      console.warn('Search fallback notice:', searchErr);
+    }
+
+    return NextResponse.json({ error: 'Could not resolve playlist or video from the provided input. Please verify the URL or try searching a topic.' }, { status: 404 });
   } catch (err: any) {
     console.error('API /api/youtube error:', err);
     return NextResponse.json({ error: err.message || 'Internal server error processing YouTube URL' }, { status: 500 });

@@ -163,16 +163,19 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
           <form onSubmit={handleYouTubeSubmit} className="mt-4 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[var(--text-primary)] mb-1">
-                YouTube Video or Playlist Link <span className="text-red-500">*</span>
+                YouTube Playlist, Video Link, or Study Topic <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder="https://www.youtube.com/watch?v=... or playlist link"
+                placeholder="Paste any YouTube playlist, video link, or topic (e.g. Python Bangla)"
                 value={youtubeUrl}
                 onChange={e => setYoutubeUrl(e.target.value)}
                 required
                 className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--text-primary)] focus:outline-none"
               />
+              <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                💡 Paste any playlist URL (including share links with &amp;si=), single video link, or study topic.
+              </p>
             </div>
 
             <div>

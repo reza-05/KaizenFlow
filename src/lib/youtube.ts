@@ -1,46 +1,96 @@
 import { Playlist, VideoItem } from '@/types';
 
-// Helper to extract playlist ID from any YouTube URL format
+// Helper to clean HTML entities from YouTube titles
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#x2F;/g, '/')
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+}
+
+// Helper to extract playlist ID from any YouTube URL or raw ID format
 export function extractPlaylistId(input: string): string | null {
   const trimmed = input.trim();
-  if (trimmed.startsWith('PL') && !trimmed.includes('/')) {
+  if (!trimmed) return null;
+
+  // 1. Raw Playlist ID: PL..., OLAK5uy_..., UU..., FL..., RD..., TL...
+  if (/^(?:PL|OLAK5uy_|UU|FL|RD|TL)[a-zA-Z0-9_-]{10,}$/.test(trimmed)) {
     return trimmed;
   }
 
+  // 2. URL parsing (handling http, https, protocol-relative, or domain-first)
   try {
-    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    const normalized = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+      ? trimmed
+      : `https://${trimmed.replace(/^\/\//, '')}`;
+    const url = new URL(normalized);
     const listParam = url.searchParams.get('list');
-    if (listParam) return listParam;
-  } catch {
-    // regex fallback
-    const match = trimmed.match(/[?&]list=([^#&?]+)/);
-    if (match && match[1]) return match[1];
-  }
+    if (listParam) return listParam.trim();
+  } catch {}
+
+  // 3. Fallback regex search for list parameter anywhere in input
+  const match = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/i);
+  if (match && match[1]) return match[1].trim();
 
   return null;
 }
 
-// Helper to extract single video ID
+// Helper to extract single video ID from any format (standard, mobile, shorts, live, embed, youtu.be)
 export function extractVideoId(input: string): string | null {
   const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // 1. Raw 11-char YouTube video ID
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
     return trimmed;
   }
 
+  // 2. URL parsing
   try {
-    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    const normalized = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+      ? trimmed
+      : `https://${trimmed.replace(/^\/\//, '')}`;
+    const url = new URL(normalized);
+
+    // youtu.be/VIDEO_ID
     if (url.hostname.includes('youtu.be')) {
-      return url.pathname.slice(1).split('?')[0];
+      const id = url.pathname.slice(1).split('/')[0].split('?')[0];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
     }
+
+    // ?v=VIDEO_ID
     const vParam = url.searchParams.get('v');
-    if (vParam) return vParam;
-    if (url.pathname.includes('/embed/')) {
-      return url.pathname.split('/embed/')[1].split('?')[0];
+    if (vParam && /^[a-zA-Z0-9_-]{11}$/.test(vParam)) return vParam;
+
+    // /shorts/VIDEO_ID
+    if (url.pathname.includes('/shorts/')) {
+      const id = url.pathname.split('/shorts/')[1].split('/')[0].split('?')[0];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
     }
-  } catch {
-    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-    if (match && match[1]) return match[1];
-  }
+
+    // /live/VIDEO_ID
+    if (url.pathname.includes('/live/')) {
+      const id = url.pathname.split('/live/')[1].split('/')[0].split('?')[0];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
+    }
+
+    // /embed/VIDEO_ID
+    if (url.pathname.includes('/embed/')) {
+      const id = url.pathname.split('/embed/')[1].split('/')[0].split('?')[0];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
+    }
+  } catch {}
+
+  // 3. Regex fallback
+  const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([a-zA-Z0-9_-]{11})/);
+  if (match && match[1]) return match[1];
 
   return null;
 }
@@ -223,5 +273,47 @@ export async function parseYouTubePlaylist(urlOrId: string, customName?: string)
     }
   }
 
-  throw new Error('Could not find videos in this YouTube playlist or video link. Please verify the URL is public or unlisted.');
+  // 3. Client-side oEmbed fallback for single videos if server route was unavailable
+  const singleVidId = extractVideoId(trimmed);
+  if (singleVidId) {
+    try {
+      const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${singleVidId}&format=json`);
+      let title = customName?.trim() || `Lecture: ${singleVidId}`;
+      let author = 'YouTube Instructor';
+      let thumb = `https://img.youtube.com/vi/${singleVidId}/hqdefault.jpg`;
+
+      if (oembedRes.ok) {
+        const odata = await oembedRes.json();
+        if (odata.title) title = customName?.trim() || decodeHtmlEntities(odata.title);
+        if (odata.author_name) author = decodeHtmlEntities(odata.author_name);
+        if (odata.thumbnail_url) thumb = odata.thumbnail_url;
+      }
+
+      return {
+        id: 'pl_' + Date.now().toString(36),
+        userId: 'user_active',
+        ytPlaylistId: `pl_${singleVidId}`,
+        customTitle: title,
+        originalTitle: `${title} (${author})`,
+        thumbnailUrl: thumb,
+        totalVideos: 1,
+        completedVideos: 0,
+        videos: [
+          {
+            id: `vid_${singleVidId}`,
+            ytVideoId: singleVidId,
+            title,
+            durationSeconds: 1800,
+            durationFormatted: 'Dynamic',
+            thumbnailUrl: thumb,
+          },
+        ],
+        sourceType: 'youtube_playlist',
+        lastSyncedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+    } catch {}
+  }
+
+  throw new Error('Could not find videos in this YouTube link or query. Please verify the URL is public or unlisted.');
 }
