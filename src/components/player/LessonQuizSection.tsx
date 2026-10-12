@@ -141,6 +141,46 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
 
   const optionLetters = ['A', 'B', 'C', 'D'];
 
+  const renderFormattedText = (text: string) => {
+    if (!text) return null;
+    const codeBlockParts = text.split(/(```[\s\S]*?```)/g);
+    return codeBlockParts.map((block, i) => {
+      if (block.startsWith('```') && block.endsWith('```')) {
+        const inner = block.slice(3, -3).trim();
+        const firstLineBreak = inner.indexOf('\n');
+        let lang = '';
+        let code = inner;
+        if (firstLineBreak > 0) {
+          const potentialLang = inner.slice(0, firstLineBreak).trim();
+          if (/^[a-z0-9_-]+$/i.test(potentialLang)) {
+            lang = potentialLang;
+            code = inner.slice(firstLineBreak + 1);
+          }
+        }
+        return (
+          <pre key={i} className="my-2 p-3 rounded-xl bg-zinc-950 text-emerald-400 font-mono text-xs overflow-x-auto border border-zinc-800 shadow-inner">
+            <code>{code}</code>
+          </pre>
+        );
+      }
+      const inlineParts = block.split(/(`[^`]+`)/g);
+      return (
+        <span key={i}>
+          {inlineParts.map((sub, j) => {
+            if (sub.startsWith('`') && sub.endsWith('`')) {
+              return (
+                <code key={j} className="mx-0.5 px-1.5 py-0.5 rounded bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] font-mono text-xs text-[var(--text-primary)] font-semibold">
+                  {sub.slice(1, -1)}
+                </code>
+              );
+            }
+            return sub;
+          })}
+        </span>
+      );
+    });
+  };
+
   return (
     <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-sm space-y-5 transition-all">
       {/* Header */}
@@ -287,9 +327,9 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] text-xs font-bold font-mono mt-0.5">
                       {qIndex + 1}
                     </span>
-                    <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] leading-relaxed whitespace-pre-line">
-                      {currentQ.question}
-                    </p>
+                    <div className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] leading-relaxed whitespace-pre-line flex-1">
+                      {renderFormattedText(currentQ.question)}
+                    </div>
                   </div>
                 </div>
 
@@ -325,9 +365,9 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-xs font-bold font-mono transition-colors ${letterBadgeStyle}`}>
                           {optionLetters[optIdx]}
                         </span>
-                        <span className="flex-1 leading-relaxed pt-0.5 whitespace-pre-line">
-                          {optionText}
-                        </span>
+                        <div className="flex-1 leading-relaxed pt-0.5 whitespace-pre-line">
+                          {renderFormattedText(optionText)}
+                        </div>
                         {isAnswered && isCorrectOpt && (
                           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
                         )}
@@ -347,9 +387,9 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                         <HelpCircle className="h-3.5 w-3.5" />
                         <span>ব্যাখ্যা</span>
                       </div>
-                      <p className="text-xs text-[var(--text-primary)] leading-relaxed pl-5 whitespace-pre-line">
-                        {currentQ.explanation}
-                      </p>
+                      <div className="text-xs text-[var(--text-primary)] leading-relaxed pl-5 whitespace-pre-line">
+                        {renderFormattedText(currentQ.explanation)}
+                      </div>
                     </div>
 
                     {/* Next Question Button (Specially important if incorrect, so user controls when to proceed) */}

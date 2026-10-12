@@ -65,7 +65,7 @@ async function generateQuizWithGroq(apiKey: string, prompt: string): Promise<str
           messages: [
             {
               role: 'system',
-              content: 'You are an exceptional academic examiner, senior university professor, and programming instructor. You generate challenging, high-yield, conceptual Multiple Choice Questions (MCQ) testing the core subject matter taught in educational video lectures. You respond strictly in valid JSON matching the requested schema with exactly 5 conceptual questions.',
+              content: 'You are an exceptional computer science professor, academic examiner, and senior educator. You generate strictly self-contained, technically rigorous, conceptual Multiple Choice Questions (MCQ) testing the core subject matter of educational video lectures. You respond strictly in valid JSON matching the requested schema with exactly 5 conceptual questions.',
             },
             {
               role: 'user',
@@ -73,8 +73,8 @@ async function generateQuizWithGroq(apiKey: string, prompt: string): Promise<str
             },
           ],
           response_format: { type: 'json_object' },
-          temperature: 0.35,
-          max_tokens: 2500,
+          temperature: 0.2,
+          max_tokens: 3000,
         }),
       });
 
@@ -171,26 +171,29 @@ CRITICAL RULES & ZERO-TOLERANCE GUIDELINES:
 3. OPTION QUALITY:
    - Provide 4 realistic, plausible options for each question (A, B, C, D).
    - DO NOT write silly, obvious joke options (e.g. NEVER write "class ended with no solution", "rules were canceled", "nothing happened"). Every distractor must look like a credible answer or common misconception.
-   - Randomly distribute the correct answer index across 0, 1, 2, and 3.
+   - Randomly distribute the correct answer index across 0, 1, 2, and 3. DO NOT set all questions to index 0.
 
-4. LANGUAGE:
+4. MANDATORY SELF-CONTAINEDNESS (সম্পূর্ণ ও স্বয়ংসম্পূর্ণ প্রশ্ন):
+   - Every question MUST be 100% self-contained with all code snippets, inputs, and context explicitly written inside the question text.
+   - If a question asks for a specific numerical value, return value, or output, the EXACT code snippet, variable names, or string literal MUST be explicitly shown inside the question.
+   - FATAL ERROR TO AVOID: Asking 'C তে একটি string literal এর উপর sizeof ব্যবহার করলে কী মান পাওয়া যায়?' without giving the string literal in the question! (Without knowing whether the string is "Hello" or "A", nobody can answer!).
+   - CORRECT WAY: 'C তে sizeof("Hello") এর মান কত বাইট হবে?' (Here the string literal "Hello" is explicitly specified).
+   - If asking about code execution or output, ALWAYS put the exact code snippet inside the question text formatted with code or quotes.
+   - NEVER introduce a variable, string, or number in the explanation that was not explicitly present in the question!
+
+5. LANGUAGE:
    - Generate all questions, options, and explanations in natural, high-quality BENGALI (বাংলা) as spoken by a top academic mentor (BUET / 10 Minute School instructor).
-   - Keep technical terms and programming code in English (e.g., Variable, Function, int, Loop, Syntax Error, Pointer, Resistor, Derivative).
+   - Keep technical terms and programming code in English (e.g., Variable, Function, int, Loop, Syntax Error, Pointer, Resistor, Derivative, sizeof).
    - Each explanation must clearly explain WHY the correct answer is right and clarify the core concept.
 
 RESPOND STRICTLY IN VALID JSON with this exact schema:
 {
   "quiz": [
     {
-      "question": "গভীর কনসেপচুয়াল প্রশ্ন (যেমন: C++ এ cin দিয়ে দুটি পূর্ণসংখ্যা ইনপুট নেওয়ার সময়...)?",
-      "options": [
-        "বাস্তবধর্মী বিকল্প ১",
-        "বাস্তবধর্মী বিকল্প ২",
-        "বাস্তবধর্মী বিকল্প ৩",
-        "বাস্তবধর্মী বিকল্প ৪"
-      ],
-      "answerIndex": 1,
-      "explanation": "ব্যাখ্যা: এখানে কেন এই অপশনটি সঠিক এবং এর পেছনের মূল নিয়ম কী।"
+      "question": "C তে sizeof(\"Hello\") এর মান কত বাইট হবে?",
+      "options": ["6", "5", "7", "4"],
+      "answerIndex": 0,
+      "explanation": "sizeof অপারেটর string literal এর শেষের null-character (\\\\0)-কেও গণনা করে। তাই 5 অক্ষরের সাথে 1 যোগ হয়ে মোট 6 বাইট হয়।"
     }
   ]
 }
@@ -213,13 +216,27 @@ RESPOND STRICTLY IN VALID JSON with this exact schema:
       return NextResponse.json({ error: 'Failed to generate valid quiz questions' }, { status: 500 });
     }
 
-    // Sanitize and humanize questions
-    const sanitizedQuiz: LectureQuizQuestion[] = rawQuiz.slice(0, 5).map((q: any) => ({
-      question: humanizeBengaliText(q.question || ''),
-      options: (q.options || []).map((opt: string) => humanizeBengaliText(opt)),
-      answerIndex: typeof q.answerIndex === 'number' && q.answerIndex >= 0 && q.answerIndex <= 3 ? q.answerIndex : 0,
-      explanation: humanizeBengaliText(q.explanation || ''),
-    }));
+    // Sanitize and humanize questions with self-containedness validator
+    const sanitizedQuiz: LectureQuizQuestion[] = rawQuiz.slice(0, 5).map((q: any) => {
+      let questionText = humanizeBengaliText(q.question || '');
+      let explanationText = humanizeBengaliText(q.explanation || '');
+
+      // Safety patch: If a question asks about sizeof string literal but forgot to specify the string,
+      // and explanation mentions a specific string like "Hello", inject it directly into the question!
+      if (/sizeof.*string\s*literal/i.test(questionText) && !/["'].+["']/.test(questionText)) {
+        const matchStr = explanationText.match(/["']([^"']+)["']/);
+        if (matchStr && matchStr[1]) {
+          questionText = questionText.replace(/একটি\s*string\s*literal\s*এর/gi, `\`"${matchStr[1]}"\` string literal এর`);
+        }
+      }
+
+      return {
+        question: questionText,
+        options: (q.options || []).map((opt: string) => humanizeBengaliText(opt)),
+        answerIndex: typeof q.answerIndex === 'number' && q.answerIndex >= 0 && q.answerIndex <= 3 ? q.answerIndex : 0,
+        explanation: explanationText,
+      };
+    });
 
     return NextResponse.json({ quiz: sanitizedQuiz });
   } catch (err: any) {
