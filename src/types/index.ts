@@ -8,6 +8,9 @@ export interface UserProfile {
   lastStudyDate: string; // "YYYY-MM-DD"
   activePlaylistsCount: number; // max 10
   createdAt: string;
+  subscriptionTier?: 'free' | 'pro';
+  dailyAiNotesUsed?: number;
+  dailyAiNotesDate?: string; // "YYYY-MM-DD"
 }
 
 export interface VideoItem {

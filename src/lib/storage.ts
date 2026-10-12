@@ -199,6 +199,62 @@ export function saveUserProfile(profile: UserProfile): void {
   setStoredValue('USER', JSON.stringify(profile));
 }
 
+export const DAILY_FREE_AI_NOTES_LIMIT = 3;
+
+export interface AiNotesQuotaStatus {
+  used: number;
+  max: number;
+  remaining: number;
+  isPro: boolean;
+  canGenerate: boolean;
+}
+
+export function getAiNotesQuotaStatus(): AiNotesQuotaStatus {
+  const profile = getInitialUserProfile();
+  const isPro = profile.subscriptionTier === 'pro';
+  if (isPro) {
+    return { used: 0, max: Infinity, remaining: Infinity, isPro: true, canGenerate: true };
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  let used = profile.dailyAiNotesUsed || 0;
+  if (profile.dailyAiNotesDate !== today) {
+    used = 0;
+    profile.dailyAiNotesDate = today;
+    profile.dailyAiNotesUsed = 0;
+    saveUserProfile(profile);
+  }
+
+  const remaining = Math.max(0, DAILY_FREE_AI_NOTES_LIMIT - used);
+  return {
+    used,
+    max: DAILY_FREE_AI_NOTES_LIMIT,
+    remaining,
+    isPro: false,
+    canGenerate: remaining > 0,
+  };
+}
+
+export function consumeAiNotesQuota(): boolean {
+  const status = getAiNotesQuotaStatus();
+  if (status.isPro) return true;
+  if (!status.canGenerate) return false;
+
+  const profile = getInitialUserProfile();
+  const today = new Date().toISOString().split('T')[0];
+  profile.dailyAiNotesDate = today;
+  profile.dailyAiNotesUsed = (profile.dailyAiNotesUsed || 0) + 1;
+  saveUserProfile(profile);
+  return true;
+}
+
+export function setSubscriptionTier(tier: 'free' | 'pro'): UserProfile {
+  const profile = getInitialUserProfile();
+  profile.subscriptionTier = tier;
+  saveUserProfile(profile);
+  return profile;
+}
+
 // Playlists retrieval:
 // For logged-in users, defaults to [] (completely empty, 0 starter courses)
 // For unauthenticated guests, provides starter courses to preview

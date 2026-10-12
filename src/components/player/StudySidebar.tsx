@@ -26,11 +26,19 @@ import {
   CheckCircle,
   XCircle,
   Music,
-  Tv
+  Tv,
+  Crown,
+  Zap
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
 import { humanizeBengaliText, humanizeLectureNotes } from '@/lib/bengaliHumanizer';
+import { 
+  getAiNotesQuotaStatus, 
+  consumeAiNotesQuota, 
+  setSubscriptionTier, 
+  AiNotesQuotaStatus 
+} from '@/lib/storage';
 
 interface StudySidebarProps {
   playlistId: string;
@@ -77,18 +85,20 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [isQuizSubmitted, setIsQuizSubmitted] = useState<boolean>(false);
 
-  // Custom API Key Modal State
-  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
-  const [customKey, setCustomKey] = useState<string>('');
-  const [customProvider, setCustomProvider] = useState<'groq' | 'gemini'>('groq');
+  // Subscription & Daily Quota State
+  const [quota, setQuota] = useState<AiNotesQuotaStatus>({
+    used: 0,
+    max: 3,
+    remaining: 3,
+    isPro: false,
+    canGenerate: true,
+  });
+  const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
 
-  // Load custom key from local storage on mount
+  // Load quota status on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedKey = localStorage.getItem('kaizenflow_custom_ai_key') || '';
-      const savedProvider = (localStorage.getItem('kaizenflow_custom_ai_provider') as 'groq' | 'gemini') || 'groq';
-      setCustomKey(savedKey);
-      setCustomProvider(savedProvider);
+      setQuota(getAiNotesQuotaStatus());
     }
   }, []);
 
@@ -176,6 +186,13 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
   // Generate Real Lecture Notes from backend (with optional user force override)
   const handleGenerateAINotes = async (force: boolean = false) => {
+    // Check if daily quota is available (unless user is Pro)
+    const currentQuota = getAiNotesQuotaStatus();
+    if (!currentQuota.canGenerate) {
+      setShowPaywallModal(true);
+      return;
+    }
+
     setIsGeneratingAI(true);
     setAiError(null);
 
@@ -191,8 +208,6 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
           videoTitle: targetTitle,
           courseTitle: courseTitle || '',
           language: aiLanguage,
-          customApiKey: customKey.trim() || undefined,
-          customProvider,
           forceGenerate: force,
         }),
       });
@@ -208,6 +223,10 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
         : generated;
       setAiNotes(humanized);
 
+      // Consume 1 quota credit upon successful note creation
+      consumeAiNotesQuota();
+      setQuota(getAiNotesQuotaStatus());
+
       // Save to local cache
       if (typeof window !== 'undefined') {
         const cacheKey = `kaizenflow_ai_notes_${currentVideoId}_${aiLanguage}`;
@@ -221,14 +240,17 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     }
   };
 
-  // Save custom key to localStorage
-  const handleSaveCustomKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('kaizenflow_custom_ai_key', customKey.trim());
-      localStorage.setItem('kaizenflow_custom_ai_provider', customProvider);
-    }
-    setShowKeyModal(false);
+  // Upgrade user to KaizenFlow Pro
+  const handleUpgradeToPro = () => {
+    setSubscriptionTier('pro');
+    setQuota(getAiNotesQuotaStatus());
+    setShowPaywallModal(false);
+  };
+
+  // Downgrade to Free plan (For developer/testing quota limits)
+  const handleDowngradeToFree = () => {
+    setSubscriptionTier('free');
+    setQuota(getAiNotesQuotaStatus());
   };
 
   const currentMins = Math.floor(activeTimestampSeconds / 60);
@@ -642,16 +664,33 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </select>
             </div>
 
-            {/* Actions / API Key settings */}
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setShowKeyModal(true)}
-                title="Configure custom Groq / Gemini AI key"
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors"
-              >
-                <KeyRound className="h-3.5 w-3.5" />
-              </button>
+            {/* Actions & Quota / Pro Badge */}
+            <div className="flex items-center gap-1.5">
+              {quota.isPro ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPaywallModal(true)}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-[10.5px] cursor-pointer hover:opacity-90"
+                  title="KaizenFlow Pro Active - Unlimited AI Notes"
+                >
+                  <Crown className="h-3 w-3 fill-current text-amber-500" />
+                  <span>PRO</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowPaywallModal(true)}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10.5px] font-semibold transition-colors cursor-pointer ${
+                    quota.remaining === 0
+                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 animate-pulse'
+                      : 'bg-[var(--bg-canvas)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)]/40'
+                  }`}
+                  title="Click to view KaizenFlow Pro plans"
+                >
+                  <Zap className="h-3 w-3 text-amber-500 fill-amber-500/40" />
+                  <span>{quota.remaining}/{quota.max} Left</span>
+                </button>
+              )}
 
               {aiNotes && (
                 <>
@@ -1154,88 +1193,139 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
         </div>
       )}
 
-      {/* Custom API Key Configuration Modal */}
-      {showKeyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-sm rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
-              <div className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-amber-500" />
-                <h3 className="text-xs font-bold text-[var(--text-primary)]">
-                  Custom AI Key (Optional)
-                </h3>
+      {/* KaizenFlow Pro Subscription Modal */}
+      {showPaywallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-2xl border border-amber-500/30 bg-[var(--bg-surface)] p-6 shadow-2xl animate-in zoom-in-95 duration-200 space-y-5">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/20">
+                  <Crown className="h-5 w-5 fill-current" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                    <span>KaizenFlow Pro</span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 uppercase tracking-wider">
+                      Premium
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {quota.isPro 
+                      ? 'আপনার প্রো সাবস্ক্রিপশন সক্রিয় রয়েছে' 
+                      : quota.remaining === 0 
+                        ? 'আজকের ৩টি ফ্রি এআই নোটের কোটা শেষ' 
+                        : `আজকের ফ্রি কোটা: ${quota.remaining}/${quota.max} অবশিষ্ট`}
+                  </p>
+                </div>
               </div>
+
               <button
-                onClick={() => setShowKeyModal(false)}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                type="button"
+                onClick={() => setShowPaywallModal(false)}
+                className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveCustomKey} className="mt-4 space-y-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-[var(--text-primary)] mb-1">
-                  AI Provider
-                </label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setCustomProvider('groq')}
-                    className={`py-1.5 px-3 rounded-lg border text-center transition-colors font-semibold ${
-                      customProvider === 'groq'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        : 'border-[var(--border-subtle)] text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    Groq (Ultra-Fast)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCustomProvider('gemini')}
-                    className={`py-1.5 px-3 rounded-lg border text-center transition-colors font-semibold ${
-                      customProvider === 'gemini'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        : 'border-[var(--border-subtle)] text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    Google Gemini
-                  </button>
+            {/* Feature Checklist */}
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-3.5 space-y-2.5">
+              <div className="flex items-start gap-2.5 text-xs">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-[var(--text-primary)]">আনলিমিটেড এআই লেকচার নোট</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">যেকোনো ইউটিউব প্লেলিস্টের শত শত ভিডিওর ইনস্ট্যান্ট স্টাডি শিট</p>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[var(--text-primary)] mb-1">
-                  API Key
-                </label>
-                <input
-                  type="password"
-                  placeholder="gsk_... or AIza..."
-                  value={customKey}
-                  onChange={e => setCustomKey(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--text-primary)]"
-                />
-                <p className="text-[10px] text-[var(--text-muted)] mt-1">
-                  Saved securely in your local browser storage. Leave empty to use server default.
-                </p>
+              <div className="flex items-start gap-2.5 text-xs">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-[var(--text-primary)]">স্মার্ট অ্যাক্টিভ রিকল কুইজ</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">প্রতিটি লেকচারের ৩-প্রশ্নের ইন্টারঅ্যাক্টিভ পরীক্ষা ও তাৎক্ষণিক ব্যাখ্যা</p>
+                </div>
               </div>
+              <div className="flex items-start gap-2.5 text-xs">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-[var(--text-primary)]">হাই-রেজোলিউশন PDF আনলিমিটেড এক্সপোর্ট</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">বাংলা ইউনিকোড ফন্ট ও ডার্ক কোড কার্ডসহ যেকোনো সময় প্রিন্ট করুন</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5 text-xs">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-[var(--text-primary)]">প্রায়োরিটি হাই-স্পিড এআই ইঞ্জিন</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">জিরো কিউ ও ফাস্টেস্ট মডেল রেসপন্স রেট</p>
+                </div>
+              </div>
+            </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+            {/* Monthly Plan Card (Only for Free Users) */}
+            {!quota.isPro ? (
+              <div className="space-y-3.5">
+                <div className="relative rounded-2xl border-2 border-amber-500/60 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-orange-500/10 p-4 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-extrabold uppercase tracking-wide">
+                        <Sparkles className="h-3 w-3 fill-current" />
+                        <span>১ মাস ফুল এক্সেস</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[var(--text-primary)]">
+                        মাসিক প্রো সাবস্ক্রিপশন
+                      </h4>
+                      <p className="text-[11px] text-[var(--text-muted)]">
+                        আনলিমিটেড এআই নোট, কুইজ ও ফুল এক্সেস
+                      </p>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="text-2xl font-black text-amber-500 tracking-tight">৳৯৯</div>
+                      <div className="text-[10px] font-semibold text-[var(--text-muted)]">/ ১ মাস (৩০ দিন)</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-amber-500/20 flex items-center justify-between text-[10.5px] text-[var(--text-secondary)]">
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                      ✓ কোনো অটো-কাট নেই
+                    </span>
+                    <span className="text-[var(--text-muted)] font-medium">
+                      bKash • Nagad • Card
+                    </span>
+                  </div>
+                </div>
+
+                {/* Primary Upgrade CTA */}
                 <button
                   type="button"
-                  onClick={() => setShowKeyModal(false)}
-                  className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)]"
+                  onClick={handleUpgradeToPro}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all cursor-pointer active:scale-[0.99]"
                 >
-                  Cancel
+                  <Crown className="h-4 w-4 fill-current" />
+                  <span>৳৯৯ দিয়ে প্রো আনলক করুন (Upgrade Now)</span>
                 </button>
+
+                <p className="text-center text-[10.5px] text-[var(--text-muted)]">
+                  ⚡ ফ্রি ইউজারদের জন্য প্রতিদিন ৩টি ফ্রি এআই নোট স্বয়ংক্রিয়ভাবে রিফিল হয়।
+                </p>
+              </div>
+            ) : (
+              /* Already Pro status */
+              <div className="space-y-3 text-center">
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                  ✓ আপনার অ্যাকাউন্টে KaizenFlow Pro সক্রিয় রয়েছে। আপনি আনলিমিটেড এআই নোট তৈরি করতে পারছেন।
+                </div>
+
+                {/* Developer / Testing button to toggle back to free quota for testing */}
                 <button
-                  type="submit"
-                  className="px-3 py-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] text-xs font-semibold hover:opacity-90"
+                  type="button"
+                  onClick={handleDowngradeToFree}
+                  className="text-[11px] text-[var(--text-muted)] hover:text-amber-500 underline cursor-pointer"
                 >
-                  Save Key
+                  (Testing mode) Switch to Free plan to test daily quota limit
                 </button>
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}
