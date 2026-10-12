@@ -299,6 +299,14 @@ TASK & CRITICAL RULES:
   "keyTakeaways": [
     "Crucial takeaway or common trap 1",
     "Crucial takeaway 2"
+  ],
+  "quiz": [
+    {
+      "question": "Clear conceptual question testing understanding of this lecture?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "answerIndex": 0,
+      "explanation": "Why Option A is correct based on the lecture"
+    }
   ]
 }
 `;
@@ -336,6 +344,15 @@ TASK & CRITICAL RULES:
           };
         });
 
+        const quiz = Array.isArray(parsed.quiz)
+          ? parsed.quiz.slice(0, 3).map((q: any) => ({
+              question: cleanText(q.question),
+              options: Array.isArray(q.options) ? q.options.map(cleanText).filter(Boolean) : [],
+              answerIndex: typeof q.answerIndex === 'number' && q.answerIndex >= 0 && q.answerIndex < 4 ? q.answerIndex : 0,
+              explanation: cleanText(q.explanation),
+            })).filter((q: any) => q.question && q.options.length >= 2)
+          : undefined;
+
         // Generate clean markdown representation
         let markdown = `# ${videoTitle}\n\n${parsed.summary || ''}\n\n`;
         chapters.forEach(ch => {
@@ -365,6 +382,7 @@ TASK & CRITICAL RULES:
           summary: parsed.summary || `Lecture notes for ${videoTitle}`,
           chapters,
           keyTakeaways: Array.isArray(parsed.keyTakeaways) ? parsed.keyTakeaways : [],
+          quiz: quiz && quiz.length > 0 ? quiz : undefined,
           fullMarkdown: markdown,
           generatedAt: new Date().toISOString(),
           isRealTranscriptGrounded: hasMeaningfulSpeech,

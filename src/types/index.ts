@@ -117,6 +117,13 @@ export interface LectureNoteChapter {
   keyPoints?: string[];
 }
 
+export interface LectureQuizQuestion {
+  question: string;
+  options: string[];
+  answerIndex: number;
+  explanation: string;
+}
+
 export interface AILectureNotes {
   videoId: string;
   videoTitle: string;
@@ -124,6 +131,7 @@ export interface AILectureNotes {
   summary: string;
   chapters: LectureNoteChapter[];
   keyTakeaways: string[];
+  quiz?: LectureQuizQuestion[];
   fullMarkdown: string;
   generatedAt: string;
   isRealTranscriptGrounded: boolean;

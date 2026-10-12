@@ -22,6 +22,7 @@ import {
   getDailyActivityMap,
   getNotes,
   addNote,
+  addNotes,
   deleteNote
 } from '@/lib/storage';
 import { Playlist, VideoItem, UserProfile, StudyNote } from '@/types';
@@ -179,7 +180,7 @@ export default function KaizenFlowApp() {
     const secs = timestampSeconds % 60;
 
     const newNote: StudyNote = {
-      id: 'note_' + Date.now().toString(36),
+      id: `note_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`,
       playlistId: activeCourse.id,
       videoId: activeVideo.ytVideoId,
       timestampSeconds,
@@ -189,6 +190,27 @@ export default function KaizenFlowApp() {
     };
 
     const updated = addNote(newNote);
+    setNotes(updated);
+  };
+
+  const handleAddStudyNotesBulk = (items: { content: string; timestampSeconds: number }[]) => {
+    if (!activeVideo || !activeCourse || items.length === 0) return;
+    const now = Date.now().toString(36);
+    const newNotes: StudyNote[] = items.map((item, idx) => {
+      const mins = Math.floor(item.timestampSeconds / 60);
+      const secs = item.timestampSeconds % 60;
+      return {
+        id: `note_${now}_${idx}_${Math.random().toString(36).substring(2, 8)}`,
+        playlistId: activeCourse.id,
+        videoId: activeVideo.ytVideoId,
+        timestampSeconds: item.timestampSeconds,
+        timestampFormatted: `${mins}:${secs < 10 ? '0' : ''}${secs}`,
+        content: item.content,
+        createdAt: new Date().toISOString(),
+      };
+    });
+
+    const updated = addNotes(newNotes);
     setNotes(updated);
   };
 
@@ -261,6 +283,7 @@ export default function KaizenFlowApp() {
                 verifiedMap={progressMap}
                 notes={notes}
                 onAddNote={handleAddStudyNote}
+                onAddNotesBulk={handleAddStudyNotesBulk}
                 onDeleteNote={handleDeleteStudyNote}
                 activeTimestampSeconds={activeTimestampSeconds}
                 courseTitle={activeCourse.customTitle}

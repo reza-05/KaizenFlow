@@ -424,13 +424,31 @@ export function saveDailyActivityMap(map: Record<string, DailyActivity>): void {
   setStoredValue('ACTIVITY', JSON.stringify(map));
 }
 
-// Notes Storage
 export function getNotes(videoId: string): StudyNote[] {
   if (typeof window === 'undefined') return [];
   const stored = getStoredValue('NOTES', videoId);
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed: StudyNote[] = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        const seen = new Set<string>();
+        let modified = false;
+        const sanitized = parsed.map((n, idx) => {
+          if (!n.id || seen.has(n.id)) {
+            modified = true;
+            return {
+              ...n,
+              id: `note_${Date.now().toString(36)}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+            };
+          }
+          seen.add(n.id);
+          return n;
+        });
+        if (modified) {
+          setStoredValue('NOTES', JSON.stringify(sanitized), videoId);
+        }
+        return sanitized;
+      }
     } catch {}
   }
   return [];
@@ -440,6 +458,15 @@ export function addNote(note: StudyNote): StudyNote[] {
   const current = getNotes(note.videoId);
   const updated = [note, ...current];
   setStoredValue('NOTES', JSON.stringify(updated), note.videoId);
+  return updated;
+}
+
+export function addNotes(notesToAdd: StudyNote[]): StudyNote[] {
+  if (notesToAdd.length === 0) return [];
+  const videoId = notesToAdd[0].videoId;
+  const current = getNotes(videoId);
+  const updated = [...notesToAdd, ...current];
+  setStoredValue('NOTES', JSON.stringify(updated), videoId);
   return updated;
 }
 

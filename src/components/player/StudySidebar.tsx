@@ -19,9 +19,14 @@ import {
   KeyRound,
   Settings,
   X,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Brain,
+  RotateCcw,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
-import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter } from '@/types';
+import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
 
 interface StudySidebarProps {
@@ -32,6 +37,7 @@ interface StudySidebarProps {
   verifiedMap: Record<string, boolean>;
   notes: StudyNote[];
   onAddNote: (content: string, timestampSeconds: number) => void;
+  onAddNotesBulk?: (items: { content: string; timestampSeconds: number }[]) => void;
   onDeleteNote: (noteId: string) => void;
   activeTimestampSeconds: number;
   courseTitle?: string;
@@ -46,6 +52,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   verifiedMap,
   notes,
   onAddNote,
+  onAddNotesBulk,
   onDeleteNote,
   activeTimestampSeconds,
   courseTitle,
@@ -61,6 +68,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [copiedAllNotes, setCopiedAllNotes] = useState<boolean>(false);
   const [aiError, setAiError] = useState<string | null>(null);
+
+  // In-Note Search & Active Recall Quiz State
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
+  const [isQuizSubmitted, setIsQuizSubmitted] = useState<boolean>(false);
 
   // Custom API Key Modal State
   const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
@@ -80,6 +92,10 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   // Load cached AI notes when video or language changes
   useEffect(() => {
     setAiError(null);
+    setSearchQuery('');
+    setQuizAnswers({});
+    setIsQuizSubmitted(false);
+
     if (typeof window !== 'undefined' && currentVideoId) {
       const cacheKey = `kaizenflow_ai_notes_${currentVideoId}_${aiLanguage}`;
       const cached = localStorage.getItem(cacheKey);
@@ -130,15 +146,22 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   // Copy entire AI notes into My Notes tab
   const handleImportAIToMyNotes = () => {
     if (!aiNotes) return;
-    aiNotes.chapters.forEach(ch => {
+    const items = aiNotes.chapters.map(ch => {
       const cleanExp = (ch.explanation || '').replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
       let content = `**${ch.title}**\n${cleanExp}`;
       if (ch.codeSnippet) {
         const cleanSnippet = ch.codeSnippet.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
         content += `\n\`\`\`${ch.codeLanguage || ''}\n${cleanSnippet}\n\`\`\``;
       }
-      onAddNote(content, ch.seconds);
+      return { content, timestampSeconds: ch.seconds };
     });
+
+    if (onAddNotesBulk) {
+      onAddNotesBulk(items);
+    } else {
+      items.forEach(it => onAddNote(it.content, it.timestampSeconds));
+    }
+
     setCopiedAllNotes(true);
     setTimeout(() => setCopiedAllNotes(false), 2500);
     setActiveTab('notes');
@@ -201,26 +224,129 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const currentSecs = activeTimestampSeconds % 60;
   const currentTimestampFormatted = `${currentMins}:${currentSecs < 10 ? '0' : ''}${currentSecs}`;
 
-  // Helper to format inline bold **bold**
+  // Procedural active recall quiz generator fallback if backend didn't supply one
+  const getOrGenerateQuiz = (notes: AILectureNotes): LectureQuizQuestion[] => {
+    if (notes.quiz && notes.quiz.length >= 2) {
+      return notes.quiz;
+    }
+
+    const questions: LectureQuizQuestion[] = [];
+    const chapters = notes.chapters || [];
+    const takeaways = notes.keyTakeaways || [];
+
+    if (chapters.length > 0) {
+      const ch0 = chapters[0];
+      questions.push({
+        question: `লেকচারের প্রারম্ভে [${ch0.timestamp}] কোন প্রধান বিষয়ে আলোকপাত করা হয়েছে?`,
+        options: [
+          ch0.title,
+          chapters[1]?.title || 'শুধুমাত্র সাধারণ সূচনা',
+          'অ্যাডভান্সড সিস্টেম আর্কিটেকচার',
+          'বাহ্যিক ডিপেনডেন্সি কনফিগারেশন'
+        ],
+        answerIndex: 0,
+        explanation: `লেকচারের শুরুতেই [${ch0.timestamp}] "${ch0.title}" বিশদভাবে আলোচনা করা হয়েছে।`
+      });
+    }
+
+    if (takeaways.length > 0) {
+      const t0 = takeaways[0];
+      questions.push({
+        question: 'এই ক্লাসের অন্যতম গুরুত্বপূর্ণ মূল নিয়ম বা পরীক্ষা সতর্কতা (Core Insight) কোনটি?',
+        options: [
+          'সব ক্ষেত্রে ডিফল্ট অপশন অপরিবর্তিত রাখা',
+          t0,
+          'কনসেপ্ট না বুঝে কেবল আউটপুট মুখস্থ করা',
+          'তাত্ত্বিক ভিত্তি বাদ দিয়ে সমাপ্ত করা'
+        ],
+        answerIndex: 1,
+        explanation: `ইনস্ট্রাক্টরের মূল টেকঅ্যাওয়ে হলো: "${t0}"`
+      });
+    }
+
+    if (chapters.length > 1) {
+      const chLast = chapters[chapters.length - 1];
+      questions.push({
+        question: `লেকচারের পরবর্তী অংশে [${chLast.timestamp}] "${chLast.title}" বিষয়ে কী শেখানো হয়েছে?`,
+        options: [
+          'কোনো সমাধান ছাড়াই ক্লাস শেষ করা',
+          'পূর্বের সব নিয়ম পরিবর্তন করে নতুন শুরু করা',
+          chLast.explanation.slice(0, 65) + (chLast.explanation.length > 65 ? '...' : ''),
+          'পরবর্তী ক্লাসে একই প্রাথমিক বিষয় পুনরাবৃত্তি'
+        ],
+        answerIndex: 2,
+        explanation: `অধ্যায়ে "${chLast.title}" সম্পর্কে বিস্তারিত প্রয়োগ ও সমাধান প্রদর্শন করা হয়েছে।`
+      });
+    }
+
+    return questions;
+  };
+
+  // Helper to format inline bold **bold** and inline code `code`
   const renderInlineFormatting = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
+    const parts = text.split(/(\*\*.*?\*\*|`[^`]+`)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-bold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>;
+        return <strong key={i} className="font-semibold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return (
+          <code key={i} className="px-1.5 py-0.5 rounded bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] font-mono text-[10.5px] text-amber-500 font-medium">
+            {part.slice(1, -1)}
+          </code>
+        );
       }
       return part;
     });
   };
 
-  // Helper to render markdown bold, inline code, and code blocks inside personal notes
+  const renderTextParagraphs = (text: string, prefixKey: string) => {
+    const lines = text.split('\n');
+    return (
+      <div key={prefixKey} className="space-y-1.5 text-xs text-[var(--text-secondary)]">
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) return <div key={idx} className="h-0.5" />;
+
+          // Heading line (e.g. **Topic Title**)
+          if (trimmed.startsWith('**') && trimmed.endsWith('**') && !trimmed.slice(2, -2).includes('**')) {
+            return (
+              <h5 key={idx} className="text-xs font-bold text-[var(--text-primary)] pt-1 pb-0.5 border-b border-[var(--border-subtle)]/60">
+                {trimmed.slice(2, -2)}
+              </h5>
+            );
+          }
+
+          // Bullet item
+          if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ')) {
+            const bulletText = trimmed.replace(/^[-•*]\s*/, '');
+            return (
+              <div key={idx} className="flex items-start gap-1.5 pl-1 leading-relaxed">
+                <span className="text-amber-500 font-bold shrink-0 mt-0.5">&bull;</span>
+                <span>{renderInlineFormatting(bulletText)}</span>
+              </div>
+            );
+          }
+
+          return (
+            <p key={idx} className="leading-relaxed whitespace-pre-wrap">
+              {renderInlineFormatting(line)}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Helper to render markdown bold, inline code, bullets, and code blocks inside personal notes
   const renderNoteCardContent = (content: string, noteId: string) => {
     const clean = (content || '')
       .replace(/\\r\\n/g, '\n')
       .replace(/\\n/g, '\n')
       .replace(/\\r/g, '');
 
-    // Split by code block regex: ```lang\ncode```
-    const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+    // Split by code block regex: ```lang\ncode``` (handles loose syntax and missing trailing backticks)
+    const codeBlockRegex = /```([a-zA-Z0-9_-]*)[^\n]*\r?\n([\s\S]*?)(?:```|$)/g;
     const elements: React.ReactNode[] = [];
     let lastIndex = 0;
     let match;
@@ -228,15 +354,12 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     while ((match = codeBlockRegex.exec(clean)) !== null) {
       if (match.index > lastIndex) {
         const textBefore = clean.slice(lastIndex, match.index);
-        elements.push(
-          <div key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed text-xs text-[var(--text-primary)]">
-            {renderInlineFormatting(textBefore)}
-          </div>
-        );
+        elements.push(renderTextParagraphs(textBefore, `text-${noteId}-${lastIndex}`));
       }
 
       const lang = match[1] || 'code';
-      const code = match[2].trim();
+      const rawCode = match[2] || '';
+      const code = rawCode.replace(/\\n/g, '\n').replace(/\\t/g, '  ').trim();
       const codeKey = `${noteId}-code-${match.index}`;
 
       elements.push(
@@ -257,15 +380,12 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       );
 
       lastIndex = match.index + match[0].length;
+      if (match[0].length === 0) break;
     }
 
     if (lastIndex < clean.length) {
       const remaining = clean.slice(lastIndex);
-      elements.push(
-        <div key={`text-end`} className="whitespace-pre-wrap leading-relaxed text-xs text-[var(--text-primary)]">
-          {renderInlineFormatting(remaining)}
-        </div>
-      );
+      elements.push(renderTextParagraphs(remaining, `text-${noteId}-end`));
     }
 
     return elements;
@@ -495,94 +615,144 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                   )}
                 </div>
 
-                {/* Chapter-by-Chapter Breakdown */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider text-[10px] text-[var(--text-muted)]">
-                    Timestamped Breakdown ({aiNotes.chapters.length} Topics)
-                  </h4>
-
-                  {aiNotes.chapters.map(ch => (
-                    <div
-                      key={ch.id}
-                      className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-2xs space-y-2 hover:border-[var(--text-primary)]/40 transition-colors"
+                {/* In-Note Topic Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-muted)]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search topics, formulas, code..."
+                    className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] pl-8 pr-7 py-1.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-amber-500 focus:outline-none transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     >
-                      {/* Chapter Header & Jump Timestamp */}
-                      <div className="flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => handleSeek(ch.seconds)}
-                          className="flex items-center gap-1 font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
-                          title="Click to jump video to this second"
-                        >
-                          <Play className="h-2.5 w-2.5 fill-current" />
-                          <span>[{ch.timestamp}]</span>
-                        </button>
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cleanExp = (ch.explanation || '').replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
-                            let noteText = `**${ch.title}**\n${cleanExp}`;
-                            if (ch.codeSnippet) {
-                              const cleanSnippet = ch.codeSnippet.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
-                              noteText += `\n\`\`\`${ch.codeLanguage || ''}\n${cleanSnippet}\n\`\`\``;
-                            }
-                            onAddNote(noteText, ch.seconds);
-                          }}
-                          className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors cursor-pointer"
-                          title="Save this specific chapter to My Notes"
-                        >
-                          <Plus className="h-3 w-3" />
-                          <span>Add to My Notes</span>
-                        </button>
+                {/* Chapter-by-Chapter Breakdown */}
+                {(() => {
+                  const filteredChapters = (aiNotes.chapters || []).filter(ch => {
+                    if (!searchQuery.trim()) return true;
+                    const q = searchQuery.toLowerCase();
+                    return (
+                      ch.title.toLowerCase().includes(q) ||
+                      ch.explanation.toLowerCase().includes(q) ||
+                      (ch.codeSnippet && ch.codeSnippet.toLowerCase().includes(q)) ||
+                      (ch.keyPoints && ch.keyPoints.some(kp => kp.toLowerCase().includes(q)))
+                    );
+                  });
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+                        <span>Timestamped Breakdown</span>
+                        <span>{filteredChapters.length} / {aiNotes.chapters.length} Topics</span>
                       </div>
 
-                      <h5 className="text-xs font-bold text-[var(--text-primary)] leading-tight">
-                        {ch.title}
-                      </h5>
-
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">
-                        {ch.explanation}
-                      </p>
-
-                      {/* Code Snippet Box (if instructor wrote code) */}
-                      {ch.codeSnippet && (
-                        <div className="relative rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-[11px] text-zinc-100 overflow-x-auto mt-2">
-                          <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-zinc-800 text-[10px] text-zinc-400">
-                            <span className="uppercase font-bold tracking-wider">{ch.codeLanguage || 'code'}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyCode(ch.codeSnippet!, ch.id)}
-                              className="flex items-center gap-1 hover:text-white transition-colors"
-                            >
-                              {copiedCodeId === ch.id ? (
-                                <Check className="h-3 w-3 text-emerald-400" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                              <span>{copiedCodeId === ch.id ? 'Copied' : 'Copy'}</span>
-                            </button>
-                          </div>
-                          <pre className="leading-relaxed">
-                            <code>{ch.codeSnippet}</code>
-                          </pre>
+                      {filteredChapters.length === 0 ? (
+                        <div className="text-center py-6 border border-dashed border-[var(--border-subtle)] rounded-lg">
+                          <p className="text-xs text-[var(--text-muted)]">No sections found matching &ldquo;{searchQuery}&rdquo;</p>
+                          <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="mt-2 text-xs text-amber-500 hover:underline font-semibold cursor-pointer"
+                          >
+                            Clear search filter
+                          </button>
                         </div>
-                      )}
+                      ) : (
+                        filteredChapters.map(ch => (
+                          <div
+                            key={ch.id}
+                            className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-2xs space-y-2 hover:border-[var(--text-primary)]/40 transition-colors"
+                          >
+                            {/* Chapter Header & Jump Timestamp */}
+                            <div className="flex items-center justify-between">
+                              <button
+                                type="button"
+                                onClick={() => handleSeek(ch.seconds)}
+                                className="flex items-center gap-1 font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                                title="Click to jump video to this second"
+                              >
+                                <Play className="h-2.5 w-2.5 fill-current" />
+                                <span>[{ch.timestamp}]</span>
+                              </button>
 
-                      {/* Key Points */}
-                      {ch.keyPoints && ch.keyPoints.length > 0 && (
-                        <ul className="space-y-1 pt-1">
-                          {ch.keyPoints.map((kp, kIdx) => (
-                            <li key={kIdx} className="text-[11px] text-[var(--text-secondary)] flex items-start gap-1.5">
-                              <span className="text-amber-500 font-bold">&bull;</span>
-                              <span>{kp}</span>
-                            </li>
-                          ))}
-                        </ul>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const cleanExp = (ch.explanation || '').replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+                                  let noteText = `**${ch.title}**\n${cleanExp}`;
+                                  if (ch.codeSnippet) {
+                                    const cleanSnippet = ch.codeSnippet.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+                                    noteText += `\n\`\`\`${ch.codeLanguage || ''}\n${cleanSnippet}\n\`\`\``;
+                                  }
+                                  onAddNote(noteText, ch.seconds);
+                                }}
+                                className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors cursor-pointer"
+                                title="Save this specific chapter to My Notes"
+                              >
+                                <Plus className="h-3 w-3" />
+                                <span>Add to My Notes</span>
+                              </button>
+                            </div>
+
+                            <h5 className="text-xs font-bold text-[var(--text-primary)] leading-tight">
+                              {ch.title}
+                            </h5>
+
+                            <p className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">
+                              {ch.explanation}
+                            </p>
+
+                            {/* Code Snippet Box (if instructor wrote code) */}
+                            {ch.codeSnippet && (
+                              <div className="relative rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-[11px] text-zinc-100 overflow-x-auto mt-2">
+                                <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-zinc-800 text-[10px] text-zinc-400">
+                                  <span className="uppercase font-bold tracking-wider">{ch.codeLanguage || 'code'}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyCode(ch.codeSnippet!, ch.id)}
+                                    className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    {copiedCodeId === ch.id ? (
+                                      <Check className="h-3 w-3 text-emerald-400" />
+                                    ) : (
+                                      <Copy className="h-3 w-3" />
+                                    )}
+                                    <span>{copiedCodeId === ch.id ? 'Copied' : 'Copy'}</span>
+                                  </button>
+                                </div>
+                                <pre className="leading-relaxed">
+                                  <code>{ch.codeSnippet}</code>
+                                </pre>
+                              </div>
+                            )}
+
+                            {/* Key Points */}
+                            {ch.keyPoints && ch.keyPoints.length > 0 && (
+                              <ul className="space-y-1 pt-1">
+                                {ch.keyPoints.map((kp, kIdx) => (
+                                  <li key={kIdx} className="text-[11px] text-[var(--text-secondary)] flex items-start gap-1.5">
+                                    <span className="text-amber-500 font-bold">&bull;</span>
+                                    <span>{kp}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))
                       )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
 
                 {/* Key Takeaways & Traps */}
                 {aiNotes.keyTakeaways && aiNotes.keyTakeaways.length > 0 && (
@@ -600,6 +770,129 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                     </ul>
                   </div>
                 )}
+
+                {/* Active Recall 3-Question Mini Quiz */}
+                {(() => {
+                  const quizQuestions = getOrGenerateQuiz(aiNotes);
+                  if (quizQuestions.length === 0) return null;
+
+                  return (
+                    <div className="rounded-xl border border-indigo-500/25 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 p-3.5 space-y-3 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Brain className="h-4 w-4 text-indigo-500" />
+                          <h5 className="text-xs font-bold text-[var(--text-primary)]">
+                            Active Recall Check ({quizQuestions.length} Questions)
+                          </h5>
+                        </div>
+                        {isQuizSubmitted ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuizAnswers({});
+                              setIsQuizSubmitted(false);
+                            }}
+                            className="flex items-center gap-1 text-[11px] font-semibold text-indigo-500 hover:underline cursor-pointer"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            <span>Retake</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                            {Object.keys(quizAnswers).length}/{quizQuestions.length} Answered
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Question List */}
+                      <div className="space-y-3">
+                        {quizQuestions.map((q, qIdx) => {
+                          const selectedOpt = quizAnswers[qIdx];
+                          const isAnswered = selectedOpt !== undefined;
+                          const isCorrect = isAnswered && selectedOpt === q.answerIndex;
+
+                          return (
+                            <div key={qIdx} className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2.5 space-y-2">
+                              <div className="flex items-start gap-1.5">
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 shrink-0">
+                                  Q{qIdx + 1}
+                                </span>
+                                <p className="text-xs font-medium text-[var(--text-primary)] leading-snug">
+                                  {q.question}
+                                </p>
+                              </div>
+
+                              {/* Options */}
+                              <div className="grid grid-cols-1 gap-1.5 pt-1">
+                                {q.options.map((opt, optIdx) => {
+                                  const isThisSelected = selectedOpt === optIdx;
+                                  const isThisCorrect = optIdx === q.answerIndex;
+
+                                  let optStyle = 'border-[var(--border-subtle)] bg-[var(--bg-canvas)] hover:border-indigo-400 text-[var(--text-secondary)]';
+                                  if (isAnswered) {
+                                    if (isThisCorrect) {
+                                      optStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold';
+                                    } else if (isThisSelected) {
+                                      optStyle = 'border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400 line-through';
+                                    } else {
+                                      optStyle = 'border-[var(--border-subtle)]/50 opacity-60 text-[var(--text-muted)]';
+                                    }
+                                  }
+
+                                  return (
+                                    <button
+                                      key={optIdx}
+                                      type="button"
+                                      disabled={isAnswered}
+                                      onClick={() => {
+                                        const updated = { ...quizAnswers, [qIdx]: optIdx };
+                                        setQuizAnswers(updated);
+                                        if (Object.keys(updated).length === quizQuestions.length) {
+                                          setIsQuizSubmitted(true);
+                                        }
+                                      }}
+                                      className={`flex items-center justify-between text-left px-2.5 py-1.5 rounded-md border text-xs transition-colors cursor-pointer disabled:cursor-default ${optStyle}`}
+                                    >
+                                      <span>{opt}</span>
+                                      {isAnswered && isThisCorrect && (
+                                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0 ml-1.5" />
+                                      )}
+                                      {isAnswered && isThisSelected && !isThisCorrect && (
+                                        <XCircle className="h-3.5 w-3.5 text-rose-500 shrink-0 ml-1.5" />
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Explanation */}
+                              {isAnswered && (
+                                <div className={`p-2 rounded text-[11px] leading-relaxed mt-1.5 ${
+                                  isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-800 dark:text-amber-200'
+                                }`}>
+                                  <span className="font-bold">{isCorrect ? '✓ সঠিক উত্তর: ' : '💡 ব্যাখ্যা: '}</span>
+                                  {q.explanation}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Score Result */}
+                      {isQuizSubmitted && (
+                        <div className="flex items-center justify-between p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs">
+                          <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                            🎯 স্কোর: {Object.entries(quizAnswers).filter(([idx, ans]) => quizQuestions[Number(idx)]?.answerIndex === ans).length} / {quizQuestions.length}
+                          </span>
+                          <span className="text-[11px] text-[var(--text-muted)]">
+                            কনসেপ্ট ধারণক্ষমতা যাচাই সম্পন্ন!
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -656,9 +949,9 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 <p className="text-[10px] mt-0.5">Switch to &ldquo;✨ AI Notes&rdquo; to view instant lecture sheets.</p>
               </div>
             ) : (
-              notes.map(note => (
+              notes.map((note, idx) => (
                 <div
-                  key={note.id}
+                  key={`${note.id}_${idx}`}
                   className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-2.5 shadow-2xs group"
                 >
                   <div className="flex items-center justify-between mb-1">
