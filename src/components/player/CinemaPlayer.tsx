@@ -10,6 +10,7 @@ import {
   VolumeX, 
   Maximize, 
   Minimize, 
+  RectangleHorizontal,
   Lock, 
   ShieldAlert, 
   Sliders, 
@@ -42,6 +43,8 @@ interface CinemaPlayerProps {
   hasNextVideo?: boolean;
   onTimestampCapture?: (seconds: number) => void;
   onOpenReviews?: () => void;
+  isTheaterMode?: boolean;
+  onToggleTheater?: () => void;
 }
 
 type MilestoneDigit = VideoMilestone;
@@ -77,8 +80,11 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   hasNextVideo,
   onTimestampCapture,
   onOpenReviews,
+  isTheaterMode = false,
+  onToggleTheater,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const scrubberRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +110,9 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(100);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isPureFullscreen, setIsPureFullscreen] = useState<boolean>(false);
+  const [isFsOverlayVisible, setIsFsOverlayVisible] = useState<boolean>(true);
+  const fsOverlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [studyMode, setStudyMode] = useState<StudyMode>('lecture');
   const [isAdShieldActive, setIsAdShieldActive] = useState<boolean>(false);
   const wasAutoMutedByShieldRef = useRef<boolean>(false);
@@ -760,16 +769,109 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }
   };
 
-  // Fullscreen
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen?.();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen?.();
-      setIsFullscreen(false);
+  // Sync Fullscreen with Browser API
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = Boolean(document.fullscreenElement);
+      setIsPureFullscreen(isFs);
+      setIsFullscreen(isFs);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Keyboard Shortcuts: 't' for Theater Mode, 'f' for Fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        onToggleTheater?.();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        togglePureFullscreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onToggleTheater]);
+
+  // Pure Fullscreen: Only the video element enters fullscreen
+  const enterPureFullscreen = () => {
+    const target = videoContainerRef.current || containerRef.current;
+    if (!target) return;
+    try {
+      if (target.requestFullscreen) {
+        target.requestFullscreen();
+      } else if ((target as any).webkitRequestFullscreen) {
+        (target as any).webkitRequestFullscreen();
+      }
+    } catch (err) {
+      console.warn('Error requesting fullscreen:', err);
     }
+  };
+
+  const exitPureFullscreen = () => {
+    try {
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Error exiting fullscreen:', err);
+    }
+  };
+
+  const togglePureFullscreen = () => {
+    if (!document.fullscreenElement) {
+      enterPureFullscreen();
+    } else {
+      exitPureFullscreen();
+    }
+  };
+
+  // Sequential Maximize Flow (Default -> Theater -> Pure Fullscreen)
+  const handleSequentialMaximize = () => {
+    if (!isTheaterMode && !isPureFullscreen) {
+      // 1st click: Enter Theater Mode
+      onToggleTheater?.();
+    } else if (isTheaterMode && !isPureFullscreen) {
+      // 2nd click: Enter Pure Fullscreen
+      enterPureFullscreen();
+    } else if (isPureFullscreen) {
+      // If already in fullscreen, exit to Theater
+      exitPureFullscreen();
+    }
+  };
+
+  // Step-down Minimize Flow (Pure Fullscreen -> Theater -> Default)
+  const handleSequentialMinimize = () => {
+    if (isPureFullscreen) {
+      exitPureFullscreen();
+    } else if (isTheaterMode) {
+      onToggleTheater?.();
+    }
+  };
+
+  const handleFsMouseMove = () => {
+    setIsFsOverlayVisible(true);
+    if (fsOverlayTimerRef.current) clearTimeout(fsOverlayTimerRef.current);
+    fsOverlayTimerRef.current = setTimeout(() => {
+      setIsFsOverlayVisible(false);
+    }, 2500);
   };
 
   // Calculations for Gate and Milestones
@@ -839,11 +941,19 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     <div 
       ref={containerRef} 
       className={`flex flex-col gap-3 w-full transition-colors ${
-        isFullscreen ? 'bg-[var(--bg-canvas)] p-4 overflow-y-auto max-h-screen' : ''
+        isPureFullscreen ? 'bg-black' : ''
       }`}
     >
       {/* 100% PURE CINEMA VIDEO CONTAINER */}
-      <div className="kizen-cinema-container relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-black shadow-xl">
+      <div 
+        ref={videoContainerRef}
+        onMouseMove={isPureFullscreen ? handleFsMouseMove : undefined}
+        className={`kizen-cinema-container relative w-full overflow-hidden bg-black select-none transition-all ${
+          isPureFullscreen 
+            ? 'fixed inset-0 h-screen w-screen z-50 rounded-none border-none aspect-auto flex items-center justify-center' 
+            : 'aspect-video rounded-xl border border-[var(--border-subtle)] shadow-xl'
+        }`}
+      >
         {/* Mount node for YouTube API (100% natural, uncropped view with strict click isolation) */}
         <div 
           id="kizen-custom-player-iframe" 
@@ -1071,6 +1181,79 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             </div>
           </div>
         )}
+
+        {/* Pure Fullscreen Floating Bottom Controls Overlay */}
+        {isPureFullscreen && (
+          <div 
+            className={`absolute bottom-0 inset-x-0 z-30 p-4 sm:p-6 bg-gradient-to-t from-black/95 via-black/60 to-transparent transition-opacity duration-300 ${
+              isFsOverlayVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            {/* Scrubber Bar in Fullscreen */}
+            <div
+              onClick={handleScrubberAction}
+              className="group relative flex items-center h-4 w-full cursor-pointer select-none mb-3"
+            >
+              <div className="relative h-1.5 w-full rounded-full bg-white/20 group-hover:h-2 transition-all">
+                <div
+                  className="absolute top-0 bottom-0 left-0 rounded-full bg-[#059669]/40"
+                  style={{ width: `${(maxWatchedTime / Math.max(1, duration)) * 100}%` }}
+                />
+                <div
+                  className="absolute top-0 bottom-0 left-0 rounded-full bg-[#059669]"
+                  style={{ width: `${(currentTime / Math.max(1, duration)) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Bottom Row Controls */}
+            <div className="flex items-center justify-between text-white text-xs">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  {isPlaying ? <Pause className="h-5 w-5 fill-white" /> : <Play className="h-5 w-5 fill-white ml-0.5" />}
+                </button>
+                <span className="font-mono text-xs text-white/90 font-medium">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <select
+                  value={playbackSpeed}
+                  onChange={e => handleSpeedChange(Number(e.target.value))}
+                  className="bg-black/60 border border-white/20 rounded-lg px-2 py-1 text-xs font-mono text-white cursor-pointer"
+                >
+                  {SPEED_OPTIONS.map(s => (
+                    <option key={s.value} value={s.value} className="bg-zinc-900 text-white">
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={exitPureFullscreen}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors cursor-pointer text-xs font-semibold"
+                  title="ফুলস্ক্রিন থেকে প্রস্থান (Esc)"
+                >
+                  <Minimize className="h-4 w-4" />
+                  <span>Minimize</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* DEDICATED MASTER CONTROL DOCK (ALWAYS VISIBLE - NO FULLSCREEN NEEDED!) */}
@@ -1253,13 +1436,36 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               </button>
             </div>
 
-            {/* Fullscreen Button */}
+            {/* Theater Mode (Wide Screen) Toggle */}
+            {onToggleTheater && (
+              <button
+                type="button"
+                onClick={onToggleTheater}
+                title={isTheaterMode ? 'স্বাভাবিক ভিউ (T)' : 'ওয়াইড স্ক্রিন / থিয়েটার ভিউ (T)'}
+                className={`flex h-8 items-center gap-1.5 px-2.5 rounded-lg border transition-colors cursor-pointer text-xs font-medium ${
+                  isTheaterMode
+                    ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold shadow-2xs'
+                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
+                }`}
+              >
+                <RectangleHorizontal className="h-4 w-4" />
+                <span className="hidden md:inline">{isTheaterMode ? 'স্বাভাবিক' : 'থিয়েটার'}</span>
+              </button>
+            )}
+
+            {/* Pure Fullscreen (Video Only) Toggle */}
             <button
-              onClick={toggleFullscreen}
-              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+              type="button"
+              onClick={togglePureFullscreen}
+              title={isPureFullscreen ? 'ফুলস্ক্রিন থেকে প্রস্থান (F / Esc)' : 'ফুলস্ক্রিন - শুধুমাত্র ভিডিও (F)'}
+              className={`flex h-8 items-center gap-1.5 px-2.5 rounded-lg border transition-colors cursor-pointer text-xs font-medium ${
+                isPureFullscreen
+                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold'
+                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
+              }`}
             >
-              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              {isPureFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              <span className="hidden md:inline">ফুলস্ক্রিন</span>
             </button>
 
             {/* Next Lesson Button */}

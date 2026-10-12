@@ -10,6 +10,7 @@ import { AddCourseModal } from '@/components/dashboard/AddCourseModal';
 import { CompletionBadgeModal } from '@/components/dashboard/CompletionBadgeModal';
 import { CinemaPlayer } from '@/components/player/CinemaPlayer';
 import { StudySidebar } from '@/components/player/StudySidebar';
+import { LessonQuizSection } from '@/components/player/LessonQuizSection';
 import { PlaylistReviewModal } from '@/components/player/PlaylistReviewModal';
 import { 
   getPlaylists, 
@@ -39,6 +40,7 @@ export default function KaizenFlowApp() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedBadgeCourse, setSelectedBadgeCourse] = useState<Playlist | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
+  const [isTheaterMode, setIsTheaterMode] = useState<boolean>(false);
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
   const [rawProgressMap, setRawProgressMap] = useState<Record<string, any>>({});
   const [activityMap, setActivityMap] = useState<Record<string, any>>({});
@@ -262,47 +264,113 @@ export default function KaizenFlowApp() {
       {/* Main View: Study Room vs Dashboard */}
       {activeCourse && activeVideo ? (
         /* STUDY ROOM / CINEMA FOCUS PLAYER VIEW */
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Cinema Player Area (8 cols on large screens) */}
-            <div className="lg:col-span-8 flex flex-col gap-4">
-              <CinemaPlayer
-                video={activeVideo}
-                playlistId={activeCourse.id}
-                isVerified={Boolean(progressMap[`${activeCourse.id}_${activeVideo.ytVideoId}`])}
-                onVerify={handleVerifyVideo}
-                onNextVideo={handleNextVideo}
-                hasNextVideo={hasNextVideo}
-                onTimestampCapture={sec => setActiveTimestampSeconds(sec)}
-                onOpenReviews={() => {
-                  setRawProgressMap(getVideoProgressList());
-                  setIsReviewModalOpen(true);
-                }}
-              />
-            </div>
+        <main className={`mx-auto px-4 sm:px-6 lg:px-8 py-6 transition-all duration-300 ${
+          isTheaterMode ? 'max-w-[1600px]' : 'max-w-7xl'
+        }`}>
+          {isTheaterMode ? (
+            /* THEATER / WIDE CINEMA VIEW: Video at 100% width on top, Quiz & Sidebar flowing underneath */
+            <div className="flex flex-col gap-6">
+              {/* Top Full-Width Cinema Video Player */}
+              <div className="w-full">
+                <CinemaPlayer
+                  video={activeVideo}
+                  playlistId={activeCourse.id}
+                  isVerified={Boolean(progressMap[`${activeCourse.id}_${activeVideo.ytVideoId}`])}
+                  onVerify={handleVerifyVideo}
+                  onNextVideo={handleNextVideo}
+                  hasNextVideo={hasNextVideo}
+                  onTimestampCapture={sec => setActiveTimestampSeconds(sec)}
+                  onOpenReviews={() => {
+                    setRawProgressMap(getVideoProgressList());
+                    setIsReviewModalOpen(true);
+                  }}
+                  isTheaterMode={isTheaterMode}
+                  onToggleTheater={() => setIsTheaterMode(prev => !prev)}
+                />
+              </div>
 
-            {/* Right Sidebar: Queue & Notes (4 cols on large screens, scrollable on mobile) */}
-            <div className="lg:col-span-4 min-h-[440px] lg:min-h-0 lg:h-[calc(100vh-7.5rem)] lg:sticky top-20">
-              <StudySidebar
-                playlistId={activeCourse.id}
-                videos={activeCourse.videos}
-                currentVideoId={activeVideo.ytVideoId}
-                onSelectVideo={video => setActiveVideo(video)}
-                verifiedMap={progressMap}
-                notes={notes}
-                onAddNote={handleAddStudyNote}
-                onAddNotesBulk={handleAddStudyNotesBulk}
-                onDeleteNote={handleDeleteStudyNote}
-                activeTimestampSeconds={activeTimestampSeconds}
-                courseTitle={activeCourse.customTitle}
-                videoTitle={activeVideo.title}
-                onOpenReviews={() => {
-                  setRawProgressMap(getVideoProgressList());
-                  setIsReviewModalOpen(true);
-                }}
-              />
+              {/* Directly Underneath: Video MCQ Quiz on Left, Queue & Notes on Right */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-8 flex flex-col gap-6">
+                  <LessonQuizSection
+                    video={activeVideo}
+                    courseTitle={activeCourse.customTitle}
+                  />
+                </div>
+
+                <div className="lg:col-span-4 min-h-[440px] lg:min-h-0 lg:h-[calc(100vh-7.5rem)] lg:sticky top-20">
+                  <StudySidebar
+                    playlistId={activeCourse.id}
+                    videos={activeCourse.videos}
+                    currentVideoId={activeVideo.ytVideoId}
+                    onSelectVideo={video => setActiveVideo(video)}
+                    verifiedMap={progressMap}
+                    notes={notes}
+                    onAddNote={handleAddStudyNote}
+                    onAddNotesBulk={handleAddStudyNotesBulk}
+                    onDeleteNote={handleDeleteStudyNote}
+                    activeTimestampSeconds={activeTimestampSeconds}
+                    courseTitle={activeCourse.customTitle}
+                    videoTitle={activeVideo.title}
+                    onOpenReviews={() => {
+                      setRawProgressMap(getVideoProgressList());
+                      setIsReviewModalOpen(true);
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* DEFAULT VIEW: Standard 8-Col Player + MCQ below player & 4-Col Sidebar */
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Cinema Player Area (8 cols) + MCQ Quiz right below player */}
+              <div className="lg:col-span-8 flex flex-col gap-6">
+                <CinemaPlayer
+                  video={activeVideo}
+                  playlistId={activeCourse.id}
+                  isVerified={Boolean(progressMap[`${activeCourse.id}_${activeVideo.ytVideoId}`])}
+                  onVerify={handleVerifyVideo}
+                  onNextVideo={handleNextVideo}
+                  hasNextVideo={hasNextVideo}
+                  onTimestampCapture={sec => setActiveTimestampSeconds(sec)}
+                  onOpenReviews={() => {
+                    setRawProgressMap(getVideoProgressList());
+                    setIsReviewModalOpen(true);
+                  }}
+                  isTheaterMode={isTheaterMode}
+                  onToggleTheater={() => setIsTheaterMode(prev => !prev)}
+                />
+
+                {/* Video Active Recall MCQ Quiz directly below player */}
+                <LessonQuizSection
+                  video={activeVideo}
+                  courseTitle={activeCourse.customTitle}
+                />
+              </div>
+
+              {/* Right Sidebar: Queue & Notes (4 cols on large screens, scrollable on mobile) */}
+              <div className="lg:col-span-4 min-h-[440px] lg:min-h-0 lg:h-[calc(100vh-7.5rem)] lg:sticky top-20">
+                <StudySidebar
+                  playlistId={activeCourse.id}
+                  videos={activeCourse.videos}
+                  currentVideoId={activeVideo.ytVideoId}
+                  onSelectVideo={video => setActiveVideo(video)}
+                  verifiedMap={progressMap}
+                  notes={notes}
+                  onAddNote={handleAddStudyNote}
+                  onAddNotesBulk={handleAddStudyNotesBulk}
+                  onDeleteNote={handleDeleteStudyNote}
+                  activeTimestampSeconds={activeTimestampSeconds}
+                  courseTitle={activeCourse.customTitle}
+                  videoTitle={activeVideo.title}
+                  onOpenReviews={() => {
+                    setRawProgressMap(getVideoProgressList());
+                    setIsReviewModalOpen(true);
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </main>
       ) : (
         /* DASHBOARD / LIBRARY VIEW */
