@@ -315,18 +315,24 @@ TASK & CRITICAL RULES:
         } catch (pErr) {
           console.error('[Groq] JSON.parse failed on rawResponse:', pErr);
         }
+        const cleanText = (t: any): string => {
+          if (typeof t !== 'string') return '';
+          return t.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').replace(/\\t/g, '  ').trim();
+        };
+
         const chapters: LectureNoteChapter[] = (parsed.chapters || []).map((ch: any, idx: number) => {
-          const hasValidCode = isCodingTopic && ch.codeSnippet && typeof ch.codeSnippet === 'string' && ch.codeSnippet.trim() !== '' && !ch.codeSnippet.includes('optional code snippet') && !ch.codeSnippet.includes('code snippet if taught') && ch.codeSnippet.trim().toLowerCase() !== 'none' && ch.codeSnippet.trim().toLowerCase() !== 'null' && ch.codeSnippet.trim().toLowerCase() !== 'n/a';
+          const rawCode = cleanText(ch.codeSnippet);
+          const hasValidCode = isCodingTopic && rawCode !== '' && !rawCode.includes('optional code snippet') && !rawCode.includes('code snippet if taught') && rawCode.toLowerCase() !== 'none' && rawCode.toLowerCase() !== 'null' && rawCode.toLowerCase() !== 'n/a';
 
           return {
             id: ch.id || `ch_${idx + 1}`,
-            title: ch.title || `Section ${idx + 1}`,
+            title: cleanText(ch.title) || `Section ${idx + 1}`,
             timestamp: ch.timestamp || '00:00',
             seconds: typeof ch.seconds === 'number' ? ch.seconds : parseTimestampToSeconds(ch.timestamp || '00:00'),
-            explanation: ch.explanation || '',
-            codeSnippet: hasValidCode ? ch.codeSnippet.trim() : undefined,
+            explanation: cleanText(ch.explanation),
+            codeSnippet: hasValidCode ? rawCode : undefined,
             codeLanguage: hasValidCode ? (ch.codeLanguage || undefined) : undefined,
-            keyPoints: Array.isArray(ch.keyPoints) ? ch.keyPoints : [],
+            keyPoints: Array.isArray(ch.keyPoints) ? ch.keyPoints.map(cleanText).filter(Boolean) : [],
           };
         });
 

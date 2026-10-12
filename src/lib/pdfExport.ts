@@ -2,7 +2,26 @@
 
 import { StudyNote } from '@/types';
 
-// Merge chunks into a single Blob safely compatible with all TypeScript versions
+interface ExportNotesOptions {
+  courseTitle: string;
+  videoTitle: string;
+  notes: StudyNote[];
+}
+
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function sanitizeFilename(name: string): string {
+  return (name || 'study_notes').replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 50);
+}
+
 function chunksToBlob(chunks: Uint8Array[]): Blob {
   const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
   const merged = new Uint8Array(totalLength);
@@ -14,283 +33,274 @@ function chunksToBlob(chunks: Uint8Array[]): Blob {
   return new Blob([merged], { type: 'application/pdf' });
 }
 
-// Helper to sanitize filenames for downloads
-function sanitizeFilename(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_\-]/g, '_').slice(0, 50);
-}
+function formatMarkdownToHtml(content: string): string {
+  if (!content) return '';
 
-// Helper to escape PDF text syntax
-function escapePdfText(text: string): string {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)')
-    // Convert non-ASCII to closest safe character representation
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u2013\u2014]/g, '-')
-    .replace(/[^\x20-\x7E\xA0-\xFF]/g, ' ');
-}
+  // Unescape literal \n, \r, \t
+  let clean = content
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '')
+    .replace(/\\t/g, '  ');
 
-// Word-wrap utility for PDF text rendering
-function wrapText(text: string, maxCharsPerLine: number = 75): string[] {
-  const lines: string[] = [];
-  const rawParagraphs = text.split('\n');
+  // Handle code blocks ```lang ... ```
+  const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+  clean = clean.replace(codeBlockRegex, (_, lang, code) => {
+    return `<div class="code-container">
+      <div class="code-header">${escapeHtml(lang || 'code').toUpperCase()}</div>
+      <pre class="code-block"><code>${escapeHtml(code.trim())}</code></pre>
+    </div>`;
+  });
 
-  for (const para of rawParagraphs) {
-    if (!para.trim()) {
-      lines.push('');
-      continue;
+  // Handle bold **text**
+  clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // Handle inline code `code`
+  clean = clean.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+
+  // Handle bullet lines
+  const lines = clean.split('\n');
+  const processedLines: string[] = [];
+  let inCode = false;
+
+  for (const line of lines) {
+    if (line.includes('<div class="code-container">')) {
+      inCode = true;
     }
-    const words = para.split(' ');
-    let currentLine = '';
-
-    for (const word of words) {
-      if ((currentLine + (currentLine ? ' ' : '') + word).length <= maxCharsPerLine) {
-        currentLine += (currentLine ? ' ' : '') + word;
-      } else {
-        if (currentLine) lines.push(currentLine);
-        // If single word exceeds line length, split it
-        if (word.length > maxCharsPerLine) {
-          let remainder = word;
-          while (remainder.length > maxCharsPerLine) {
-            lines.push(remainder.slice(0, maxCharsPerLine));
-            remainder = remainder.slice(maxCharsPerLine);
-          }
-          currentLine = remainder;
-        } else {
-          currentLine = word;
-        }
-      }
+    if (line.includes('</div>')) {
+      inCode = false;
     }
-    if (currentLine) lines.push(currentLine);
+
+    if (!inCode && (line.trim().startsWith('- ') || line.trim().startsWith('• '))) {
+      processedLines.push(`<li class="bullet-item">${line.trim().replace(/^[-•]\s*/, '')}</li>`);
+    } else {
+      processedLines.push(line);
+    }
   }
 
-  return lines;
-}
-
-interface ExportNotesOptions {
-  courseTitle: string;
-  videoTitle: string;
-  notes: StudyNote[];
+  return processedLines.join('\n');
 }
 
 /**
- * Generates a clean, multi-page vector PDF containing all study notes for a lesson.
- * Built with pure client-side PDF 1.4 binary synthesis.
+ * Generates a beautiful, multi-page printable PDF containing all study notes for a lesson.
+ * Built with full Unicode, Bengali font support, and formatted code cards.
  */
 export function exportNotesToPDF({ courseTitle, videoTitle, notes }: ExportNotesOptions): void {
   if (notes.length === 0) return;
 
-  const pageWidth = 595.28; // A4 Portrait
-  const pageHeight = 841.89;
-  const margin = 50;
-  const usableWidth = pageWidth - margin * 2;
-
-  // Break notes into printable lines
-  interface FormattedNoteBlock {
-    timestamp: string;
-    date: string;
-    contentLines: string[];
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Please allow popups to export your study notes to PDF.');
+    return;
   }
 
-  const blocks: FormattedNoteBlock[] = notes.map(n => ({
-    timestamp: n.timestampFormatted,
-    date: new Date(n.createdAt).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }),
-    contentLines: wrapText(n.content, 78),
-  }));
+  const notesHtml = notes.map((note, index) => {
+    const formattedBody = formatMarkdownToHtml(note.content);
 
-  // Distribute blocks across pages (approx 720pt usable vertical height)
-  interface PageContent {
-    commands: string[];
-  }
+    return `
+      <div class="note-card">
+        <div class="note-header">
+          <span class="note-badge">NOTE #${index + 1}</span>
+          <span class="note-timestamp">[${escapeHtml(note.timestampFormatted)}]</span>
+          <span class="note-date">${new Date(note.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+        </div>
+        <div class="note-body">
+          ${formattedBody}
+        </div>
+      </div>
+    `;
+  }).join('');
 
-  const pages: PageContent[] = [];
-  let currentPageCommands: string[] = [];
-  let currentY = pageHeight - margin - 85; // Leave top room for header
-
-  const startNewPage = () => {
-    if (currentPageCommands.length > 0) {
-      pages.push({ commands: currentPageCommands });
+  const docContent = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(videoTitle)} — KaizenFlow Notes</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'SolaimanLipi', sans-serif;
+      color: #09090b;
+      background: #ffffff;
+      padding: 36px 48px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
     }
-    currentPageCommands = [];
-    currentY = pageHeight - margin - 40;
-  };
 
-  // Add notes to pages
-  blocks.forEach((block, index) => {
-    // Height required for this block:
-    // Header (24pt) + lines * 14pt + spacing & divider (20pt)
-    const blockHeight = 24 + block.contentLines.length * 14 + 20;
-
-    if (currentY - blockHeight < margin + 40 && currentY < pageHeight - margin - 90) {
-      startNewPage();
+    .header-banner {
+      border-bottom: 2px solid #18181b;
+      padding-bottom: 16px;
+      margin-bottom: 28px;
     }
 
-    // Timestamp & Index badge line
-    currentPageCommands.push(
-      `0.1 0.1 0.1 rg\n` +
-      `BT /F2 10 Tf ${margin} ${currentY.toFixed(2)} Td (NOTE #${index + 1}  •  [${escapePdfText(block.timestamp)}]) Tj ET\n` +
-      `0.5 0.5 0.5 rg\n` +
-      `BT /F1 9 Tf ${margin + 160} ${currentY.toFixed(2)} Td (${escapePdfText(block.date)}) Tj ET`
-    );
-    currentY -= 16;
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+      color: #09090b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-    // Content lines
-    currentPageCommands.push(`0.15 0.15 0.15 rg\nBT /F1 10 Tf`);
-    let firstLine = true;
-    for (const line of block.contentLines) {
-      if (firstLine) {
-        currentPageCommands.push(`${margin} ${currentY.toFixed(2)} Td (${escapePdfText(line)}) Tj`);
-        firstLine = false;
-      } else {
-        currentPageCommands.push(`0 -14 Td (${escapePdfText(line)}) Tj`);
+    .lesson-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #18181b;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .course-meta {
+      font-size: 12px;
+      color: #71717a;
+      margin-top: 4px;
+    }
+
+    .note-card {
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      background: #ffffff;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .note-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f4f4f5;
+    }
+
+    .note-badge {
+      background: #18181b;
+      color: #fafafa;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .note-timestamp {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .note-date {
+      font-size: 11px;
+      color: #a1a1aa;
+      margin-left: auto;
+    }
+
+    .note-body {
+      font-size: 13px;
+      color: #18181b;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    strong {
+      font-weight: 700;
+      color: #09090b;
+    }
+
+    .bullet-item {
+      margin-left: 20px;
+      margin-top: 4px;
+      list-style-type: disc;
+    }
+
+    .inline-code {
+      font-family: 'Fira Code', monospace;
+      font-size: 11.5px;
+      background: #f4f4f5;
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #09090b;
+      border: 1px solid #e4e4e7;
+    }
+
+    .code-container {
+      margin: 12px 0;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #27272a;
+      background: #09090b;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .code-header {
+      background: #18181b;
+      color: #a1a1aa;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #27272a;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .code-block {
+      background: #09090b;
+      color: #f4f4f5;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    @media print {
+      body { padding: 15px; }
+      .note-card { break-inside: avoid; page-break-inside: avoid; }
+      .code-container { break-inside: avoid; page-break-inside: avoid; }
+      @page {
+        margin: 12mm;
       }
-      currentY -= 14;
     }
-    currentPageCommands.push(`ET`);
+  </style>
+</head>
+<body>
+  <div class="header-banner">
+    <div class="brand-title">KAIZENFLOW &bull; LECTURE STUDY TRANSCRIPT</div>
+    <div class="lesson-title">${escapeHtml(videoTitle)}</div>
+    <div class="course-meta">${courseTitle ? `Course: ${escapeHtml(courseTitle)} &bull; ` : ''}${notes.length} Timestamped Notes &bull; Exported on ${new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+  </div>
 
-    // Divider line
-    currentY -= 10;
-    currentPageCommands.push(
-      `0.85 0.85 0.85 RG 0.5 w ${margin} ${currentY.toFixed(2)} m ${pageWidth - margin} ${currentY.toFixed(2)} l S`
-    );
-    currentY -= 16;
-  });
+  <div class="notes-container">
+    ${notesHtml}
+  </div>
 
-  if (currentPageCommands.length > 0) {
-    pages.push({ commands: currentPageCommands });
-  }
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        window.print();
+      }, 350);
+    });
+  </script>
+</body>
+</html>`;
 
-  const totalPages = pages.length;
-
-  // Build PDF structure
-  // Objects:
-  // 1: Catalog
-  // 2: Pages
-  // 3: Font Helvetica
-  // 4: Font Helvetica-Bold
-  // For each page:
-  //   Page obj (5 + 2*i)
-  //   Contents obj (6 + 2*i)
-  const baseObjCount = 4;
-  const pageObjIds: number[] = [];
-
-  for (let i = 0; i < totalPages; i++) {
-    pageObjIds.push(baseObjCount + 1 + i * 2);
-  }
-
-  const pdfChunks: Uint8Array[] = [];
-  const offsets: number[] = [0];
-  let currentOffset = 0;
-
-  const addChunk = (str: string | Uint8Array) => {
-    const bytes = typeof str === 'string' ? new TextEncoder().encode(str) : str;
-    pdfChunks.push(bytes);
-    currentOffset += bytes.length;
-  };
-
-  // Header
-  const headerStr = `%PDF-1.4\n%\xE2\xE3\xCF\xD3\n`;
-  addChunk(headerStr);
-
-  // 1: Catalog
-  offsets[1] = currentOffset;
-  addChunk(`1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`);
-
-  // 2: Pages
-  offsets[2] = currentOffset;
-  const kidsStr = pageObjIds.map(id => `${id} 0 R`).join(' ');
-  addChunk(`2 0 obj\n<< /Type /Pages /Kids [${kidsStr}] /Count ${totalPages} >>\nendobj\n`);
-
-  // 3: Font F1 (Helvetica)
-  offsets[3] = currentOffset;
-  addChunk(`3 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n`);
-
-  // 4: Font F2 (Helvetica-Bold)
-  offsets[4] = currentOffset;
-  addChunk(`4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n`);
-
-  // Pages & Contents
-  for (let i = 0; i < totalPages; i++) {
-    const pageId = pageObjIds[i];
-    const contentsId = pageId + 1;
-
-    // Header & Footer commands for every page
-    const pageHeaderFooter: string[] = [];
-
-    // Header on Page 1: Big Title & metadata
-    if (i === 0) {
-      pageHeaderFooter.push(
-        // Main branding
-        `0.05 0.05 0.05 rg\nBT /F2 16 Tf ${margin} ${pageHeight - margin} Td (KAIZENFLOW  |  STUDY TRANSCRIPT) Tj ET\n` +
-        // Course & video info
-        `0.3 0.3 0.3 rg\nBT /F2 10 Tf ${margin} ${pageHeight - margin - 20} Td (Course: ${escapePdfText(courseTitle)}) Tj ET\n` +
-        `0.4 0.4 0.4 rg\nBT /F1 10 Tf ${margin} ${pageHeight - margin - 35} Td (Lesson: ${escapePdfText(videoTitle)}) Tj ET\n` +
-        `0.5 0.5 0.5 rg\nBT /F1 9 Tf ${margin} ${pageHeight - margin - 50} Td (Exported: ${new Date().toLocaleDateString()}  •  ${notes.length} Timestamped Notes) Tj ET\n` +
-        // Header separator rule
-        `0.7 0.7 0.7 RG 1 w ${margin} ${pageHeight - margin - 62} m ${pageWidth - margin} ${pageHeight - margin - 62} l S`
-      );
-    } else {
-      // Compact header on later pages
-      pageHeaderFooter.push(
-        `0.4 0.4 0.4 rg\nBT /F1 8 Tf ${margin} ${pageHeight - margin + 10} Td (KaizenFlow: ${escapePdfText(courseTitle)} - Notes) Tj ET\n` +
-        `0.85 0.85 0.85 RG 0.5 w ${margin} ${pageHeight - margin + 4} m ${pageWidth - margin} ${pageHeight - margin + 4} l S`
-      );
-    }
-
-    // Footer on all pages
-    pageHeaderFooter.push(
-      `0.85 0.85 0.85 RG 0.5 w ${margin} ${margin + 18} m ${pageWidth - margin} ${margin + 18} l S\n` +
-      `0.5 0.5 0.5 rg\nBT /F1 8 Tf ${margin} ${margin + 5} Td (KaizenFlow Focus Environment  •  Study Verified) Tj ET\n` +
-      `BT /F1 8 Tf ${pageWidth - margin - 50} ${margin + 5} Td (Page ${i + 1} of ${totalPages}) Tj ET`
-    );
-
-    const streamBody = [...pageHeaderFooter, ...pages[i].commands].join('\n') + '\n';
-    const streamBytes = new TextEncoder().encode(streamBody);
-
-    // Page object
-    offsets[pageId] = currentOffset;
-    addChunk(
-      `${pageId} 0 obj\n` +
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentsId} 0 R >>\n` +
-      `endobj\n`
-    );
-
-    // Contents object
-    offsets[contentsId] = currentOffset;
-    addChunk(`${contentsId} 0 obj\n<< /Length ${streamBytes.length} >>\nstream\n`);
-    addChunk(streamBytes);
-    addChunk(`endstream\nendobj\n`);
-  }
-
-  // Cross-reference table
-  const totalObjects = baseObjCount + totalPages * 2;
-  const startXref = currentOffset;
-
-  let xrefStr = `xref\n0 ${totalObjects + 1}\n0000000000 65535 f \n`;
-  for (let i = 1; i <= totalObjects; i++) {
-    xrefStr += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
-  }
-
-  const trailerStr = `trailer\n<< /Size ${totalObjects + 1} /Root 1 0 R >>\nstartxref\n${startXref}\n%%EOF\n`;
-  addChunk(xrefStr);
-  addChunk(trailerStr);
-
-  // Trigger download
-  const blob = chunksToBlob(pdfChunks);
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `KaizenFlow_Notes_${sanitizeFilename(videoTitle || courseTitle)}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  printWindow.document.open();
+  printWindow.document.write(docContent);
+  printWindow.document.close();
 }
 
 /**
@@ -314,7 +324,6 @@ export function exportBadgeToPNG(canvas: HTMLCanvasElement, courseTitle: string)
  * Encapsulates the badge canvas into a landscape A4 PDF Certificate.
  */
 export function exportBadgeToPDF(canvas: HTMLCanvasElement, courseTitle: string): void {
-  // Convert canvas to JPEG blob to embed natively via DCTDecode
   const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
   const base64Data = dataUrl.split(',')[1];
   const binaryString = atob(base64Data);
@@ -330,7 +339,6 @@ export function exportBadgeToPDF(canvas: HTMLCanvasElement, courseTitle: string)
   const imgH = canvas.height;
   const imgAspect = imgW / imgH;
 
-  // Fit image into page leaving 30pt border
   let renderW = pdfWidth - 60;
   let renderH = renderW / imgAspect;
   if (renderH > pdfHeight - 60) {
@@ -353,18 +361,14 @@ export function exportBadgeToPDF(canvas: HTMLCanvasElement, courseTitle: string)
     currentOffset += bytes.length;
   };
 
-  // Header
   addChunk(`%PDF-1.4\n%\xE2\xE3\xCF\xD3\n`);
 
-  // 1: Catalog
   offsets[1] = currentOffset;
   addChunk(`1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`);
 
-  // 2: Pages
   offsets[2] = currentOffset;
   addChunk(`2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n`);
 
-  // 3: Page
   offsets[3] = currentOffset;
   addChunk(
     `3 0 obj\n` +
@@ -372,7 +376,6 @@ export function exportBadgeToPDF(canvas: HTMLCanvasElement, courseTitle: string)
     `endobj\n`
   );
 
-  // 4: Image XObject
   offsets[4] = currentOffset;
   addChunk(
     `4 0 obj\n` +
@@ -382,13 +385,11 @@ export function exportBadgeToPDF(canvas: HTMLCanvasElement, courseTitle: string)
   addChunk(jpegBytes);
   addChunk(`\nendstream\nendobj\n`);
 
-  // 5: Contents
   offsets[5] = currentOffset;
   addChunk(`5 0 obj\n<< /Length ${streamBytes.length} >>\nstream\n`);
   addChunk(streamBytes);
   addChunk(`endstream\nendobj\n`);
 
-  // Xref
   const startXref = currentOffset;
   let xref = `xref\n0 6\n0000000000 65535 f \n`;
   for (let i = 1; i <= 5; i++) {

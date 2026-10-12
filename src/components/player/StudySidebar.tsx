@@ -131,9 +131,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const handleImportAIToMyNotes = () => {
     if (!aiNotes) return;
     aiNotes.chapters.forEach(ch => {
-      let content = `**${ch.title}**\n${ch.explanation}`;
+      const cleanExp = (ch.explanation || '').replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+      let content = `**${ch.title}**\n${cleanExp}`;
       if (ch.codeSnippet) {
-        content += `\n\`\`\`${ch.codeLanguage || ''}\n${ch.codeSnippet}\n\`\`\``;
+        const cleanSnippet = ch.codeSnippet.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+        content += `\n\`\`\`${ch.codeLanguage || ''}\n${cleanSnippet}\n\`\`\``;
       }
       onAddNote(content, ch.seconds);
     });
@@ -198,6 +200,76 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const currentMins = Math.floor(activeTimestampSeconds / 60);
   const currentSecs = activeTimestampSeconds % 60;
   const currentTimestampFormatted = `${currentMins}:${currentSecs < 10 ? '0' : ''}${currentSecs}`;
+
+  // Helper to format inline bold **bold**
+  const renderInlineFormatting = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-bold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  // Helper to render markdown bold, inline code, and code blocks inside personal notes
+  const renderNoteCardContent = (content: string, noteId: string) => {
+    const clean = (content || '')
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '');
+
+    // Split by code block regex: ```lang\ncode```
+    const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+    const elements: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(clean)) !== null) {
+      if (match.index > lastIndex) {
+        const textBefore = clean.slice(lastIndex, match.index);
+        elements.push(
+          <div key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed text-xs text-[var(--text-primary)]">
+            {renderInlineFormatting(textBefore)}
+          </div>
+        );
+      }
+
+      const lang = match[1] || 'code';
+      const code = match[2].trim();
+      const codeKey = `${noteId}-code-${match.index}`;
+
+      elements.push(
+        <div key={codeKey} className="relative rounded-lg border border-zinc-800 bg-zinc-950 p-2.5 font-mono text-[11px] text-zinc-100 overflow-x-auto my-2 shadow-xs">
+          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-800/80 text-[10px] text-zinc-400">
+            <span className="uppercase font-bold tracking-wider">{lang}</span>
+            <button
+              type="button"
+              onClick={() => handleCopyCode(code, codeKey)}
+              className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+            >
+              {copiedCodeId === codeKey ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+              <span>{copiedCodeId === codeKey ? 'Copied' : 'Copy'}</span>
+            </button>
+          </div>
+          <pre className="leading-relaxed"><code>{code}</code></pre>
+        </div>
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < clean.length) {
+      const remaining = clean.slice(lastIndex);
+      elements.push(
+        <div key={`text-end`} className="whitespace-pre-wrap leading-relaxed text-xs text-[var(--text-primary)]">
+          {renderInlineFormatting(remaining)}
+        </div>
+      );
+    }
+
+    return elements;
+  };
 
   return (
     <div className="flex flex-col h-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-xs overflow-hidden">
@@ -448,8 +520,16 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
                         <button
                           type="button"
-                          onClick={() => onAddNote(`**${ch.title}**: ${ch.explanation}`, ch.seconds)}
-                          className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors"
+                          onClick={() => {
+                            const cleanExp = (ch.explanation || '').replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+                            let noteText = `**${ch.title}**\n${cleanExp}`;
+                            if (ch.codeSnippet) {
+                              const cleanSnippet = ch.codeSnippet.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+                              noteText += `\n\`\`\`${ch.codeLanguage || ''}\n${cleanSnippet}\n\`\`\``;
+                            }
+                            onAddNote(noteText, ch.seconds);
+                          }}
+                          className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors cursor-pointer"
                           title="Save this specific chapter to My Notes"
                         >
                           <Plus className="h-3 w-3" />
@@ -597,9 +677,9 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
-                  <p className="text-xs text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed">
-                    {note.content}
-                  </p>
+                  <div className="space-y-1">
+                    {renderNoteCardContent(note.content, note.id)}
+                  </div>
                 </div>
               ))
             )}
