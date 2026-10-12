@@ -2,8 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Crown, X, Check, Copy, AlertCircle, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { 
+  Crown, 
+  X, 
+  Check, 
+  Copy, 
+  AlertCircle, 
+  Sparkles, 
+  CheckCircle2, 
+  ShieldCheck, 
+  ArrowRight, 
+  Loader2, 
+  Clock, 
+  RefreshCw,
+  KeyRound
+} from 'lucide-react';
 import { activateProSubscription } from '@/lib/storage';
+import { AdminSubscriptionModal } from './AdminSubscriptionModal';
 
 interface BkashNagadCheckoutModalProps {
   isOpen: boolean;
@@ -22,8 +37,23 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
   const [trxId, setTrxId] = useState('');
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successReceipt, setSuccessReceipt] = useState<{
+  const [statusNotice, setStatusNotice] = useState<string | null>(null);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+
+  // Pending submission state
+  const [submittedOrder, setSubmittedOrder] = useState<{
+    id: string;
+    trxId: string;
+    method: 'bkash' | 'nagad';
+    senderPhone: string;
+    amount: number;
+    createdAt: string;
+  } | null>(null);
+
+  // Success approved state
+  const [approvedReceipt, setApprovedReceipt] = useState<{
     orderId: string;
     trxId: string;
     method: 'bkash' | 'nagad';
@@ -37,8 +67,8 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
 
   if (!isOpen || !mounted) return null;
 
-  // Official reception numbers
-  const receptionNumber = method === 'bkash' ? '01886-241920' : '01712-345678';
+  // Real official user bKash number
+  const receptionNumber = '01832-622658';
   const cleanReceptionNumber = receptionNumber.replace(/[-]/g, '');
 
   const handleCopyNumber = () => {
@@ -49,27 +79,22 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
     }
   };
 
-  // Demo auto-fill for fast testing
-  const handleDemoFill = () => {
-    setSenderPhone('01711223344');
-    setTrxId(`KF${Math.floor(1000000 + Math.random() * 9000000)}`);
-    setErrorMessage(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setStatusNotice(null);
 
-    // Basic frontend format check
+    // Validate Bangladesh mobile format
     const cleanPhone = senderPhone.replace(/\s+/g, '').replace(/[-+]/g, '');
     if (!/^(?:88)?01[3-9]\d{8}$/.test(cleanPhone)) {
-      setErrorMessage('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)');
+      setErrorMessage('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX বা 019XXXXXXXX)');
       return;
     }
 
+    // Validate TrxID (7-14 alphanumeric)
     const cleanTrx = trxId.trim().toUpperCase();
     if (!/^[A-Z0-9]{7,14}$/.test(cleanTrx)) {
-      setErrorMessage('সঠিক Transaction ID (TrxID) দিন (কমপক্ষে ৭-১৪ অক্ষরের কোড)');
+      setErrorMessage('সঠিক Transaction ID (TrxID) দিন (কমপক্ষে ৭-১৪ অক্ষরের কোড, যেমন: BL19X8A22)');
       return;
     }
 
@@ -90,31 +115,66 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'পেমেন্ট যাচাইয়ে সমস্যা হয়েছে।');
+        throw new Error(data.error || 'পেমেন্ট সাবমিশনে সমস্যা হয়েছে।');
       }
 
-      // Activate in local storage
-      activateProSubscription({
-        method,
-        senderPhone: cleanPhone,
+      setSubmittedOrder({
+        id: data.order.id,
         trxId: cleanTrx,
-        amount: 99,
-      });
-
-      // Show success invoice
-      setSuccessReceipt({
-        orderId: data.orderId,
-        trxId: data.trxId,
         method,
+        senderPhone: cleanPhone.slice(-11),
         amount: 99,
-        expiresAt: data.expiresAt,
+        createdAt: data.order.createdAt,
       });
-
-      onSuccess();
     } catch (err: any) {
-      setErrorMessage(err.message || 'নেটওয়ার্ক বা পেমেন্ট ভেরিফিকেশন ব্যর্থ হয়েছে।');
+      setErrorMessage(err.message || 'নেটওয়ার্ক বা পেমেন্ট সাবমিশন ব্যর্থ হয়েছে।');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Check if admin has approved this pending TrxID
+  const handleCheckStatus = async () => {
+    if (!submittedOrder) return;
+    setIsCheckingStatus(true);
+    setStatusNotice(null);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/subscription/verify?trxId=${submittedOrder.trxId}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'স্ট্যাটাস চেক করা যায়নি।');
+      }
+
+      if (data.isApproved && data.order?.expiresAt) {
+        // Officially approved by admin! Activate in storage!
+        activateProSubscription({
+          method: submittedOrder.method,
+          senderPhone: submittedOrder.senderPhone,
+          trxId: submittedOrder.trxId,
+          amount: 99,
+        });
+
+        setApprovedReceipt({
+          orderId: data.order.id,
+          trxId: submittedOrder.trxId,
+          method: submittedOrder.method,
+          amount: 99,
+          expiresAt: data.order.expiresAt,
+        });
+        setSubmittedOrder(null);
+        onSuccess();
+      } else if (data.isRejected) {
+        setErrorMessage('দুঃখিত, এই TrxID টি অ্যাডমিন কর্তৃক প্রত্যাখ্যাত হয়েছে। সঠিক বিকাশ নম্বরে টাকা পাঠিয়ে সঠিক TrxID দিন।');
+      } else {
+        setStatusNotice('আপনার পেমেন্টটি এখনো পর্যালোচনায় রয়েছে। অ্যাডমিন ভেরিফাই করা মাত্রই Pro চালু হয়ে যাবে।');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'স্ট্যাটাস চেক করার সময় সমস্যা হয়েছে।');
+    } finally {
+      setIsCheckingStatus(false);
     }
   };
 
@@ -138,8 +198,8 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
           <X className="h-4 w-4" />
         </button>
 
-        {successReceipt ? (
-          /* Success Screen / Digital Invoice */
+        {approvedReceipt ? (
+          /* State 1: Officially Approved & Active */
           <div className="text-center space-y-4 py-2 animate-in zoom-in-95 duration-300">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25">
               <CheckCircle2 className="h-8 w-8" />
@@ -147,31 +207,31 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
 
             <div>
               <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[10px] font-extrabold uppercase tracking-wider mb-1.5">
-                Payment Verified
+                Payment Verified & Approved
               </span>
               <h3 className="text-lg font-black text-[var(--text-primary)]">
                 স্বাগতম KaizenFlow Pro-তে! 🎉
               </h3>
               <p className="text-xs text-[var(--text-muted)] max-w-xs mx-auto mt-1">
-                আপনার ৳৯৯ মাসিক সাবস্ক্রিপশন সফলভাবে সক্রিয় হয়েছে। আপনি এখন সম্পূর্ণ আনলিমিটেড এআই নোট ও ফিচার উপভোগ করতে পারবেন।
+                আপনার ৳৯৯ পেমেন্ট অনুমোদিত হয়েছে। আপনার অ্যাকাউন্ট এখন ৩০ দিনের জন্য KaizenFlow Pro-তে আপগ্রেড করা হয়েছে।
               </p>
             </div>
 
-            {/* Invoice Card */}
+            {/* Digital Invoice Card */}
             <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-4 text-left space-y-2.5 text-xs">
               <div className="flex justify-between border-b border-[var(--border-subtle)] pb-2">
                 <span className="text-[var(--text-muted)]">Order ID:</span>
-                <span className="font-mono font-bold text-[var(--text-primary)]">{successReceipt.orderId}</span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">{approvedReceipt.orderId}</span>
               </div>
               <div className="flex justify-between border-b border-[var(--border-subtle)] pb-2">
                 <span className="text-[var(--text-muted)]">Payment Method:</span>
                 <span className="font-bold uppercase text-[var(--text-primary)]">
-                  {successReceipt.method === 'bkash' ? 'bKash (বিকাশ)' : 'Nagad (নগদ)'}
+                  {approvedReceipt.method === 'bkash' ? 'bKash (বিকাশ)' : 'Nagad (নগদ)'}
                 </span>
               </div>
               <div className="flex justify-between border-b border-[var(--border-subtle)] pb-2">
                 <span className="text-[var(--text-muted)]">Transaction ID:</span>
-                <span className="font-mono font-bold text-amber-500">{successReceipt.trxId}</span>
+                <span className="font-mono font-bold text-amber-500">{approvedReceipt.trxId}</span>
               </div>
               <div className="flex justify-between border-b border-[var(--border-subtle)] pb-2">
                 <span className="text-[var(--text-muted)]">Amount Paid:</span>
@@ -180,7 +240,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
               <div className="flex justify-between pt-0.5">
                 <span className="text-[var(--text-muted)]">Valid Until (৩০ দিন):</span>
                 <span className="font-medium text-[var(--text-primary)]">
-                  {new Date(successReceipt.expiresAt).toLocaleDateString('bn-BD', {
+                  {new Date(approvedReceipt.expiresAt).toLocaleDateString('bn-BD', {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric',
@@ -198,8 +258,89 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
+        ) : submittedOrder ? (
+          /* State 2: Submitted / Pending Real Verification */
+          <div className="space-y-4 text-center py-2 animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-500 shadow-md">
+              <Clock className="h-8 w-8 animate-pulse" />
+            </div>
+
+            <div>
+              <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[10px] font-extrabold uppercase tracking-wider mb-1.5">
+                Verification Pending (যাচাই চলছে)
+              </span>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">
+                পেমেন্ট রিকোয়েস্ট সফলভাবে জমা হয়েছে
+              </h3>
+              <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto mt-1 leading-relaxed">
+                আপনার দেওয়া ট্রানজ্যাকশন আইডি যাচাই করা হচ্ছে। বিকাশ নম্বরে (<strong className="text-[var(--text-primary)]">{receptionNumber}</strong>) টাকা জমা নিশ্চিত হওয়া মাত্রই আপনার Pro অ্যাকাউন্ট সক্রিয় হয়ে যাবে।
+              </p>
+            </div>
+
+            {/* Submitted Details Box */}
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-3.5 text-left space-y-2 text-xs">
+              <div className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
+                <span className="text-[var(--text-muted)]">Order ID:</span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">{submittedOrder.id}</span>
+              </div>
+              <div className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
+                <span className="text-[var(--text-muted)]">Transaction ID:</span>
+                <span className="font-mono font-bold text-amber-500">{submittedOrder.trxId}</span>
+              </div>
+              <div className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
+                <span className="text-[var(--text-muted)]">Sender Number:</span>
+                <span className="font-mono text-[var(--text-primary)]">{submittedOrder.senderPhone}</span>
+              </div>
+              <div className="flex justify-between pt-0.5">
+                <span className="text-[var(--text-muted)]">Amount:</span>
+                <span className="font-extrabold text-emerald-500">৳৯৯ BDT</span>
+              </div>
+            </div>
+
+            {/* Status Notice / Error */}
+            {statusNotice && (
+              <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs">
+                {statusNotice}
+              </div>
+            )}
+            {errorMessage && (
+              <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs">
+                {errorMessage}
+              </div>
+            )}
+
+            {/* Check Status Button */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleCheckStatus}
+                disabled={isCheckingStatus}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer"
+              >
+                {isCheckingStatus ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>যাচাই করা হচ্ছে...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    <span>ভেরিফিকেশন স্ট্যাটাস চেক করুন (Check Status)</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSubmittedOrder(null)}
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+              >
+                ভুল TrxID দিয়ে থাকলে পুনরায় ফর্ম খুলুন
+              </button>
+            </div>
+          </div>
         ) : (
-          /* Payment Form */
+          /* State 3: Checkout Form */
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center gap-3">
@@ -254,7 +395,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
             <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-3.5 space-y-2.5 text-xs">
               <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                 <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
-                  {method === 'bkash' ? 'বিকাশ পার্সোনাল নম্বর:' : 'নগদ পার্সোনাল নম্বর:'}
+                  {method === 'bkash' ? 'বিকাশ নম্বর:' : 'নগদ নম্বর:'}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="font-mono font-bold text-sm text-[var(--text-primary)]">
@@ -274,7 +415,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
               <div className="space-y-1.5 text-[11px] text-[var(--text-muted)] leading-relaxed">
                 <p className="flex items-start gap-1.5">
                   <span className="font-bold text-amber-500">১.</span>
-                  <span>{method === 'bkash' ? 'বিকাশ' : 'নগদ'} অ্যাপে গিয়ে <strong className="text-[var(--text-primary)]">Send Money</strong> সিলেক্ট করে উপরের নম্বরে ঠিক <strong className="text-amber-500">৳৯৯</strong> পাঠান।</span>
+                  <span>{method === 'bkash' ? 'বিকাশ' : 'নগদ'} অ্যাপে গিয়ে <strong className="text-[var(--text-primary)]">Send Money</strong> করে <strong className="text-amber-500 font-mono">{receptionNumber}</strong> নম্বরে ঠিক <strong className="text-amber-500">৳৯৯</strong> পাঠান।</span>
                 </p>
                 <p className="flex items-start gap-1.5">
                   <span className="font-bold text-amber-500">২.</span>
@@ -282,7 +423,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
                 </p>
                 <p className="flex items-start gap-1.5">
                   <span className="font-bold text-amber-500">৩.</span>
-                  <span>সফল ট্রানজ্যাকশনের পর মেসেজ থেকে পাওয়া <strong className="text-[var(--text-primary)]">TrxID</strong> এবং আপনার মোবাইল নম্বর নিচের ফর্মে লিখুন।</span>
+                  <span>সফল ট্রানজ্যাকশনের পর মেসেজ থেকে পাওয়া <strong className="text-[var(--text-primary)]">TrxID</strong> এবং আপনার মোবাইল নম্বর নিচের ফর্মে দিয়ে সাবমিট করুন।</span>
                 </p>
               </div>
             </div>
@@ -304,7 +445,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
                 <input
                   type="text"
                   required
-                  placeholder="017XXXXXXXX"
+                  placeholder="01XXXXXXXXX"
                   value={senderPhone}
                   onChange={(e) => setSenderPhone(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-canvas)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-amber-500 transition-colors"
@@ -328,16 +469,18 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
               <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] pt-0.5">
                 <span className="flex items-center gap-1">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>তাত্ক্ষণিক ৩০ দিনের এক্সেস</span>
+                  <span>রিয়েল ভেরিফিকেশন ও ৩০ দিনের মেয়াদের প্রো এক্সেস</span>
                 </span>
 
-                {/* Dev/Testing Helper */}
+                {/* Admin Access Button */}
                 <button
                   type="button"
-                  onClick={handleDemoFill}
-                  className="text-amber-500 hover:underline cursor-pointer"
+                  onClick={() => setShowAdminModal(true)}
+                  className="flex items-center gap-1 text-[10.5px] text-[var(--text-muted)] hover:text-amber-500 transition-colors cursor-pointer"
+                  title="এডমিন প্যানেলে ঢুকে TrxID অনুমোদন করুন"
                 >
-                  (Demo Autofill TrxID)
+                  <KeyRound className="h-3 w-3" />
+                  <span>Admin Panel</span>
                 </button>
               </div>
 
@@ -350,18 +493,29 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>যাচাই করা হচ্ছে...</span>
+                    <span>জমা দেওয়া হচ্ছে...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 fill-current" />
-                    <span>পেমেন্ট নিশ্চিত করুন এবং প্রো আনলক করুন</span>
+                    <span>পেমেন্ট রিকোয়েস্ট সাবমিট করুন</span>
                   </>
                 )}
               </button>
             </form>
           </div>
         )}
+
+        {/* Admin Verification Modal */}
+        <AdminSubscriptionModal
+          isOpen={showAdminModal}
+          onClose={() => setShowAdminModal(false)}
+          onOrderApproved={() => {
+            if (submittedOrder) {
+              handleCheckStatus();
+            }
+          }}
+        />
       </div>
     </div>,
     document.body

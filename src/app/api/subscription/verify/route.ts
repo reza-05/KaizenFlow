@@ -1,9 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createSubscriptionRequest, getSubscriptionByTrxId } from '@/lib/subscriptionsServer';
 
+// GET: Check status of a submitted TrxID
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const trxId = searchParams.get('trxId');
+
+    if (!trxId) {
+      return NextResponse.json({ error: 'TrxID is required' }, { status: 400 });
+    }
+
+    const order = getSubscriptionByTrxId(trxId);
+    if (!order) {
+      return NextResponse.json({ error: 'Transaction record not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      order,
+      isApproved: order.status === 'approved',
+      isPending: order.status === 'pending',
+      isRejected: order.status === 'rejected',
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  }
+}
+
+// POST: Submit a real bKash/Nagad payment for verification
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { method, senderPhone, trxId, amount = 99 } = body;
+    const { method, senderPhone, trxId, amount = 99, userId, userEmail } = body;
 
     // Validate payment method
     if (method !== 'bkash' && method !== 'nagad') {
@@ -28,27 +57,33 @@ export async function POST(req: NextRequest) {
     const trxRegex = /^[A-Z0-9]{7,14}$/;
     if (!trxRegex.test(cleanTrx)) {
       return NextResponse.json(
-        { error: 'সঠিক বিকাশ/নগদ Transaction ID (TrxID) দিন (যেমন: BL19X8A22)।' },
+        { error: 'সঠিক বিকাশ/নগদ Transaction ID (TrxID) দিন (কমপক্ষে ৭-১৪ অক্ষরের কোড, যেমন: BL19X8A22)।' },
         { status: 400 }
       );
     }
 
-    // Calculate 30-day expiration date
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 30);
-    const expiresAt = expiryDate.toISOString();
+    // Submit for real admin verification
+    const result = createSubscriptionRequest({
+      method,
+      senderPhone: cleanPhone.slice(-11),
+      trxId: cleanTrx,
+      amount: Number(amount) || 99,
+      userId,
+      userEmail,
+    });
 
-    const orderId = `KF-ORD-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'এই TrxID দিয়ে সাবমিশন সম্পন্ন করা সম্ভব হয়নি।' },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      orderId,
-      trxId: cleanTrx,
-      method,
-      senderPhone: cleanPhone.slice(-11), // 01XXXXXXXXX format
-      amount: Number(amount) || 99,
-      expiresAt,
-      message: 'পেমেন্ট সফলভাবে নিশ্চিত করা হয়েছে! আপনার KaizenFlow Pro ৩০ দিনের জন্য সক্রিয় হয়েছে।',
+      status: 'pending',
+      order: result.order,
+      message: 'পেমেন্ট রিকোয়েস্ট সফলভাবে জমা হয়েছে! আমাদের অ্যাডমিন 01832-622658 নম্বরে টাকা আসার পর যাচাই করে Pro সক্রিয় করে দেবে।',
     });
   } catch (error: any) {
     console.error('Subscription verification error:', error);
