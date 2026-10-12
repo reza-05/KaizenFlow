@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
+import { humanizeBengaliText, humanizeLectureNotes } from '@/lib/bengaliHumanizer';
 
 interface StudySidebarProps {
   playlistId: string;
@@ -101,7 +102,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try {
-          setAiNotes(JSON.parse(cached));
+          const parsed = JSON.parse(cached);
+          const humanized = (aiLanguage === 'bn' || aiLanguage === 'mixed')
+            ? humanizeLectureNotes(parsed)
+            : parsed;
+          setAiNotes(humanized);
           return;
         } catch {}
       }
@@ -195,12 +200,15 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       }
 
       const generated: AILectureNotes = await res.json();
-      setAiNotes(generated);
+      const humanized = (aiLanguage === 'bn' || aiLanguage === 'mixed')
+        ? humanizeLectureNotes(generated)
+        : generated;
+      setAiNotes(humanized);
 
       // Save to local cache
       if (typeof window !== 'undefined') {
         const cacheKey = `kaizenflow_ai_notes_${currentVideoId}_${aiLanguage}`;
-        localStorage.setItem(cacheKey, JSON.stringify(generated));
+        localStorage.setItem(cacheKey, JSON.stringify(humanized));
       }
     } catch (err: any) {
       console.error('AI Notes Generation error:', err);
@@ -237,45 +245,45 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     if (chapters.length > 0) {
       const ch0 = chapters[0];
       questions.push({
-        question: `লেকচারের প্রারম্ভে [${ch0.timestamp}] কোন প্রধান বিষয়ে আলোকপাত করা হয়েছে?`,
+        question: humanizeBengaliText(`লেকচারের শুরুতে [${ch0.timestamp}] কোন মূল বিষয়ে আলোচনা করা হয়েছে?`),
         options: [
-          ch0.title,
-          chapters[1]?.title || 'শুধুমাত্র সাধারণ সূচনা',
+          humanizeBengaliText(ch0.title),
+          humanizeBengaliText(chapters[1]?.title || 'কোর্স ওভারভিউ ও প্রাথমিক ধারণা'),
           'অ্যাডভান্সড সিস্টেম আর্কিটেকচার',
-          'বাহ্যিক ডিপেনডেন্সি কনফিগারেশন'
+          'এক্সটার্নাল ডিপেনডেন্সি সেটআপ'
         ],
         answerIndex: 0,
-        explanation: `লেকচারের শুরুতেই [${ch0.timestamp}] "${ch0.title}" বিশদভাবে আলোচনা করা হয়েছে।`
+        explanation: humanizeBengaliText(`লেকচারের শুরুতেই [${ch0.timestamp}] "${ch0.title}" নিয়ে বিস্তারিত ধারণা দেওয়া হয়েছে।`)
       });
     }
 
     if (takeaways.length > 0) {
       const t0 = takeaways[0];
       questions.push({
-        question: 'এই ক্লাসের অন্যতম গুরুত্বপূর্ণ মূল নিয়ম বা পরীক্ষা সতর্কতা (Core Insight) কোনটি?',
+        question: humanizeBengaliText('এই ক্লাসের অন্যতম গুরুত্বপূর্ণ মূল নিয়ম বা পরীক্ষা সতর্কতা কোনটি?'),
         options: [
           'সব ক্ষেত্রে ডিফল্ট অপশন অপরিবর্তিত রাখা',
-          t0,
+          humanizeBengaliText(t0),
           'কনসেপ্ট না বুঝে কেবল আউটপুট মুখস্থ করা',
           'তাত্ত্বিক ভিত্তি বাদ দিয়ে সমাপ্ত করা'
         ],
         answerIndex: 1,
-        explanation: `ইনস্ট্রাক্টরের মূল টেকঅ্যাওয়ে হলো: "${t0}"`
+        explanation: humanizeBengaliText(`লেকচারের মূল টেকঅ্যাওয়ে হলো: "${t0}"`)
       });
     }
 
     if (chapters.length > 1) {
       const chLast = chapters[chapters.length - 1];
       questions.push({
-        question: `লেকচারের পরবর্তী অংশে [${chLast.timestamp}] "${chLast.title}" বিষয়ে কী শেখানো হয়েছে?`,
+        question: humanizeBengaliText(`লেকচারের পরবর্তী অংশে [${chLast.timestamp}] "${chLast.title}" বিষয়ে কী বোঝানো হয়েছে?`),
         options: [
           'কোনো সমাধান ছাড়াই ক্লাস শেষ করা',
           'পূর্বের সব নিয়ম পরিবর্তন করে নতুন শুরু করা',
-          chLast.explanation.slice(0, 65) + (chLast.explanation.length > 65 ? '...' : ''),
+          humanizeBengaliText(chLast.explanation.slice(0, 65) + (chLast.explanation.length > 65 ? '...' : '')),
           'পরবর্তী ক্লাসে একই প্রাথমিক বিষয় পুনরাবৃত্তি'
         ],
         answerIndex: 2,
-        explanation: `অধ্যায়ে "${chLast.title}" সম্পর্কে বিস্তারিত প্রয়োগ ও সমাধান প্রদর্শন করা হয়েছে।`
+        explanation: humanizeBengaliText(`অধ্যায়ে "${chLast.title}" নিয়ে বাস্তব প্রয়োগ ও সহজ সমাধান তুলে ধরা হয়েছে।`)
       });
     }
 
@@ -285,7 +293,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   // Helper to convert LaTeX / chemical / scientific sub & sup notation
   const toScientificString = (text: string): string => {
     if (!text) return '';
-    let s = text;
+    let s = (aiLanguage === 'bn' || aiLanguage === 'mixed') ? humanizeBengaliText(text) : text;
 
     // 1. Math symbols & LaTeX macros
     s = s.replace(/\\times/g, '×')

@@ -1,6 +1,7 @@
 'use client';
 
 import { StudyNote } from '@/types';
+import { humanizeBengaliText } from './bengaliHumanizer';
 
 interface ExportNotesOptions {
   courseTitle: string;
@@ -35,7 +36,7 @@ function chunksToBlob(chunks: Uint8Array[]): Blob {
 
 function formatScientificToHtml(text: string): string {
   if (!text) return '';
-  let s = text;
+  let s = humanizeBengaliText(text);
 
   // 1. Math symbols & LaTeX macros
   s = s.replace(/\\times/g, '×')

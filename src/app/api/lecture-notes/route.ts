@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSubtitles } from 'youtube-caption-extractor';
 import { AILectureNotes, LectureNoteChapter } from '@/types';
 import { decodeHtmlEntities } from '@/lib/youtube';
+import { humanizeLectureNotes } from '@/lib/bengaliHumanizer';
 
 // Helper to convert seconds into "MM:SS" or "HH:MM:SS"
 function formatSecondsToTimestamp(totalSeconds: number): string {
@@ -87,7 +88,7 @@ async function generateWithGroq(apiKey: string, prompt: string): Promise<string>
           messages: [
             {
               role: 'system',
-              content: 'You are an elite academic educator, master scribe, and curriculum specialist. You write comprehensive, authentic, high-yield lecture study notes in the requested language (e.g. Bengali/বাংলা) covering the full curriculum, formulas, whiteboard derivations, step-by-step problem-solving, and code. Respond strictly in valid JSON matching the requested schema with all chapters and summary populated.',
+              content: 'You are an exceptional, passionate Bangladeshi teacher, master educator, and top academic mentor (like a senior instructor from BUET / Dhaka University / 10 Minute School). You write crystal-clear, engaging, humanized study notes in the requested language (e.g. Bengali/বাংলা) covering the full curriculum, formulas, whiteboard derivations, step-by-step problem-solving, and code. Your writing style is 100% natural, active, warm, and pedagogical—NEVER sounding like a stiff, robotic machine translation (Google Translate style). Respond strictly in valid JSON matching the requested schema with all chapters and summary populated.',
             },
             {
               role: 'user',
@@ -95,8 +96,8 @@ async function generateWithGroq(apiKey: string, prompt: string): Promise<string>
             },
           ],
           response_format: { type: 'json_object' },
-          temperature: 0.2,
-          max_tokens: 3000,
+          temperature: 0.4,
+          max_tokens: 3500,
         }),
       });
 
@@ -132,7 +133,7 @@ async function generateWithGemini(apiKey: string, prompt: string): Promise<strin
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.2,
+        temperature: 0.4,
       },
     }),
   });
@@ -244,20 +245,30 @@ export async function POST(req: NextRequest) {
     // IF an AI key is available, run deep LLM synthesis
     if (activeKey && activeProvider) {
       const languageInstruction = targetLanguage === 'bn' 
-        ? `MANDATORY TRANSLATION TO BENGALI (বাংলা):
-- The instructor in this video tutorial may be speaking in Hindi, Hinglish, or English. You MUST translate and explain all concepts, chapter titles, summary, and key takeaways into natural, high-quality BENGALI (বাংলা).
-- Under NO circumstance should Hindi words, Hindi sentences, or Devanagari script appear in the explanation. Translate it completely to Bengali!
-- Keep standard computer science / science terms in English (e.g., Variable, Loop, Function, Pointer, Reaction, Molarity, Titration, Isotope).`
+        ? `MANDATORY HUMANIZED BENGALI GUIDELINES (মানুষের মতো প্রাঞ্জল, স্বাভাবিক ও শিক্ষণীয় বাংলা নোট):
+- The instructor in this tutorial may speak Hindi, Hinglish, or English. You MUST explain and teach all concepts, chapter titles, summary, key takeaways, and quiz in natural, native, high-quality BENGALI (বাংলা) as taught by a passionate, top Bangladeshi mentor (BUET / 10 Minute School style).
+- STRICTLY BAN ROBOTIC TRANSLATION CLICHES & GOOGLE-TRANSLATE ARTIFACTS:
+  * NEVER write "ইন্সট্রাক্টর কিছু সমস্যার সমাধান দেখান:", "ইন্সট্রাক্টর দেখান যে", "ইন্সট্রাক্টর আলোচনা করেন"। Instead, state the concept directly: "কমন কিছু সমস্যা ও তাৎক্ষণিক সমাধান:", "যেভাবে কাজ করে:", "মনে রাখার মূল নিয়ম:"।
+  * NEVER use stiff robotic passive voice like "পরীক্ষা করা হয়", "নিশ্চিত হয়", "প্রদর্শন করা হয়েছে", "পর্যবেক্ষণ করা হয়"। Write in natural active voice: "সহজেই টেস্ট করে নেওয়া যায়", "কোড ত্রুটিমুক্তভাবে রান করছে কি না তা নিশ্চিত হওয়া যায়", "সরাসরি পর্যবেক্ষণ করা যায়"।
+  * NEVER translate "dim" (dim light) as "ধূসর" (gray color)! "Dim LED" means "LED-র আলো খুব মৃদু বা ডিম (dim) হয়ে যাওয়া"।
+  * NEVER translate "blink" as awkward "টিমটিম করে"! Use "দ্রুত ব্লিঙ্ক (blink) করে" or "অন-অফ করে"।
+  * Avoid robotic question bullets like "• LED না জ্বলে?". Write clear symptom-solution bullets:
+    "• LED না জ্বললে: রেজিস্টরের সংযোগ বা পোলারিটি (+ / - প্রান্ত) ঠিক আছে কি না চেক করে নিন।"
+    "• LED খুব দ্রুত ব্লিঙ্ক করলে: delay() এর সময় কিছুটা বাড়িয়ে দিন।"
+    "• কোড কম্পাইল না হলে: সেমিকোলন (;) বা আনডিফাইন্ড ভ্যারিয়েবল রয়েছে কি না দেখে নিন।"
+    "• রেজিস্টরের মান অতিরিক্ত বড় হলে: LED-র আলো খুব মৃদু বা ডিম হয়ে যাবে; তাই 220Ω-330Ω রেজিস্টর ব্যবহার করুন।"
+- Keep standard computer science / engineering / science terms in English or natural Bengali pronunciation (e.g., Variable, Loop, Function, Pointer, Pin, Delay, Resistor, Breadboard, Simulation, Compile Error, Serial Monitor, VCC, GND).
+- Under NO circumstance should Hindi words, Hindi sentences, or Devanagari script appear in the explanation. Everything must be natural Bengali.`
         : targetLanguage === 'en'
         ? `MANDATORY TRANSLATION TO ENGLISH:
 - Even if the instructor is speaking in Hindi or Hinglish, translate and synthesize all explanations and notes into clear, academic ENGLISH. Do NOT output Hindi/Devanagari text in the explanation.`
         : targetLanguage === 'hi'
         ? `Generate explanations in clear Hindi / Hinglish, keeping all code and technical terms in English.`
-        : `Natural bilingual Bengali with technical English terms (Banglish style for students). Explain concepts in Bengali, keep technical terms and code in English.`;
+        : `Natural bilingual Bengali with technical English terms (Banglish style for students). Explain concepts in rich, fluent Bengali, keeping technical terms and code in English.`;
 
       const prompt = `
-You are an expert academic scribe, educator, and master tutor.
-You are generating authentic, high-quality lecture study notes for a student watching this educational video:
+You are an expert academic mentor, educator, and master tutor (প্যাশনেট শিক্ষক ও মেন্টর).
+You are generating authentic, high-quality, humanized lecture study notes for a student watching this educational video:
 
 VIDEO TITLE: "${videoTitle}"
 ${courseTitle ? `COURSE / PLAYLIST: "${courseTitle}"` : ''}
@@ -389,7 +400,11 @@ TASK & CRITICAL RULES:
           isRealTranscriptGrounded: hasMeaningfulSpeech,
         };
 
-        return NextResponse.json(notes);
+        const finalNotes = (targetLanguage === 'bn' || targetLanguage === 'mixed')
+          ? humanizeLectureNotes(notes)
+          : notes;
+
+        return NextResponse.json(finalNotes);
       } catch (aiErr: any) {
         console.error('AI synthesis failed, falling back to grounded transcript extractor:', aiErr);
       }
@@ -484,7 +499,11 @@ TASK & CRITICAL RULES:
       isRealTranscriptGrounded: subtitles.length > 0,
     };
 
-    return NextResponse.json(fallbackNotes);
+    const finalFallbackNotes = (targetLanguage === 'bn' || targetLanguage === 'mixed')
+      ? humanizeLectureNotes(fallbackNotes)
+      : fallbackNotes;
+
+    return NextResponse.json(finalFallbackNotes);
   } catch (err: any) {
     console.error('Error generating lecture notes:', err);
     return NextResponse.json({ error: err.message || 'Failed to generate lecture notes' }, { status: 500 });
