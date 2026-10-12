@@ -39,6 +39,7 @@ import {
   setSubscriptionTier, 
   AiNotesQuotaStatus 
 } from '@/lib/storage';
+import { BkashNagadCheckoutModal } from '@/components/payment/BkashNagadCheckoutModal';
 
 interface StudySidebarProps {
   playlistId: string;
@@ -94,6 +95,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     canGenerate: true,
   });
   const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
 
   // Load quota status on mount
   useEffect(() => {
@@ -674,7 +676,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                   title="KaizenFlow Pro Active - Unlimited AI Notes"
                 >
                   <Crown className="h-3 w-3 fill-current text-amber-500" />
-                  <span>PRO</span>
+                  <span>PRO{quota.daysRemaining ? ` (${quota.daysRemaining}d)` : ''}</span>
                 </button>
               ) : (
                 <button
@@ -1298,11 +1300,14 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 {/* Primary Upgrade CTA */}
                 <button
                   type="button"
-                  onClick={handleUpgradeToPro}
+                  onClick={() => {
+                    setShowPaywallModal(false);
+                    setShowPaymentModal(true);
+                  }}
                   className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/25 hover:opacity-95 transition-all cursor-pointer active:scale-[0.99]"
                 >
                   <Crown className="h-4 w-4 fill-current" />
-                  <span>৳৯৯ দিয়ে প্রো আনলক করুন (Upgrade Now)</span>
+                  <span>৳৯৯ দিয়ে বিকাশ / নগদে প্রো আনলক করুন</span>
                 </button>
 
                 <p className="text-center text-[10.5px] text-[var(--text-muted)]">
@@ -1329,6 +1334,15 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
           </div>
         </div>
       )}
+
+      {/* bKash & Nagad Checkout Modal */}
+      <BkashNagadCheckoutModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={() => {
+          setQuota(getAiNotesQuotaStatus());
+        }}
+      />
     </div>
   );
 };

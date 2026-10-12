@@ -1,6 +1,6 @@
 'use client';
 
-import { Playlist, UserProfile, VideoProgress, DailyActivity, StudyNote } from '@/types';
+import { Playlist, UserProfile, VideoProgress, DailyActivity, StudyNote, PaymentRecord } from '@/types';
 import { CURATED_STARTER_COURSES } from './youtube';
 
 const STORAGE_KEYS = {
@@ -207,13 +207,38 @@ export interface AiNotesQuotaStatus {
   remaining: number;
   isPro: boolean;
   canGenerate: boolean;
+  proExpiresAt?: string;
+  daysRemaining?: number;
 }
 
 export function getAiNotesQuotaStatus(): AiNotesQuotaStatus {
   const profile = getInitialUserProfile();
-  const isPro = profile.subscriptionTier === 'pro';
-  if (isPro) {
-    return { used: 0, max: Infinity, remaining: Infinity, isPro: true, canGenerate: true };
+
+  // If marked as Pro, verify if the 30-day expiration has elapsed
+  if (profile.subscriptionTier === 'pro') {
+    if (profile.proExpiresAt) {
+      const expTime = new Date(profile.proExpiresAt).getTime();
+      const now = Date.now();
+      if (expTime > now) {
+        const daysRemaining = Math.max(1, Math.ceil((expTime - now) / (1000 * 60 * 60 * 24)));
+        return {
+          used: 0,
+          max: Infinity,
+          remaining: Infinity,
+          isPro: true,
+          canGenerate: true,
+          proExpiresAt: profile.proExpiresAt,
+          daysRemaining,
+        };
+      } else {
+        // Expired! Automatically downgrade to free tier
+        profile.subscriptionTier = 'free';
+        saveUserProfile(profile);
+      }
+    } else {
+      // Legacy or testing pro without explicit expiration
+      return { used: 0, max: Infinity, remaining: Infinity, isPro: true, canGenerate: true };
+    }
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -251,8 +276,45 @@ export function consumeAiNotesQuota(): boolean {
 export function setSubscriptionTier(tier: 'free' | 'pro'): UserProfile {
   const profile = getInitialUserProfile();
   profile.subscriptionTier = tier;
+  if (tier === 'pro') {
+    const expDate = new Date();
+    expDate.setDate(expDate.getDate() + 30);
+    profile.proExpiresAt = expDate.toISOString();
+  } else {
+    profile.proExpiresAt = undefined;
+  }
   saveUserProfile(profile);
   return profile;
+}
+
+export function activateProSubscription(payment: {
+  method: 'bkash' | 'nagad';
+  senderPhone: string;
+  trxId: string;
+  amount?: number;
+}): { success: boolean; expiresAt: string; profile: UserProfile; record: PaymentRecord } {
+  const profile = getInitialUserProfile();
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + 30); // 30 days full access
+  const expiresAt = expiryDate.toISOString();
+
+  profile.subscriptionTier = 'pro';
+  profile.proExpiresAt = expiresAt;
+
+  const record: PaymentRecord = {
+    id: `KF-PAY-${Math.floor(100000 + Math.random() * 900000)}`,
+    method: payment.method,
+    senderPhone: payment.senderPhone,
+    trxId: payment.trxId.toUpperCase().trim(),
+    amount: payment.amount || 99,
+    timestamp: new Date().toISOString(),
+    status: 'approved',
+    expiresAt,
+  };
+
+  profile.paymentHistory = [record, ...(profile.paymentHistory || [])];
+  saveUserProfile(profile);
+  return { success: true, expiresAt, profile, record };
 }
 
 // Playlists retrieval:

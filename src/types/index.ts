@@ -9,8 +9,21 @@ export interface UserProfile {
   activePlaylistsCount: number; // max 10
   createdAt: string;
   subscriptionTier?: 'free' | 'pro';
+  proExpiresAt?: string; // ISO date string e.g. "2026-11-12T14:20:00.000Z"
   dailyAiNotesUsed?: number;
   dailyAiNotesDate?: string; // "YYYY-MM-DD"
+  paymentHistory?: PaymentRecord[];
+}
+
+export interface PaymentRecord {
+  id: string; // e.g. "KF-PAY-9831"
+  method: 'bkash' | 'nagad';
+  senderPhone: string;
+  trxId: string;
+  amount: number; // 99
+  timestamp: string;
+  status: 'approved' | 'pending';
+  expiresAt: string;
 }
 
 export interface VideoItem {
