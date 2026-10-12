@@ -731,6 +731,14 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                   <Crown className="h-3 w-3 fill-current text-amber-500" />
                   <span>PRO{quota.daysRemaining ? ` (${quota.daysRemaining}d)` : ''}</span>
                 </button>
+              ) : quota.isUnlimitedBeta || quota.remaining === Infinity ? (
+                <div
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-500 font-bold text-[10.5px]"
+                  title="Beta Preview - Unlimited AI Notes"
+                >
+                  <Sparkles className="h-3 w-3 text-amber-500" />
+                  <span>Unlimited (Beta)</span>
+                </div>
               ) : (
                 <button
                   type="button"
@@ -1309,9 +1317,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                   <p className="text-[11px] text-[var(--text-muted)]">
                     {quota.isPro 
                       ? 'আপনার প্রো সাবস্ক্রিপশন সক্রিয় রয়েছে' 
-                      : quota.remaining === 0 
-                        ? 'আজকের ৩টি ফ্রি এআই নোটের কোটা শেষ' 
-                        : `আজকের ফ্রি কোটা: ${quota.remaining}/${quota.max} অবশিষ্ট`}
+                      : (quota.isUnlimitedBeta || quota.remaining === Infinity)
+                        ? '🎉 বেটা প্রিভিউতে সবার জন্য আনলিমিটেড এআই নোট চালু আছে!'
+                        : quota.remaining === 0 
+                          ? 'আজকের ৩টি ফ্রি এআই নোটের কোটা শেষ' 
+                          : `আজকের ফ্রি কোটা: ${quota.remaining}/${quota.max} অবশিষ্ট`}
                   </p>
                 </div>
               </div>

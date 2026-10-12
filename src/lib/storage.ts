@@ -201,12 +201,17 @@ export function saveUserProfile(profile: UserProfile): void {
 
 export const DAILY_FREE_AI_NOTES_LIMIT = 3;
 
+// Temporary Beta Flag: Provide unlimited AI notes to all free users during site build & preview phase.
+// Set to false once web development is finished and ready for commercial tier rollout.
+export const UNLIMITED_AI_NOTES_BETA = true;
+
 export interface AiNotesQuotaStatus {
   used: number;
   max: number;
   remaining: number;
   isPro: boolean;
   canGenerate: boolean;
+  isUnlimitedBeta?: boolean;
   proExpiresAt?: string;
   daysRemaining?: number;
 }
@@ -241,6 +246,18 @@ export function getAiNotesQuotaStatus(): AiNotesQuotaStatus {
     }
   }
 
+  // During development & preview: all free accounts enjoy UNLIMITED AI Notes!
+  if (UNLIMITED_AI_NOTES_BETA) {
+    return {
+      used: profile.dailyAiNotesUsed || 0,
+      max: Infinity,
+      remaining: Infinity,
+      isPro: false,
+      canGenerate: true,
+      isUnlimitedBeta: true,
+    };
+  }
+
   const today = new Date().toISOString().split('T')[0];
   let used = profile.dailyAiNotesUsed || 0;
   if (profile.dailyAiNotesDate !== today) {
@@ -261,6 +278,13 @@ export function getAiNotesQuotaStatus(): AiNotesQuotaStatus {
 }
 
 export function consumeAiNotesQuota(): boolean {
+  if (UNLIMITED_AI_NOTES_BETA) {
+    const profile = getInitialUserProfile();
+    profile.dailyAiNotesUsed = (profile.dailyAiNotesUsed || 0) + 1;
+    saveUserProfile(profile);
+    return true;
+  }
+
   const status = getAiNotesQuotaStatus();
   if (status.isPro) return true;
   if (!status.canGenerate) return false;
