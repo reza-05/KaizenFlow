@@ -24,7 +24,8 @@ import {
   Brain,
   RotateCcw,
   CheckCircle,
-  XCircle
+  XCircle,
+  Music
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
@@ -172,8 +173,8 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     setActiveTab('notes');
   };
 
-  // Generate Real Lecture Notes from backend
-  const handleGenerateAINotes = async () => {
+  // Generate Real Lecture Notes from backend (with optional user force override)
+  const handleGenerateAINotes = async (force: boolean = false) => {
     setIsGeneratingAI(true);
     setAiError(null);
 
@@ -191,6 +192,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
           language: aiLanguage,
           customApiKey: customKey.trim() || undefined,
           customProvider,
+          forceGenerate: force,
         }),
       });
 
@@ -652,22 +654,24 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
               {aiNotes && (
                 <>
-                  <button
-                    type="button"
-                    onClick={handleImportAIToMyNotes}
-                    title="Add all notes to personal notes tab"
-                    className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
-                  >
-                    {copiedAllNotes ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                    <span>{copiedAllNotes ? 'Added!' : 'Save All'}</span>
-                  </button>
+                  {aiNotes.isEducational !== false && (
+                    <button
+                      type="button"
+                      onClick={handleImportAIToMyNotes}
+                      title="Add all notes to personal notes tab"
+                      className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
+                    >
+                      {copiedAllNotes ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                      <span>{copiedAllNotes ? 'Added!' : 'Save All'}</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"
-                    onClick={handleGenerateAINotes}
+                    onClick={() => handleGenerateAINotes(false)}
                     disabled={isGeneratingAI}
                     title="Regenerate lecture notes"
-                    className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                    className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${isGeneratingAI ? 'animate-spin' : ''}`} />
                   </button>
@@ -700,7 +704,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 </p>
                 <button
                   type="button"
-                  onClick={handleGenerateAINotes}
+                  onClick={() => handleGenerateAINotes(false)}
                   className="flex items-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-4 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
                 >
                   <Sparkles className="h-3.5 w-3.5 text-amber-300" />
@@ -728,8 +732,44 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </div>
             )}
 
-            {/* STATE 3: Notes Ready & Displayed */}
-            {aiNotes && !isGeneratingAI && (
+            {/* STATE 3: Non-Educational Content Warning Card */}
+            {aiNotes && !isGeneratingAI && aiNotes.isEducational === false && (
+              <div className="flex flex-col items-center justify-center text-center p-6 my-4 border border-amber-500/30 rounded-xl bg-amber-500/5 space-y-3.5 shadow-2xs">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500 ring-1 ring-amber-500/30 mb-1">
+                  <Music className="h-6 w-6" />
+                </div>
+                <div className="space-y-1.5 max-w-xs">
+                  <h4 className="text-xs font-bold text-[var(--text-primary)]">
+                    নন-এডুকেশনাল কনটেন্ট শনাক্ত হয়েছে
+                  </h4>
+                  <p className="text-[11.5px] text-[var(--text-secondary)] leading-relaxed">
+                    {renderInlineFormatting(aiNotes.nonEducationalReason || aiNotes.summary)}
+                  </p>
+                </div>
+
+                <div className="w-full max-w-xs pt-1 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateAINotes(true)}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                    <span>Force Generate Notes Anyway</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('notes')}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>Take Personal Notes Instead</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STATE 4: Educational Notes Ready & Displayed */}
+            {aiNotes && !isGeneratingAI && aiNotes.isEducational !== false && (
               <div className="space-y-4">
                 {/* Executive Summary Card */}
                 <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-2xs">

@@ -157,6 +157,7 @@ export async function POST(req: NextRequest) {
     const targetLanguage = (body.language || 'en').trim(); // 'en', 'bn', 'hi', 'mixed'
     const customApiKey = (body.customApiKey || '').trim();
     const customProvider = (body.customProvider || 'groq').trim(); // 'groq' | 'gemini'
+    const forceGenerate = Boolean(body.forceGenerate);
 
     if (!videoId) {
       return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
@@ -186,6 +187,37 @@ export async function POST(req: NextRequest) {
       .filter(w => w.length > 1);
 
     const hasMeaningfulSpeech = cleanedTranscriptWords.length >= 25;
+
+    // 3. Fast Heuristic Guardrail for Clear Music / Entertainment Videos (Zero Hallucination)
+    const combinedTitle = `${videoTitle} ${courseTitle}`.toLowerCase();
+    const hasStrongEntertainmentTitle = /\b(official\s+music\s+video|official\s+video|official\s+audio|lyric\s+video|lyrics\s+video|full\s+album|lofi\s+hip\s*hop|lofi\s+beats|dj\s+remix|original\s+soundtrack|\bost\b|movie\s+trailer|teaser\s+trailer|gameplay\s+walkthrough|funny\s+moments|prank\s+video|standup\s+comedy|roast\s+video)\b/i.test(combinedTitle);
+    const totalSubs = subtitles.length;
+    const musicSubCount = subtitles.filter(s => /\[(?:Music|Applause|Singing|Cheering)\]|[♪♫]/i.test(s.text)).length;
+    const isAlmostExclusivelyMusicSubs = totalSubs > 0 && (musicSubCount / totalSubs) >= 0.65;
+
+    // Reject early ONLY if user didn't force generate AND it is unquestionably music/entertainment
+    if (!forceGenerate && (hasStrongEntertainmentTitle || isAlmostExclusivelyMusicSubs)) {
+      const reason = targetLanguage === 'bn' || targetLanguage === 'mixed'
+        ? 'ভিডিওটি একটি গান, মিউজিক ট্র্যাক বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow-এর এআই নোট সাধারণত পড়াশোনা, টিউটোরিয়াল বা একাডেমিক ক্লাসের জন্য সবচেয়ে ভালো কাজ করে। আপনি যদি এই ভিডিওর জন্যও নোট তৈরি করতে চান, তবে নিচে "Force Generate" বাটনে ক্লিক করতে পারেন।'
+        : 'This video appears to be a music or entertainment video rather than an educational tutorial. KaizenFlow AI Notes work best for educational lectures. If you still want notes for this video, click "Force Generate Notes".';
+
+      const nonEduNotes: AILectureNotes = {
+        videoId,
+        videoTitle,
+        language: targetLanguage,
+        summary: reason,
+        chapters: [],
+        keyTakeaways: [],
+        fullMarkdown: `# ${videoTitle}\n\n${reason}`,
+        generatedAt: new Date().toISOString(),
+        isRealTranscriptGrounded: subtitles.length > 0,
+        isEducational: false,
+        nonEducationalReason: reason,
+        contentType: 'music_entertainment',
+      };
+
+      return NextResponse.json(targetLanguage === 'bn' || targetLanguage === 'mixed' ? humanizeLectureNotes(nonEduNotes) : nonEduNotes);
+    }
 
     // Build condensed transcript sample with timestamps for AI (staying strictly within Groq 8k TPM budget)
     const sampledTranscript: string[] = [];
@@ -286,15 +318,26 @@ ${transcriptExcerpt}`
 - NEVER return empty chapters or say "only music was played". Synthesize complete, high-yield academic study notes as taught on the whiteboard.`}
 
 TASK & CRITICAL RULES:
-1. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, chemical formulas/reactions, physics laws, or algorithms taught in this subject.
-2. ${isCodingTopic 
+1. EDUCATIONAL ASSESSMENT:
+${forceGenerate ? '- USER OVERRIDE: The user explicitly requested "FORCE GENERATE". You MUST set "isEducational": true and extract the most structured notes, key concepts, or timeline breakdown possible from this video.' : `- Evaluate whether this video is an educational / tutorial / instructional lecture, or non-educational entertainment (e.g. music video, song, album, movie trailer, standup comedy, purely video game stream).
+- If this is CLEARLY a non-educational song, music video, or entertainment video without educational teaching value:
+  * Set "isEducational": false
+  * Set "contentType": "music_entertainment"
+  * In "nonEducationalReason", write a polite message in ${targetLanguage === 'bn' || targetLanguage === 'mixed' ? 'Bengali (বাংলা)' : 'English'} explaining why lecture notes are not applicable for this entertainment/music video, and mentioning they can click "Force Generate" if they still wish.
+  * Return empty arrays for "chapters", "keyTakeaways", and null for "quiz".
+- Otherwise, set "isEducational": true, "contentType": "educational", and generate full lecture notes.`}
+2. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, chemical formulas/reactions, physics laws, or algorithms taught in this subject.
+3. ${isCodingTopic 
   ? `PROGRAMMING CODE FIDELITY: This is a programming course. Provide clean, authentic code snippets with syntax highlighting in 'codeSnippet' and specify 'codeLanguage' (e.g. cpp, python, java, js).`
   : `STRICT PROHIBITION OF PROGRAMMING CODE: This is a Science / Chemistry / Math / Academic lecture, NOT a programming class. You MUST NOT generate any programming code, Python scripts, or algorithms! 'codeSnippet' and 'codeLanguage' MUST BE null! All mathematical formulas (e.g., A = Z + N, Ksp, etc.), reaction equations, and derivations must be written directly in 'explanation' and 'keyPoints'.`}
-3. TIMESTAMPS: Provide accurate or realistic sequential timestamps ("MM:SS") for each concept so students can navigate their study session.
-4. ${languageInstruction}
-5. SCIENTIFIC & MATHEMATICAL NOTATION: Use standard subscript ('_' or '_{...}') and superscript ('^' or '^{...}') notation for all formulas, chemical equations, powers, and orbital symbols (e.g. d_{x^2-y^2}, d_{z^2}, H_2O, Ca^{2+}, 10^{-3}, x^2 + y^2 = r^2).
-6. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
+4. TIMESTAMPS: Provide accurate or realistic sequential timestamps ("MM:SS") for each concept so students can navigate their study session.
+5. ${languageInstruction}
+6. SCIENTIFIC & MATHEMATICAL NOTATION: Use standard subscript ('_' or '_{...}') and superscript ('^' or '^{...}') notation for all formulas, chemical equations, powers, and orbital symbols (e.g. d_{x^2-y^2}, d_{z^2}, H_2O, Ca^{2+}, 10^{-3}, x^2 + y^2 = r^2).
+7. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
 {
+  "isEducational": ${forceGenerate ? 'true' : 'true'},
+  "contentType": "educational",
+  "nonEducationalReason": null,
   "summary": "Crisp 2-3 sentence overview of what is taught in this lecture.",
   "chapters": [
     {
@@ -339,6 +382,37 @@ TASK & CRITICAL RULES:
           if (typeof t !== 'string') return '';
           return t.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').replace(/\\t/g, '  ').trim();
         };
+
+        const isEdu = forceGenerate ? true : parsed.isEducational !== false;
+        if (!isEdu) {
+          const nonEduReason = cleanText(parsed.nonEducationalReason) || cleanText(parsed.summary) || (
+            targetLanguage === 'bn' || targetLanguage === 'mixed'
+              ? 'ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow-এর এআই নোট সাধারণত টিউটোরিয়াল বা একাডেমিক ক্লাসের জন্য তৈরি। আপনি চাইলে Force Generate বাটনে ক্লিক করতে পারেন।'
+              : 'This video appears to be an entertainment or music video rather than an instructional lecture.'
+          );
+
+          const nonEduNotes: AILectureNotes = {
+            videoId,
+            videoTitle,
+            language: targetLanguage,
+            summary: nonEduReason,
+            chapters: [],
+            keyTakeaways: [],
+            quiz: undefined,
+            fullMarkdown: `# ${videoTitle}\n\n${nonEduReason}`,
+            generatedAt: new Date().toISOString(),
+            isRealTranscriptGrounded: hasMeaningfulSpeech,
+            isEducational: false,
+            nonEducationalReason: nonEduReason,
+            contentType: parsed.contentType || 'music_entertainment',
+          };
+
+          return NextResponse.json(
+            targetLanguage === 'bn' || targetLanguage === 'mixed'
+              ? humanizeLectureNotes(nonEduNotes)
+              : nonEduNotes
+          );
+        }
 
         const chapters: LectureNoteChapter[] = (parsed.chapters || []).map((ch: any, idx: number) => {
           const rawCode = cleanText(ch.codeSnippet);
@@ -398,6 +472,8 @@ TASK & CRITICAL RULES:
           fullMarkdown: markdown,
           generatedAt: new Date().toISOString(),
           isRealTranscriptGrounded: hasMeaningfulSpeech,
+          isEducational: true,
+          contentType: 'educational',
         };
 
         const finalNotes = (targetLanguage === 'bn' || targetLanguage === 'mixed')
@@ -497,6 +573,8 @@ TASK & CRITICAL RULES:
       fullMarkdown: fallbackMarkdown,
       generatedAt: new Date().toISOString(),
       isRealTranscriptGrounded: subtitles.length > 0,
+      isEducational: true,
+      contentType: 'educational',
     };
 
     const finalFallbackNotes = (targetLanguage === 'bn' || targetLanguage === 'mixed')

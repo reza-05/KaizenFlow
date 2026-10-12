@@ -135,4 +135,7 @@ export interface AILectureNotes {
   fullMarkdown: string;
   generatedAt: string;
   isRealTranscriptGrounded: boolean;
+  isEducational?: boolean;
+  nonEducationalReason?: string;
+  contentType?: 'educational' | 'music_entertainment' | 'unknown';
 }

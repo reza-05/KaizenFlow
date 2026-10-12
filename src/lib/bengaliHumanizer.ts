@@ -118,6 +118,7 @@ export function humanizeLectureNotes(notes: AILectureNotes): AILectureNotes {
     chapters,
     keyTakeaways,
     quiz,
+    nonEducationalReason: notes.nonEducationalReason ? humanizeBengaliText(notes.nonEducationalReason) : undefined,
     fullMarkdown: humanizeBengaliText(notes.fullMarkdown || ''),
   };
 }
