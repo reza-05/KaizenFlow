@@ -1,5 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "KaizenFlow — Lock In & Learn | Distraction-Free Video Study",
@@ -17,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+    <html lang="en" className="h-full antialiased overflow-x-hidden" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col w-full max-w-full overflow-x-hidden" suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

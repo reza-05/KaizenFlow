@@ -69,18 +69,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   const levelInfo = calculateLevelFromXP(currentProfile?.totalXP || 0);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-sm transition-colors duration-200">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full max-w-full border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-sm transition-colors duration-200 overflow-x-hidden">
+      <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-2.5 sm:px-6 lg:px-8 w-full">
         {/* Brand identity */}
-        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 shrink-0">
           {onBackToDashboard ? (
             <button
               onClick={onBackToDashboard}
               className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0 cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden xs:inline">Back to Library</span>
-              <span className="xs:hidden">Back</span>
+              <span className="hidden sm:inline">Back to Library</span>
+              <span className="sm:hidden">Back</span>
             </button>
           ) : isRewardsPage ? (
             <Link
@@ -88,11 +88,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors shrink-0 border border-[var(--border-subtle)]"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Library</span>
+              <span className="hidden sm:inline">Back to Library</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           ) : (
             <Link href="/" className="flex items-baseline gap-2 group shrink-0">
-              <span className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
+              <span className="text-base sm:text-xl font-bold tracking-tight text-[var(--text-primary)] font-sans">
                 KaizenFlow
               </span>
               <span className="hidden md:inline-block text-xs font-medium text-[var(--text-secondary)] border-l border-[var(--border-subtle)] pl-2.5">
@@ -111,12 +112,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right Action & Stats Bar */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Level & Rank Pill (Links to /rewards page) */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Level & Rank Pill (Hidden on mobile < sm, visible on tablet & desktop) */}
           <Link
             href="/rewards"
             title={`Scholar Level ${levelInfo.level}: ${levelInfo.title} • View Levels & Badges`}
-            className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)]/70 px-2.5 py-1 text-xs font-semibold text-[var(--text-primary)] transition-all cursor-pointer shadow-xs"
+            className="hidden sm:flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)]/70 px-2.5 py-1 text-xs font-semibold text-[var(--text-primary)] transition-all cursor-pointer shadow-xs shrink-0"
           >
             <Trophy className="h-3.5 w-3.5 text-amber-500" />
             <span>Lvl {levelInfo.level}</span>
@@ -129,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Link
             href="/rewards"
             title="Daily Study Streak • View Badges & Streaks"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer shrink-0"
           >
             <ClashFlame size={14} />
             <span>{userProfile?.currentStreak || 0}</span>
@@ -140,7 +141,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Link
             href="/rewards"
             title="Total Earned XP • View Level Progression"
-            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2 sm:px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-xs transition-colors cursor-pointer shrink-0"
           >
             <Award className="h-3.5 w-3.5 text-[#059669]" />
             <span>{userProfile?.totalXP || 0}</span>
@@ -165,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={toggleTheme}
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -251,10 +252,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-subtle)] px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer shadow-2xs shrink-0"
             >
               <LogIn className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="hidden xs:inline">Sign In</span>
+              <span className="hidden sm:inline">Sign In</span>
             </Link>
           )}
         </div>

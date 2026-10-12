@@ -1352,14 +1352,14 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         </div>
 
         {/* Master Control Buttons (Always visible on screen!) */}
-        <div className="flex items-center justify-between gap-3 pt-1 border-t border-[var(--border-subtle)]">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-3 pt-1 border-t border-[var(--border-subtle)]">
           {/* Left Controls: Play, Rewind 10s, Next Video, Volume, Time */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
               title={isPlaying ? 'Pause (Space / K)' : 'Play (Space / K)'}
-              className="flex h-8.5 w-8.5 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-2xs"
+              className="flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-2xs shrink-0"
             >
               {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
             </button>
@@ -1368,7 +1368,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             <button
               onClick={handleRewind10}
               title="১০ সেকেন্ড পেছনে যান (J / Left Arrow)"
-              className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+              className="flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer shrink-0"
             >
               <RotateCcw className="h-4 w-4" />
             </button>
@@ -1378,18 +1378,18 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               <button
                 onClick={onNextVideo}
                 title="পরের লেকচার (Shift+N)"
-                className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+                className="flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer shrink-0"
               >
                 <SkipForward className="h-4 w-4" />
               </button>
             )}
 
             {/* Mute & Volume Slider */}
-            <div className="flex items-center gap-1 pl-1">
+            <div className="flex items-center gap-1 pl-0.5 sm:pl-1 shrink-0">
               <button
                 onClick={toggleMute}
                 title={isMuted ? 'আনমিউট করুন (M)' : 'মিউট করুন (M)'}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer shrink-0"
               >
                 {isMuted || volume === 0 ? <VolumeX className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4" />}
               </button>
@@ -1412,19 +1412,19 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </div>
 
           {/* Right Controls: CC, Speed Quick Pill, Settings Popover (Speed & Quality), Theater, Fullscreen */}
-          <div className="flex items-center gap-1 sm:gap-1.5 relative">
+          <div className="flex items-center gap-0.5 sm:gap-1.5 relative shrink-0">
             {/* CC Subtitles Toggle Button */}
             <button
               onClick={toggleCaptions}
               title={isCaptionsOn ? 'সাবটাইটেল বন্ধ করুন (CC)' : 'সাবটাইটেল চালু করুন (CC)'}
-              className={`flex h-8 px-2.5 items-center gap-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex h-8 px-2 sm:px-2.5 items-center gap-1 rounded-lg text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                 isCaptionsOn
                   ? 'border border-[#059669]/40 bg-[#059669]/10 text-[#059669]'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
               }`}
             >
               <Subtitles className="h-3.5 w-3.5" />
-              <span className="text-[11px]">CC</span>
+              <span className="hidden sm:inline text-[11px]">CC</span>
             </button>
 
             {/* Quick Speed Badge (Click opens speed menu directly) */}
@@ -1435,7 +1435,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 setSettingsView('speed');
               }}
               title="প্লেব্যাক স্পিড পরিবর্তন করুন"
-              className="h-8 px-2 rounded-lg text-xs font-mono font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+              className="h-8 px-1.5 sm:px-2 rounded-lg text-xs font-mono font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer shrink-0"
             >
               {playbackSpeed}x
             </button>
@@ -1621,7 +1621,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       {/* Video Title & Meta Bar */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
         <div className="min-w-0 flex-1 space-y-1">
-          <h1 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)] leading-snug">
+          <h1 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)] leading-snug break-words">
             {video.title}
           </h1>
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
@@ -1698,7 +1698,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </div>
 
           {/* 4 Checkpoint Indicator Pills */}
-          <div className="flex items-center gap-1.5 self-start sm:self-center">
+          <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-center">
             {milestones.map(m => {
               const hasTriggered = currentTime >= m.triggerSecond || maxWatchedTime >= m.triggerSecond;
               return hasTriggered ? (

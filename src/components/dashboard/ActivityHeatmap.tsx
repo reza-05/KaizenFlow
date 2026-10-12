@@ -234,7 +234,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 shadow-xs relative transition-colors duration-200">
+    <div className="w-full max-w-full overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 sm:p-6 shadow-xs relative transition-colors duration-200">
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2">

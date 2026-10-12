@@ -236,7 +236,7 @@ export default function KaizenFlowApp() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] transition-colors duration-200">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)] transition-colors duration-200">
       {/* Top Navbar */}
       <Navbar
         userProfile={userProfile || undefined}
@@ -266,7 +266,7 @@ export default function KaizenFlowApp() {
       {/* Main View: Study Room vs Dashboard */}
       {activeCourse && activeVideo ? (
         /* STUDY ROOM / CINEMA FOCUS PLAYER VIEW */
-        <main className={`mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 transition-all duration-300 ${
+        <main className={`w-full max-w-full min-w-0 mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 transition-all duration-300 overflow-x-hidden ${
           isTheaterMode ? 'max-w-[1600px]' : 'max-w-7xl'
         }`}>
           {isTheaterMode ? (
@@ -467,7 +467,7 @@ export default function KaizenFlowApp() {
         </main>
       ) : (
         /* DASHBOARD / LIBRARY VIEW */
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <main className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 w-full max-w-full overflow-x-hidden min-w-0">
           {/* Consistency Heatmap */}
           <ActivityHeatmap
             activityMap={activityMap}
@@ -478,7 +478,7 @@ export default function KaizenFlowApp() {
 
           {/* Active Courses Section */}
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-[var(--text-secondary)]" />
                 <h2 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
