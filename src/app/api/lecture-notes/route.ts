@@ -281,7 +281,8 @@ TASK & CRITICAL RULES:
   : `STRICT PROHIBITION OF PROGRAMMING CODE: This is a Science / Chemistry / Math / Academic lecture, NOT a programming class. You MUST NOT generate any programming code, Python scripts, or algorithms! 'codeSnippet' and 'codeLanguage' MUST BE null! All mathematical formulas (e.g., A = Z + N, Ksp, etc.), reaction equations, and derivations must be written directly in 'explanation' and 'keyPoints'.`}
 3. TIMESTAMPS: Provide accurate or realistic sequential timestamps ("MM:SS") for each concept so students can navigate their study session.
 4. ${languageInstruction}
-5. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
+5. SCIENTIFIC & MATHEMATICAL NOTATION: Use standard subscript ('_' or '_{...}') and superscript ('^' or '^{...}') notation for all formulas, chemical equations, powers, and orbital symbols (e.g. d_{x^2-y^2}, d_{z^2}, H_2O, Ca^{2+}, 10^{-3}, x^2 + y^2 = r^2).
+6. STRUCTURED JSON: Respond ONLY with a valid JSON object matching this schema:
 {
   "summary": "Crisp 2-3 sentence overview of what is taught in this lecture.",
   "chapters": [

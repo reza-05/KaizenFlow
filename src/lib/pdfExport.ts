@@ -33,6 +33,68 @@ function chunksToBlob(chunks: Uint8Array[]): Blob {
   return new Blob([merged], { type: 'application/pdf' });
 }
 
+function formatScientificToHtml(text: string): string {
+  if (!text) return '';
+  let s = text;
+
+  // 1. Math symbols & LaTeX macros
+  s = s.replace(/\\times/g, '×')
+       .replace(/\\div/g, '÷')
+       .replace(/\\pm/g, '±')
+       .replace(/\\approx/g, '≈')
+       .replace(/\\neq/g, '≠')
+       .replace(/\\leq?/g, '≤')
+       .replace(/\\geq?/g, '≥')
+       .replace(/\\(?:rightarrow|to)/g, '→')
+       .replace(/\\(?:leftarrow)/g, '←')
+       .replace(/\\(?:leftrightarrow|iff)/g, '↔')
+       .replace(/\\(?:Rightarrow|implies)/g, '⇒')
+       .replace(/\\alpha/g, 'α')
+       .replace(/\\beta/g, 'β')
+       .replace(/\\gamma/g, 'γ')
+       .replace(/\\Delta/g, 'Δ')
+       .replace(/\\delta/g, 'δ')
+       .replace(/\\lambda/g, 'λ')
+       .replace(/\\pi/g, 'π')
+       .replace(/\\sigma/g, 'σ')
+       .replace(/\\mu/g, 'μ')
+       .replace(/\\theta/g, 'θ')
+       .replace(/\\infty/g, '∞')
+       .replace(/\\degree/g, '°');
+
+  // Strip math delimiters: $...$, \(...\), \[...\]
+  s = s.replace(/\\\[([\s\S]*?)\\\]/g, '$1')
+       .replace(/\\\(([\s\S]*?)\\\)/g, '$1')
+       .replace(/\$([^\$]+)\$/g, '$1');
+
+  const parseSuper = (str: string): string => {
+    let res = str.replace(/\^{([^}]+)}/g, '<sup>$1</sup>');
+    res = res.replace(/\^([+-]?[0-9]+|[a-zA-Z]+)/g, '<sup>$1</sup>');
+    return res;
+  };
+
+  // 2. Subscript with braces: _{...} (supports nested superscripts e.g. d_{x^2-y^2})
+  s = s.replace(/_\{([^}]+)\}/g, (_, inner) => '<sub>' + parseSuper(inner) + '</sub>');
+
+  // 3. Superscript with braces: ^{...}
+  s = s.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+
+  // 4. Subscript without braces: _([0-9]+|[a-z]+) e.g. d_xy, H_2O, v_0
+  s = s.replace(/_([0-9]+|[a-z]+)/g, '<sub>$1</sub>');
+
+  // 5. Superscript without braces: ^([+-]?[0-9]+|[a-zA-Z]+) e.g. x^2, z^2
+  s = s.replace(/\^([+-]?[0-9]+|[a-zA-Z]+)/g, '<sup>$1</sup>');
+
+  // 6. Common chemical molecules without underscores: e.g. H2O, CO2, CaCO3, H2SO4
+  s = s.replace(/([A-Z][a-z]?)([0-9]+)(?=[A-Z\s,()+\-।|]|$)/g, (m, el, num) => {
+    const skip = ['UTF', 'MP', 'SHA', 'RGB', 'IP'];
+    if (skip.includes(el)) return m;
+    return el + '<sub>' + num + '</sub>';
+  });
+
+  return s;
+}
+
 function formatMarkdownToHtml(content: string): string {
   if (!content) return '';
 
@@ -44,7 +106,7 @@ function formatMarkdownToHtml(content: string): string {
     .replace(/\\t/g, '  ');
 
   // Handle code blocks ```lang ... ```
-  const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+  const codeBlockRegex = /```([a-zA-Z0-9_-]*)[^\n]*\r?\n([\s\S]*?)(?:```|$)/g;
   clean = clean.replace(codeBlockRegex, (_, lang, code) => {
     return `<div class="code-container">
       <div class="code-header">${escapeHtml(lang || 'code').toUpperCase()}</div>
@@ -58,7 +120,7 @@ function formatMarkdownToHtml(content: string): string {
   // Handle inline code `code`
   clean = clean.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
 
-  // Handle bullet lines
+  // Handle bullet lines and scientific sub/sup formatting
   const lines = clean.split('\n');
   const processedLines: string[] = [];
   let inCode = false;
@@ -71,10 +133,18 @@ function formatMarkdownToHtml(content: string): string {
       inCode = false;
     }
 
-    if (!inCode && (line.trim().startsWith('- ') || line.trim().startsWith('• '))) {
-      processedLines.push(`<li class="bullet-item">${line.trim().replace(/^[-•]\s*/, '')}</li>`);
-    } else {
+    if (inCode) {
       processedLines.push(line);
+      continue;
+    }
+
+    // Apply scientific subscripts & superscripts to text outside code
+    const formattedLine = formatScientificToHtml(line);
+
+    if (formattedLine.trim().startsWith('- ') || formattedLine.trim().startsWith('• ')) {
+      processedLines.push(`<li class="bullet-item">${formattedLine.trim().replace(/^[-•]\s*/, '')}</li>`);
+    } else {
+      processedLines.push(formattedLine);
     }
   }
 
@@ -217,6 +287,26 @@ export function exportNotesToPDF({ courseTitle, videoTitle, notes }: ExportNotes
     strong {
       font-weight: 700;
       color: #09090b;
+    }
+
+    sub {
+      font-size: 78%;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline;
+      bottom: -0.25em;
+      font-weight: 600;
+      color: #b45309;
+    }
+
+    sup {
+      font-size: 78%;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline;
+      top: -0.5em;
+      font-weight: 600;
+      color: #b45309;
     }
 
     .bullet-item {

@@ -282,12 +282,137 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     return questions;
   };
 
-  // Helper to format inline bold **bold** and inline code `code`
+  // Helper to convert LaTeX / chemical / scientific sub & sup notation
+  const toScientificString = (text: string): string => {
+    if (!text) return '';
+    let s = text;
+
+    // 1. Math symbols & LaTeX macros
+    s = s.replace(/\\times/g, '×')
+         .replace(/\\div/g, '÷')
+         .replace(/\\pm/g, '±')
+         .replace(/\\approx/g, '≈')
+         .replace(/\\neq/g, '≠')
+         .replace(/\\leq?/g, '≤')
+         .replace(/\\geq?/g, '≥')
+         .replace(/\\(?:rightarrow|to)/g, '→')
+         .replace(/\\(?:leftarrow)/g, '←')
+         .replace(/\\(?:leftrightarrow|iff)/g, '↔')
+         .replace(/\\(?:Rightarrow|implies)/g, '⇒')
+         .replace(/\\alpha/g, 'α')
+         .replace(/\\beta/g, 'β')
+         .replace(/\\gamma/g, 'γ')
+         .replace(/\\Delta/g, 'Δ')
+         .replace(/\\delta/g, 'δ')
+         .replace(/\\lambda/g, 'λ')
+         .replace(/\\pi/g, 'π')
+         .replace(/\\sigma/g, 'σ')
+         .replace(/\\mu/g, 'μ')
+         .replace(/\\theta/g, 'θ')
+         .replace(/\\infty/g, '∞')
+         .replace(/\\degree/g, '°');
+
+    // Strip math delimiters: $...$, \(...\), \[...\]
+    s = s.replace(/\\\[([\s\S]*?)\\\]/g, '$1')
+         .replace(/\\\(([\s\S]*?)\\\)/g, '$1')
+         .replace(/\$([^\$]+)\$/g, '$1');
+
+    const parseSuper = (str: string): string => {
+      let res = str.replace(/\^{([^}]+)}/g, '<sup>$1</sup>');
+      res = res.replace(/\^([+-]?[0-9]+|[a-zA-Z]+)/g, '<sup>$1</sup>');
+      return res;
+    };
+
+    // 2. Subscript with braces: _{...} (with nested superscripts supported e.g. d_{x^2-y^2})
+    s = s.replace(/_\{([^}]+)\}/g, (_, inner) => '<sub>' + parseSuper(inner) + '</sub>');
+
+    // 3. Superscript with braces: ^{...}
+    s = s.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+
+    // 4. Subscript without braces: _([0-9]+|[a-z]+) e.g. d_xy, d_yz, d_zx, H_2O, v_0
+    s = s.replace(/_([0-9]+|[a-z]+)/g, '<sub>$1</sub>');
+
+    // 5. Superscript without braces: ^([+-]?[0-9]+|[a-zA-Z]+) e.g. x^2, z^2
+    s = s.replace(/\^([+-]?[0-9]+|[a-zA-Z]+)/g, '<sup>$1</sup>');
+
+    // 6. Common chemical formulas without underscores: e.g. H2O, CO2, CaCO3, H2SO4
+    s = s.replace(/([A-Z][a-z]?)([0-9]+)(?=[A-Z\s,()+\-।|]|$)/g, (m, el, num) => {
+      const skip = ['UTF', 'MP', 'SHA', 'RGB', 'IP'];
+      if (skip.includes(el)) return m;
+      return el + '<sub>' + num + '</sub>';
+    });
+
+    return s;
+  };
+
+  interface MathNode {
+    type: 'text' | 'sub' | 'sup';
+    content?: string;
+    children?: MathNode[];
+  }
+
+  const parseMathToNodes = (html: string): MathNode[] => {
+    const tagRegex = /<(sub|sup)>([\s\S]*?)<\/\1>/g;
+    const nodes: MathNode[] = [];
+    let lastIdx = 0;
+    let match;
+
+    while ((match = tagRegex.exec(html)) !== null) {
+      if (match.index > lastIdx) {
+        nodes.push({ type: 'text', content: html.slice(lastIdx, match.index) });
+      }
+      nodes.push({
+        type: match[1] as 'sub' | 'sup',
+        children: parseMathToNodes(match[2]),
+      });
+      lastIdx = match.index + match[0].length;
+    }
+
+    if (lastIdx < html.length) {
+      nodes.push({ type: 'text', content: html.slice(lastIdx) });
+    }
+
+    return nodes;
+  };
+
+  const renderMathNodes = (nodes: MathNode[], keyPrefix = 'sci'): React.ReactNode[] => {
+    return nodes.map((node, i) => {
+      const key = `${keyPrefix}-${i}`;
+      if (node.type === 'sub') {
+        return (
+          <sub key={key} className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 align-sub leading-none">
+            {renderMathNodes(node.children || [], `${key}-sub`)}
+          </sub>
+        );
+      }
+      if (node.type === 'sup') {
+        return (
+          <sup key={key} className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 align-super leading-none">
+            {renderMathNodes(node.children || [], `${key}-sup`)}
+          </sup>
+        );
+      }
+      return node.content || '';
+    });
+  };
+
+  const renderScientificText = (text: string): React.ReactNode => {
+    if (!text) return null;
+    const html = toScientificString(text);
+    const nodes = parseMathToNodes(html);
+    return renderMathNodes(nodes);
+  };
+
+  // Helper to format inline bold **bold**, inline code `code`, and scientific superscripts/subscripts
   const renderInlineFormatting = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*|`[^`]+`)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-semibold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>;
+        return (
+          <strong key={i} className="font-semibold text-[var(--text-primary)]">
+            {renderScientificText(part.slice(2, -2))}
+          </strong>
+        );
       }
       if (part.startsWith('`') && part.endsWith('`')) {
         return (
@@ -296,7 +421,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
           </code>
         );
       }
-      return part;
+      return <React.Fragment key={i}>{renderScientificText(part)}</React.Fragment>;
     });
   };
 
@@ -605,7 +730,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                     <span>Lecture Overview</span>
                   </div>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    {aiNotes.summary}
+                    {renderInlineFormatting(aiNotes.summary)}
                   </p>
                   {aiNotes.isRealTranscriptGrounded && (
                     <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-2 pt-2 border-t border-[var(--border-subtle)]">
@@ -705,11 +830,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                             </div>
 
                             <h5 className="text-xs font-bold text-[var(--text-primary)] leading-tight">
-                              {ch.title}
+                              {renderInlineFormatting(ch.title)}
                             </h5>
 
                             <p className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">
-                              {ch.explanation}
+                              {renderInlineFormatting(ch.explanation)}
                             </p>
 
                             {/* Code Snippet Box (if instructor wrote code) */}
@@ -742,7 +867,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                                 {ch.keyPoints.map((kp, kIdx) => (
                                   <li key={kIdx} className="text-[11px] text-[var(--text-secondary)] flex items-start gap-1.5">
                                     <span className="text-amber-500 font-bold">&bull;</span>
-                                    <span>{kp}</span>
+                                    <span>{renderInlineFormatting(kp)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -764,7 +889,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                       {aiNotes.keyTakeaways.map((kt, idx) => (
                         <li key={idx} className="text-xs text-[var(--text-secondary)] flex items-start gap-2">
                           <span className="text-amber-500 font-bold mt-0.5">✓</span>
-                          <span>{kt}</span>
+                          <span>{renderInlineFormatting(kt)}</span>
                         </li>
                       ))}
                     </ul>
@@ -818,7 +943,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                                   Q{qIdx + 1}
                                 </span>
                                 <p className="text-xs font-medium text-[var(--text-primary)] leading-snug">
-                                  {q.question}
+                                  {renderInlineFormatting(q.question)}
                                 </p>
                               </div>
 
@@ -853,7 +978,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                                       }}
                                       className={`flex items-center justify-between text-left px-2.5 py-1.5 rounded-md border text-xs transition-colors cursor-pointer disabled:cursor-default ${optStyle}`}
                                     >
-                                      <span>{opt}</span>
+                                      <span>{renderInlineFormatting(opt)}</span>
                                       {isAnswered && isThisCorrect && (
                                         <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0 ml-1.5" />
                                       )}
@@ -871,7 +996,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                                   isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-800 dark:text-amber-200'
                                 }`}>
                                   <span className="font-bold">{isCorrect ? '✓ সঠিক উত্তর: ' : '💡 ব্যাখ্যা: '}</span>
-                                  {q.explanation}
+                                  {renderInlineFormatting(q.explanation)}
                                 </div>
                               )}
                             </div>
