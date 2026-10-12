@@ -12,7 +12,6 @@ import {
   Minimize, 
   RectangleHorizontal,
   Lock, 
-  ShieldAlert, 
   Sliders, 
   SkipForward, 
   CheckCircle2, 
@@ -21,10 +20,12 @@ import {
   Check, 
   Subtitles,
   Settings,
+  ChevronRight,
+  ChevronLeft,
   X,
   Star
 } from 'lucide-react';
-import { VideoItem, StudyMode, VideoMilestone } from '@/types';
+import { VideoItem, VideoMilestone } from '@/types';
 import { getVideoProgress, saveVideoPlaybackProgress } from '@/lib/storage';
 
 declare global {
@@ -113,13 +114,13 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [isPureFullscreen, setIsPureFullscreen] = useState<boolean>(false);
   const [isFsOverlayVisible, setIsFsOverlayVisible] = useState<boolean>(true);
   const fsOverlayTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [studyMode, setStudyMode] = useState<StudyMode>('lecture');
   const [isAdShieldActive, setIsAdShieldActive] = useState<boolean>(false);
   const wasAutoMutedByShieldRef = useRef<boolean>(false);
 
-  // Focus trap state (pauses playback if user clicks outside during lecture mode)
-  const [isWindowFocused, setIsWindowFocused] = useState<boolean>(true);
-  const [graceCounter, setGraceCounter] = useState<number>(0);
+  // Settings Popover State (YouTube-style Clean Menu)
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [settingsView, setSettingsView] = useState<'main' | 'speed' | 'quality'>('main');
+  const settingsMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Multi-Digit Milestone Verification State
   const [milestones, setMilestones] = useState<MilestoneDigit[]>([]);
@@ -542,47 +543,19 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     };
   }, [playlistId, video.ytVideoId]);
 
-  // Focus Trap (3-second grace period when leaving tab in Lecture Mode)
+  // Close settings popover on click outside
   useEffect(() => {
-    if (studyMode === 'studio') {
-      setIsWindowFocused(true);
-      return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (settingsMenuRef.current && !settingsMenuRef.current.contains(e.target as Node)) {
+        setIsSettingsOpen(false);
+        setSettingsView('main');
+      }
+    };
+    if (isSettingsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
-
-    let graceTimer: NodeJS.Timeout;
-
-    const handleBlur = () => {
-      setGraceCounter(3);
-      graceTimer = setInterval(() => {
-        setGraceCounter(prev => {
-          if (prev <= 1) {
-            setIsWindowFocused(false);
-            if (playerRef.current?.pauseVideo) {
-              playerRef.current.pauseVideo();
-            }
-            clearInterval(graceTimer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    };
-
-    const handleFocus = () => {
-      clearInterval(graceTimer);
-      setIsWindowFocused(true);
-      setGraceCounter(0);
-    };
-
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(graceTimer);
-    };
-  }, [studyMode]);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSettingsOpen]);
 
   // Global Seek Listener (for clickable timestamps in AI Lecture Notes)
   useEffect(() => {
@@ -1100,27 +1073,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </div>
         )}
 
-        {/* Focus Trap Screen (When leaving tab in Lecture Mode) */}
-        {!isWindowFocused && studyMode === 'lecture' && (
-          <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 text-red-400 mb-3 border border-red-500/30">
-              <ShieldAlert className="h-7 w-7" />
-            </div>
-            <h3 className="text-lg font-bold text-white">Focus Session Paused</h3>
-            <p className="text-xs text-zinc-300 max-w-sm mt-1">
-              You clicked outside the KaizenFlow window. Return here to resume video playback and focus checkpoints.
-            </p>
-            <button
-              onClick={() => {
-                setIsWindowFocused(true);
-                playerRef.current?.playVideo?.();
-              }}
-              className="mt-4 rounded-md bg-white px-4 py-1.5 text-xs font-semibold text-black hover:bg-zinc-200 transition-colors cursor-pointer"
-            >
-              Resume Focus
-            </button>
-          </div>
-        )}
 
         {/* End-of-Lesson Celebration Screen (Completely shields user from YouTube end-screen recommendations!) */}
         {isEnded && (
@@ -1323,14 +1275,14 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         </div>
 
         {/* Master Control Buttons (Always visible on screen!) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-[var(--border-subtle)]">
-          {/* Left Controls: Play, Rewind, Volume */}
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3 pt-1 border-t border-[var(--border-subtle)]">
+          {/* Left Controls: Play, Rewind 10s, Next Video, Volume, Time */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
-              title={isPlaying ? 'Pause' : 'Play'}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] hover:opacity-90 transition-opacity cursor-pointer shadow-2xs"
+              title={isPlaying ? 'Pause (Space / K)' : 'Play (Space / K)'}
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-2xs"
             >
               {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
             </button>
@@ -1338,20 +1290,31 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             {/* Rewind 10s */}
             <button
               onClick={handleRewind10}
-              title="Rewind 10 seconds"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+              title="১০ সেকেন্ড পেছনে যান (J / Left Arrow)"
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
             >
               <RotateCcw className="h-4 w-4" />
             </button>
 
+            {/* Next Video (Playback navigation placed on left) */}
+            {hasNextVideo && onNextVideo && (
+              <button
+                onClick={onNextVideo}
+                title="পরের লেকচার (Shift+N)"
+                className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+              >
+                <SkipForward className="h-4 w-4" />
+              </button>
+            )}
+
             {/* Mute & Volume Slider */}
-            <div className="flex items-center gap-1.5 pl-1">
+            <div className="flex items-center gap-1 pl-1">
               <button
                 onClick={toggleMute}
-                title={isMuted ? 'Unmute' : 'Mute'}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                title={isMuted ? 'আনমিউট করুন (M)' : 'মিউট করুন (M)'}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
               >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                {isMuted || volume === 0 ? <VolumeX className="h-4 w-4 text-red-500" /> : <Volume2 className="h-4 w-4" />}
               </button>
               <input
                 type="range"
@@ -1359,81 +1322,180 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 max="100"
                 value={isMuted ? 0 : volume}
                 onChange={e => handleVolumeChange(Number(e.target.value))}
-                className="w-16 h-1 bg-[var(--border-subtle)] rounded-lg appearance-none cursor-pointer accent-[#059669]"
+                className="w-14 sm:w-18 h-1 bg-[var(--border-subtle)] rounded-lg appearance-none cursor-pointer accent-[#059669]"
               />
             </div>
+
+            {/* Time Stamp */}
+            <span className="hidden md:inline-block font-mono text-[11px] text-[var(--text-secondary)] pl-1 select-none">
+              <span className="text-[var(--text-primary)] font-semibold">{formatTime(currentTime)}</span>
+              <span className="mx-1 text-[var(--border-subtle)]">/</span>
+              <span>{formatTime(duration)}</span>
+            </span>
           </div>
 
-          {/* Right Controls: Quality, CC, Speed Boost, Fullscreen */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Right Controls: CC, Speed Quick Pill, Settings Popover (Speed & Quality), Theater, Fullscreen */}
+          <div className="flex items-center gap-1 sm:gap-1.5 relative">
             {/* CC Subtitles Toggle Button */}
             <button
               onClick={toggleCaptions}
-              title={isCaptionsOn ? 'Disable Subtitles' : 'Enable Subtitles (CC)'}
-              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              title={isCaptionsOn ? 'সাবটাইটেল বন্ধ করুন (CC)' : 'সাবটাইটেল চালু করুন (CC)'}
+              className={`flex h-8 px-2.5 items-center gap-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 isCaptionsOn
-                  ? 'border-[#059669] bg-[#059669]/10 text-[#059669]'
-                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  ? 'border border-[#059669]/40 bg-[#059669]/10 text-[#059669]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
               }`}
             >
               <Subtitles className="h-3.5 w-3.5" />
-              <span>CC</span>
+              <span className="text-[11px]">CC</span>
             </button>
 
-            {/* Quality Selector (1080p, 720p, etc.) */}
-            <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]">
-              <Settings className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
-              <select
-                value={selectedQuality}
-                onChange={e => handleQualityChange(e.target.value)}
-                className="bg-transparent font-sans text-xs font-semibold focus:outline-none cursor-pointer"
-              >
-                {QUALITY_OPTIONS.map(q => (
-                  <option key={q.value} value={q.value} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                    {q.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Quick Speed Badge (Click opens speed menu directly) */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsSettingsOpen(true);
+                setSettingsView('speed');
+              }}
+              title="প্লেব্যাক স্পিড পরিবর্তন করুন"
+              className="h-8 px-2 rounded-lg text-xs font-mono font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+            >
+              {playbackSpeed}x
+            </button>
 
-            {/* Speed Boost Selector (0.5x to 3.0x Ultra Boost) */}
-            <div className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]">
-              <Sliders className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
-              <select
-                value={playbackSpeed}
-                onChange={e => handleSpeedChange(Number(e.target.value))}
-                className="bg-transparent font-mono text-xs font-semibold focus:outline-none cursor-pointer"
-              >
-                {SPEED_OPTIONS.map(speed => (
-                  <option key={speed.value} value={speed.value} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
-                    {speed.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Mode Toggle */}
-            <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] p-0.5 text-xs font-medium">
+            {/* Settings Popover Button (YouTube Style) */}
+            <div className="relative" ref={settingsMenuRef}>
               <button
-                onClick={() => setStudyMode('lecture')}
-                className={`rounded-md px-2.5 py-1 transition-colors cursor-pointer ${
-                  studyMode === 'lecture'
-                    ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-semibold'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                type="button"
+                onClick={() => {
+                  setIsSettingsOpen(prev => !prev);
+                  setSettingsView('main');
+                }}
+                title="প্লেয়ার সেটিংস"
+                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                  isSettingsOpen
+                    ? 'bg-[var(--bg-surface-subtle)] text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
                 }`}
               >
-                Lecture Mode
+                <Settings className={`h-4 w-4 transition-transform duration-200 ${isSettingsOpen ? 'rotate-45' : ''}`} />
               </button>
-              <button
-                onClick={() => setStudyMode('studio')}
-                className={`rounded-md px-2.5 py-1 transition-colors cursor-pointer ${
-                  studyMode === 'studio'
-                    ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-semibold'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Studio Mode
-              </button>
+
+              {/* YouTube Style Floating Settings Menu */}
+              {isSettingsOpen && (
+                <div className="absolute bottom-full right-0 mb-2 w-60 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1.5 shadow-2xl backdrop-blur-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 text-xs">
+                  {settingsView === 'main' && (
+                    <div className="space-y-0.5">
+                      <div className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--border-subtle)] mb-1">
+                        সেটিংস
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSettingsView('speed')}
+                        className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[var(--bg-surface-subtle)] text-[var(--text-primary)] transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 font-medium">
+                          <Sliders className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
+                          <span>প্লেব্যাক গতি</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[var(--text-secondary)] font-mono text-xs">
+                          <span>{playbackSpeed === 1.0 ? 'স্বাভাবিক (1.0x)' : `${playbackSpeed}x`}</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSettingsView('quality')}
+                        className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[var(--bg-surface-subtle)] text-[var(--text-primary)] transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 font-medium">
+                          <Settings className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
+                          <span>ভিডিও কোয়ালিটি</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[var(--text-secondary)] text-xs">
+                          <span>{QUALITY_OPTIONS.find(q => q.value === selectedQuality)?.label || 'Auto'}</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
+                  {settingsView === 'speed' && (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setSettingsView('main')}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg hover:bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-semibold transition-colors cursor-pointer border-b border-[var(--border-subtle)]"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                        <span>প্লেব্যাক গতি</span>
+                      </button>
+                      <div className="max-h-56 overflow-y-auto space-y-0.5">
+                        {SPEED_OPTIONS.map(opt => {
+                          const isSelected = playbackSpeed === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => {
+                                handleSpeedChange(opt.value);
+                                setIsSettingsOpen(false);
+                                setSettingsView('main');
+                              }}
+                              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'
+                                  : 'text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
+                              }`}
+                            >
+                              <span className="font-mono">{opt.label}</span>
+                              {isSelected && <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsView === 'quality' && (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setSettingsView('main')}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg hover:bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-semibold transition-colors cursor-pointer border-b border-[var(--border-subtle)]"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                        <span>ভিডিও কোয়ালিটি</span>
+                      </button>
+                      <div className="max-h-56 overflow-y-auto space-y-0.5">
+                        {QUALITY_OPTIONS.map(opt => {
+                          const isSelected = selectedQuality === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => {
+                                handleQualityChange(opt.value);
+                                setIsSettingsOpen(false);
+                                setSettingsView('main');
+                              }}
+                              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'
+                                  : 'text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
+                              }`}
+                            >
+                              <span>{opt.label}</span>
+                              {isSelected && <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Theater Mode (Wide Screen) Toggle */}
@@ -1442,14 +1504,13 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 type="button"
                 onClick={onToggleTheater}
                 title={isTheaterMode ? 'স্বাভাবিক ভিউ (T)' : 'ওয়াইড স্ক্রিন / থিয়েটার ভিউ (T)'}
-                className={`flex h-8 items-center gap-1.5 px-2.5 rounded-lg border transition-colors cursor-pointer text-xs font-medium ${
+                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer ${
                   isTheaterMode
-                    ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold shadow-2xs'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
+                    ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
                 }`}
               >
                 <RectangleHorizontal className="h-4 w-4" />
-                <span className="hidden md:inline">{isTheaterMode ? 'স্বাভাবিক' : 'থিয়েটার'}</span>
               </button>
             )}
 
@@ -1458,26 +1519,14 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               type="button"
               onClick={togglePureFullscreen}
               title={isPureFullscreen ? 'ফুলস্ক্রিন থেকে প্রস্থান (F / Esc)' : 'ফুলস্ক্রিন - শুধুমাত্র ভিডিও (F)'}
-              className={`flex h-8 items-center gap-1.5 px-2.5 rounded-lg border transition-colors cursor-pointer text-xs font-medium ${
+              className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer ${
                 isPureFullscreen
-                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold'
-                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
+                  ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
               }`}
             >
               {isPureFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-              <span className="hidden md:inline">ফুলস্ক্রিন</span>
             </button>
-
-            {/* Next Lesson Button */}
-            {hasNextVideo && onNextVideo && (
-              <button
-                onClick={onNextVideo}
-                className="flex items-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3 py-1.5 text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <span>Next</span>
-                <SkipForward className="h-3.5 w-3.5" />
-              </button>
-            )}
           </div>
         </div>
       </div>
