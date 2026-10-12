@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, 
@@ -31,9 +31,7 @@ import {
   Crown,
   Share2,
   Loader2,
-  Star,
-  Target,
-  TrendingUp
+  Star
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
@@ -80,67 +78,6 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'queue' | 'ai_notes' | 'notes'>('queue');
   const [newNoteContent, setNewNoteContent] = useState<string>('');
-
-  // Course Queue Search & Filter State
-  const [lectureSearch, setLectureSearch] = useState<string>('');
-
-  // Bengali Number Helper
-  const toBn = (n: number | string) => {
-    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return String(n).replace(/\d/g, d => bnDigits[parseInt(d, 10)] ?? d);
-  };
-
-  // Syllabus Progress Statistics & Pace Projection
-  const syllabusStats = useMemo(() => {
-    const total = videos.length;
-    const verified = videos.filter(
-      v => Boolean(verifiedMap[`${playlistId}_${v.ytVideoId}`] || verifiedMap[v.ytVideoId])
-    ).length;
-    const percent = total > 0 ? Math.round((verified / total) * 100) : 0;
-
-    // Remaining duration calculation (for unverified videos)
-    const unverifiedVideos = videos.filter(
-      v => !Boolean(verifiedMap[`${playlistId}_${v.ytVideoId}`] || verifiedMap[v.ytVideoId])
-    );
-    const remainingSec = unverifiedVideos.reduce((acc, v) => acc + (v.durationSeconds || 0), 0);
-
-    const remHours = Math.floor(remainingSec / 3600);
-    const remMins = Math.floor((remainingSec % 3600) / 60);
-
-    let remainingFormatted = '';
-    if (total > 0 && verified === total) {
-      remainingFormatted = 'সম্পূর্ণ সমাপ্ত 🎉';
-    } else if (remHours > 0) {
-      remainingFormatted = `${toBn(remHours)} ঘণ্টা ${toBn(remMins)} মি.`;
-    } else if (remMins > 0) {
-      remainingFormatted = `${toBn(remMins)} মিনিট`;
-    } else {
-      remainingFormatted = '০ মিনিট';
-    }
-
-    // Daily pace projection (default: 40 minutes per day)
-    const dailyPaceMinutes = 40;
-    const remainingTotalMins = Math.ceil(remainingSec / 60);
-    const projectedDays = remainingTotalMins > 0 
-      ? Math.max(1, Math.ceil(remainingTotalMins / dailyPaceMinutes))
-      : 0;
-
-    return {
-      total,
-      verified,
-      percent,
-      remainingSec,
-      remainingFormatted,
-      projectedDays,
-    };
-  }, [videos, verifiedMap, playlistId]);
-
-  // Filtered videos based on search
-  const filteredVideos = useMemo(() => {
-    if (!lectureSearch.trim()) return videos;
-    const q = lectureSearch.toLowerCase().trim();
-    return videos.filter(v => v.title.toLowerCase().includes(q));
-  }, [videos, lectureSearch]);
 
   // AI Notes State
   const [aiNotes, setAiNotes] = useState<AILectureNotes | null>(null);
@@ -663,71 +600,6 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       {/* TAB 1: Course Queue */}
       {activeTab === 'queue' && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Syllabus Progress Summary & Projection Card */}
-          <div className="p-3.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 space-y-3 shrink-0">
-            {/* Top row: Title and Completion Badge */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Target className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-xs font-bold text-[var(--text-primary)] truncate">সিলেবাস প্রগ্রেস</span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                {toBn(syllabusStats.verified)}/{toBn(syllabusStats.total)} ({toBn(syllabusStats.percent)}%)
-              </span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-[var(--bg-surface)] h-2 rounded-full overflow-hidden border border-[var(--border-subtle)]">
-              <div 
-                className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${syllabusStats.percent}%` }}
-              />
-            </div>
-
-            {/* Stats Row: Remaining Duration & Pace Projection */}
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="flex items-center gap-1.5 p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                <Clock className="h-3.5 w-3.5 text-[var(--text-secondary)] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] text-[var(--text-muted)] font-medium">বাকি ভিডিও সময়</p>
-                  <p className="font-semibold text-[var(--text-primary)] truncate">{syllabusStats.remainingFormatted}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                <TrendingUp className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] text-[var(--text-muted)] font-medium">দৈনিক ৪০ মি. পড়লে</p>
-                  <p className="font-semibold text-[var(--text-primary)] truncate">
-                    {syllabusStats.projectedDays > 0 ? `আর ${toBn(syllabusStats.projectedDays)} দিনে শেষ 🎯` : 'সব সমাপ্ত 🎉'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Instant Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-muted)]" />
-              <input
-                type="text"
-                value={lectureSearch}
-                onChange={e => setLectureSearch(e.target.value)}
-                placeholder={`লেকচার খুঁজুন... (${toBn(videos.length)} টি ভিডিও)`}
-                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--text-primary)] transition-colors"
-              />
-              {lectureSearch && (
-                <button
-                  type="button"
-                  onClick={() => setLectureSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                  title="ফিল্টার মুছুন"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-          </div>
-
           {onOpenReviews && (
             <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs shrink-0">
               <span className="text-[11px] text-[var(--text-muted)] font-medium">কোর্স মতামত ও অভিজ্ঞতা</span>
@@ -741,66 +613,49 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </button>
             </div>
           )}
-
           <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]">
-            {filteredVideos.length === 0 ? (
-              <div className="p-8 text-center space-y-2">
-                <Search className="h-6 w-6 text-[var(--text-muted)] mx-auto opacity-50" />
-                <p className="text-xs font-semibold text-[var(--text-primary)]">কোনো লেকচার পাওয়া যায়নি</p>
-                <p className="text-[11px] text-[var(--text-muted)]">"{lectureSearch}" দিয়ে কোনো ভিডিও মেলেনি</p>
-                <button
-                  type="button"
-                  onClick={() => setLectureSearch('')}
-                  className="mt-2 px-3 py-1 text-[11px] font-medium rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                >
-                  সব লেকচার দেখুন
-                </button>
-              </div>
-            ) : (
-              filteredVideos.map((vid) => {
-                const originalIndex = videos.indexOf(vid);
-                const isPlaying = vid.ytVideoId === currentVideoId;
-                const isVerified = Boolean(verifiedMap[`${playlistId}_${vid.ytVideoId}`] || verifiedMap[vid.ytVideoId]);
+          {videos.map((vid, idx) => {
+            const isPlaying = vid.ytVideoId === currentVideoId;
+            const isVerified = Boolean(verifiedMap[`${playlistId}_${vid.ytVideoId}`] || verifiedMap[vid.ytVideoId]);
 
-                return (
-                  <button
-                    key={vid.id || originalIndex}
-                    onClick={() => onSelectVideo(vid)}
-                    className={`w-full text-left p-3.5 flex items-start gap-3 transition-colors ${
-                      isPlaying 
-                        ? 'bg-[var(--bg-surface-subtle)] font-medium' 
-                        : 'hover:bg-[var(--bg-surface-subtle)]/50'
-                    }`}
-                  >
-                    <div className="mt-0.5 flex-shrink-0">
-                      {isVerified ? (
-                        <CheckCircle2 className="h-4 w-4 text-[#059669]" />
-                      ) : isPlaying ? (
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-canvas)]">
-                          <Play className="h-2.5 w-2.5 fill-current" />
-                        </div>
-                      ) : (
-                        <span className="flex h-4 w-4 items-center justify-center font-mono text-[10px] text-[var(--text-muted)]">
-                          {originalIndex + 1}
-                        </span>
-                      )}
+            return (
+              <button
+                key={vid.id || idx}
+                onClick={() => onSelectVideo(vid)}
+                className={`w-full text-left p-3.5 flex items-start gap-3 transition-colors ${
+                  isPlaying 
+                    ? 'bg-[var(--bg-surface-subtle)] font-medium' 
+                    : 'hover:bg-[var(--bg-surface-subtle)]/50'
+                }`}
+              >
+                <div className="mt-0.5 flex-shrink-0">
+                  {isVerified ? (
+                    <CheckCircle2 className="h-4 w-4 text-[#059669]" />
+                  ) : isPlaying ? (
+                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-canvas)]">
+                      <Play className="h-2.5 w-2.5 fill-current" />
                     </div>
+                  ) : (
+                    <span className="flex h-4 w-4 items-center justify-center font-mono text-[10px] text-[var(--text-muted)]">
+                      {idx + 1}
+                    </span>
+                  )}
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs leading-snug truncate ${
-                        isPlaying ? 'font-semibold text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
-                      }`}>
-                        {vid.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-[var(--text-muted)] font-mono">
-                        <span>{vid.durationFormatted}</span>
-                        {isVerified && <span className="text-[#059669] font-medium font-sans">&bull; Verified</span>}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })
-            )}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs leading-snug truncate ${
+                    isPlaying ? 'font-semibold text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
+                  }`}>
+                    {vid.title}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1 text-[11px] text-[var(--text-muted)] font-mono">
+                    <span>{vid.durationFormatted}</span>
+                    {isVerified && <span className="text-[#059669] font-medium font-sans">&bull; Verified</span>}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
           </div>
         </div>
       )}
