@@ -30,7 +30,8 @@ import {
   Tv,
   Crown,
   Share2,
-  Loader2
+  Loader2,
+  Star
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
@@ -57,6 +58,7 @@ interface StudySidebarProps {
   activeTimestampSeconds: number;
   courseTitle?: string;
   videoTitle?: string;
+  onOpenReviews?: () => void;
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
@@ -72,6 +74,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   activeTimestampSeconds,
   courseTitle,
   videoTitle,
+  onOpenReviews,
 }) => {
   const [activeTab, setActiveTab] = useState<'queue' | 'ai_notes' | 'notes'>('queue');
   const [newNoteContent, setNewNoteContent] = useState<string>('');
@@ -637,7 +640,21 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
       {/* TAB 1: Course Queue */}
       {activeTab === 'queue' && (
-        <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {onOpenReviews && (
+            <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs shrink-0">
+              <span className="text-[11px] text-[var(--text-muted)] font-medium">কোর্স মতামত ও অভিজ্ঞতা</span>
+              <button
+                type="button"
+                onClick={onOpenReviews}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[11px] font-bold border border-amber-500/30 transition-colors cursor-pointer"
+              >
+                <Star className="h-3 w-3 fill-current" />
+                <span>রেটিং ও রিভিউ</span>
+              </button>
+            </div>
+          )}
+          <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]">
           {videos.map((vid, idx) => {
             const isPlaying = vid.ytVideoId === currentVideoId;
             const isVerified = Boolean(verifiedMap[`${playlistId}_${vid.ytVideoId}`] || verifiedMap[vid.ytVideoId]);
@@ -680,6 +697,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </button>
             );
           })}
+          </div>
         </div>
       )}
 

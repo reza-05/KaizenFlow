@@ -20,7 +20,8 @@ import {
   Check, 
   Subtitles,
   Settings,
-  X
+  X,
+  Star
 } from 'lucide-react';
 import { VideoItem, StudyMode, VideoMilestone } from '@/types';
 import { getVideoProgress, saveVideoPlaybackProgress } from '@/lib/storage';
@@ -40,6 +41,7 @@ interface CinemaPlayerProps {
   onNextVideo?: () => void;
   hasNextVideo?: boolean;
   onTimestampCapture?: (seconds: number) => void;
+  onOpenReviews?: () => void;
 }
 
 type MilestoneDigit = VideoMilestone;
@@ -74,6 +76,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   onNextVideo,
   hasNextVideo,
   onTimestampCapture,
+  onOpenReviews,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -1274,8 +1277,8 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
       </div>
 
       {/* Video Title & Meta */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
+        <div className="min-w-0 flex-1">
           <h1 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
             {video.title}
           </h1>
@@ -1294,6 +1297,18 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             </button>
           </div>
         </div>
+
+        {onOpenReviews && (
+          <button
+            type="button"
+            onClick={onOpenReviews}
+            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-bold text-amber-500 transition-colors cursor-pointer shrink-0"
+            title="কোর্স রিভিউ ও রেটিং দেখুন বা দিন"
+          >
+            <Star className="h-3.5 w-3.5 fill-current" />
+            <span>কোর্স রিভিউ</span>
+          </button>
+        )}
       </div>
 
       {/* 4-Milestone Progress Tracker Bar */}

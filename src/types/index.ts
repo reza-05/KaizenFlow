@@ -155,3 +155,23 @@ export interface AILectureNotes {
   nonEducationalReason?: string;
   contentType?: 'educational' | 'music_entertainment' | 'unknown';
 }
+
+export interface PlaylistReview {
+  id: string;
+  playlistId: string;
+  userId: string;
+  userName: string;
+  rating: number; // 1 to 5
+  feedback: string;
+  completionPercentage: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlaylistReviewsSummary {
+  playlistId: string;
+  reviews: PlaylistReview[];
+  averageRating: number;
+  totalReviews: number;
+  distribution: Record<number, number>;
+}

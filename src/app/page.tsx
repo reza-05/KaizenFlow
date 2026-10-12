@@ -10,6 +10,7 @@ import { AddCourseModal } from '@/components/dashboard/AddCourseModal';
 import { CompletionBadgeModal } from '@/components/dashboard/CompletionBadgeModal';
 import { CinemaPlayer } from '@/components/player/CinemaPlayer';
 import { StudySidebar } from '@/components/player/StudySidebar';
+import { PlaylistReviewModal } from '@/components/player/PlaylistReviewModal';
 import { 
   getPlaylists, 
   savePlaylists, 
@@ -37,7 +38,9 @@ export default function KaizenFlowApp() {
   const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedBadgeCourse, setSelectedBadgeCourse] = useState<Playlist | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
+  const [rawProgressMap, setRawProgressMap] = useState<Record<string, any>>({});
   const [activityMap, setActivityMap] = useState<Record<string, any>>({});
   const [notes, setNotes] = useState<StudyNote[]>([]);
   const [activeTimestampSeconds, setActiveTimestampSeconds] = useState(0);
@@ -67,9 +70,10 @@ export default function KaizenFlowApp() {
     setPlaylists(loadedPlaylists);
 
     const allProgress = getVideoProgressList();
+    setRawProgressMap(allProgress);
     const verifiedStatus: Record<string, boolean> = {};
     Object.values(allProgress).forEach(p => {
-      if (p.isVerified) {
+      if (p.isVerified || p.isCompleted) {
         verifiedStatus[`${p.playlistId}_${p.ytVideoId}`] = true;
       }
     });
@@ -270,6 +274,10 @@ export default function KaizenFlowApp() {
                 onNextVideo={handleNextVideo}
                 hasNextVideo={hasNextVideo}
                 onTimestampCapture={sec => setActiveTimestampSeconds(sec)}
+                onOpenReviews={() => {
+                  setRawProgressMap(getVideoProgressList());
+                  setIsReviewModalOpen(true);
+                }}
               />
             </div>
 
@@ -288,6 +296,10 @@ export default function KaizenFlowApp() {
                 activeTimestampSeconds={activeTimestampSeconds}
                 courseTitle={activeCourse.customTitle}
                 videoTitle={activeVideo.title}
+                onOpenReviews={() => {
+                  setRawProgressMap(getVideoProgressList());
+                  setIsReviewModalOpen(true);
+                }}
               />
             </div>
           </div>
@@ -391,6 +403,18 @@ export default function KaizenFlowApp() {
         onClose={() => setSelectedBadgeCourse(null)}
         course={selectedBadgeCourse}
         userProfile={userProfile}
+      />
+
+      {/* Course Verified Student Reviews & Rating Modal */}
+      <PlaylistReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        playlist={activeCourse}
+        progressMap={rawProgressMap}
+        userProfile={userProfile || undefined}
+        onReviewSubmitted={() => {
+          setRawProgressMap(getVideoProgressList());
+        }}
       />
     </div>
   );
