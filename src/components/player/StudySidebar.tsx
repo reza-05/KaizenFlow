@@ -953,19 +953,19 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 <div className="w-full max-w-xs pt-1 space-y-2">
                   <button
                     type="button"
-                    onClick={() => handleGenerateAINotes(true)}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>Force Generate Notes Anyway</span>
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setActiveTab('notes')}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
                   >
                     <FileText className="h-3.5 w-3.5" />
                     <span>Take Personal Notes Instead</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateAINotes(true)}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span>Force Generate Notes Anyway</span>
                   </button>
                 </div>
               </div>
