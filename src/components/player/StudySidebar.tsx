@@ -299,62 +299,21 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const currentSecs = activeTimestampSeconds % 60;
   const currentTimestampFormatted = `${currentMins}:${currentSecs < 10 ? '0' : ''}${currentSecs}`;
 
-  // Procedural active recall quiz generator fallback if backend didn't supply one
+  // Active recall quiz retriever for notes tab
   const getOrGenerateQuiz = (notes: AILectureNotes): LectureQuizQuestion[] => {
     if (notes.quiz && notes.quiz.length >= 2) {
       return notes.quiz;
     }
-
-    const questions: LectureQuizQuestion[] = [];
-    const chapters = notes.chapters || [];
-    const takeaways = notes.keyTakeaways || [];
-
-    if (chapters.length > 0) {
-      const ch0 = chapters[0];
-      questions.push({
-        question: humanizeBengaliText(`লেকচারের শুরুতে [${ch0.timestamp}] কোন মূল বিষয়ে আলোচনা করা হয়েছে?`),
-        options: [
-          humanizeBengaliText(ch0.title),
-          humanizeBengaliText(chapters[1]?.title || 'কোর্স ওভারভিউ ও প্রাথমিক ধারণা'),
-          'অ্যাডভান্সড সিস্টেম আর্কিটেকচার',
-          'এক্সটার্নাল ডিপেনডেন্সি সেটআপ'
-        ],
-        answerIndex: 0,
-        explanation: humanizeBengaliText(`লেকচারের শুরুতেই [${ch0.timestamp}] "${ch0.title}" নিয়ে বিস্তারিত ধারণা দেওয়া হয়েছে।`)
-      });
+    if (typeof window !== 'undefined' && currentVideoId) {
+      try {
+        const raw = localStorage.getItem(`kaizenflow_quiz_data_${currentVideoId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length >= 2) return parsed;
+        }
+      } catch {}
     }
-
-    if (takeaways.length > 0) {
-      const t0 = takeaways[0];
-      questions.push({
-        question: humanizeBengaliText('এই ক্লাসের অন্যতম গুরুত্বপূর্ণ মূল নিয়ম বা পরীক্ষা সতর্কতা কোনটি?'),
-        options: [
-          'সব ক্ষেত্রে ডিফল্ট অপশন অপরিবর্তিত রাখা',
-          humanizeBengaliText(t0),
-          'কনসেপ্ট না বুঝে কেবল আউটপুট মুখস্থ করা',
-          'তাত্ত্বিক ভিত্তি বাদ দিয়ে সমাপ্ত করা'
-        ],
-        answerIndex: 1,
-        explanation: humanizeBengaliText(`লেকচারের মূল টেকঅ্যাওয়ে হলো: "${t0}"`)
-      });
-    }
-
-    if (chapters.length > 1) {
-      const chLast = chapters[chapters.length - 1];
-      questions.push({
-        question: humanizeBengaliText(`লেকচারের পরবর্তী অংশে [${chLast.timestamp}] "${chLast.title}" বিষয়ে কী বোঝানো হয়েছে?`),
-        options: [
-          'কোনো সমাধান ছাড়াই ক্লাস শেষ করা',
-          'পূর্বের সব নিয়ম পরিবর্তন করে নতুন শুরু করা',
-          humanizeBengaliText(chLast.explanation.slice(0, 65) + (chLast.explanation.length > 65 ? '...' : '')),
-          'পরবর্তী ক্লাসে একই প্রাথমিক বিষয় পুনরাবৃত্তি'
-        ],
-        answerIndex: 2,
-        explanation: humanizeBengaliText(`অধ্যায়ে "${chLast.title}" নিয়ে বাস্তব প্রয়োগ ও সহজ সমাধান তুলে ধরা হয়েছে।`)
-      });
-    }
-
-    return questions;
+    return [];
   };
 
   // Helper to convert LaTeX / chemical / scientific sub & sup notation

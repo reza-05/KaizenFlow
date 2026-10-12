@@ -8,7 +8,6 @@ import {
   Check, 
   Copy, 
   AlertCircle, 
-  Sparkles, 
   CheckCircle2, 
   ShieldCheck, 
   ArrowRight, 
@@ -497,7 +496,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4 fill-current" />
+                    <ArrowRight className="h-4 w-4" />
                     <span>পেমেন্ট রিকোয়েস্ট সাবমিট করুন</span>
                   </>
                 )}

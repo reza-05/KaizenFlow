@@ -81,7 +81,7 @@ export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = [
     description: 'Accumulated 50 hours of verified deep lecture immersion across curriculums.',
     targetValue: 50,
     unit: 'hours',
-    iconName: 'Zap',
+    iconName: 'Flame',
     colorScheme: 'gold',
   },
   {
@@ -114,7 +114,7 @@ export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = [
     description: 'The monumental summit: 500 verified hours of uncompromised academic discipline.',
     targetValue: 500,
     unit: 'hours',
-    iconName: 'Sparkles',
+    iconName: 'Trophy',
     colorScheme: 'emerald',
   },
 
@@ -171,7 +171,7 @@ export const ALL_BADGE_DEFINITIONS: BadgeDefinition[] = [
     description: 'Two continuous months (60 days) of sustained study devotion.',
     targetValue: 60,
     unit: 'days',
-    iconName: 'Sparkles',
+    iconName: 'Award',
     colorScheme: 'obsidian',
   },
   {

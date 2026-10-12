@@ -12,7 +12,6 @@ import {
   Lock, 
   ShieldCheck, 
   Shield, 
-  Zap, 
   Compass, 
   Layers, 
   Crown, 
