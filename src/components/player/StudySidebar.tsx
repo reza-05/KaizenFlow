@@ -29,7 +29,9 @@ import {
   Music,
   Tv,
   Crown,
-  Zap
+  Zap,
+  Share2,
+  Loader2
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
@@ -41,6 +43,7 @@ import {
   AiNotesQuotaStatus 
 } from '@/lib/storage';
 import { BkashNagadCheckoutModal } from '@/components/payment/BkashNagadCheckoutModal';
+import { ShareNoteModal } from '@/components/player/ShareNoteModal';
 
 interface StudySidebarProps {
   playlistId: string;
@@ -97,7 +100,25 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   });
   const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [shareUrl, setShareUrl] = useState<string>('');
+  const [isSharingNote, setIsSharingNote] = useState<boolean>(false);
+  const [generationStage, setGenerationStage] = useState<number>(0);
   const [isMounted, setIsMounted] = useState<boolean>(false);
+
+  // Progressive generation stages
+  useEffect(() => {
+    let interval: any;
+    if (isGeneratingAI) {
+      setGenerationStage(0);
+      interval = setInterval(() => {
+        setGenerationStage(prev => (prev < 3 ? prev + 1 : prev));
+      }, 2200);
+    } else {
+      setGenerationStage(0);
+    }
+    return () => clearInterval(interval);
+  }, [isGeneratingAI]);
 
   // Load quota status on mount
   useEffect(() => {
@@ -187,6 +208,35 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     setCopiedAllNotes(true);
     setTimeout(() => setCopiedAllNotes(false), 2500);
     setActiveTab('notes');
+  };
+
+  // Share AI notes publicly with a unique link
+  const handleShareNotes = async () => {
+    if (!aiNotes || !currentVideoId) return;
+    setIsSharingNote(true);
+    const currentVideo = videos.find(v => v.ytVideoId === currentVideoId);
+    try {
+      const res = await fetch('/api/notes/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: currentVideoId,
+          videoTitle: videoTitle || currentVideo?.title || 'Lecture Notes',
+          courseTitle: courseTitle || '',
+          language: aiLanguage,
+          notes: aiNotes,
+        }),
+      });
+      const data = await res.json();
+      if (data.shareUrl) {
+        setShareUrl(data.shareUrl);
+        setShowShareModal(true);
+      }
+    } catch (err) {
+      console.error('Error sharing notes:', err);
+    } finally {
+      setIsSharingNote(false);
+    }
   };
 
   // Generate Real Lecture Notes from backend (with optional user force override)
@@ -700,15 +750,28 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               {aiNotes && (
                 <>
                   {aiNotes.isEducational !== false && (
-                    <button
-                      type="button"
-                      onClick={handleImportAIToMyNotes}
-                      title="Add all notes to personal notes tab"
-                      className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
-                    >
-                      {copiedAllNotes ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                      <span>{copiedAllNotes ? 'Added!' : 'Save All'}</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleShareNotes}
+                        disabled={isSharingNote}
+                        title="Share AI Study Sheet with Friends"
+                        className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
+                      >
+                        {isSharingNote ? <Loader2 className="h-3 w-3 animate-spin text-amber-500" /> : <Share2 className="h-3 w-3 text-amber-500" />}
+                        <span>Share</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleImportAIToMyNotes}
+                        title="Add all notes to personal notes tab"
+                        className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
+                      >
+                        {copiedAllNotes ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                        <span>{copiedAllNotes ? 'Added!' : 'Save All'}</span>
+                      </button>
+                    </>
                   )}
 
                   <button
@@ -758,21 +821,41 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </div>
             )}
 
-            {/* STATE 2: Loading / Generating Shimmer */}
+            {/* STATE 2: Loading / Multi-Stage AI Generation Pipeline */}
             {isGeneratingAI && (
-              <div className="space-y-3 py-6 text-center">
-                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 animate-spin mb-2">
-                  <RefreshCw className="h-4 w-4" />
+              <div className="space-y-4 py-8 px-2 text-center animate-in fade-in duration-300">
+                <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-transparent border border-amber-500/30 text-amber-500 shadow-lg shadow-amber-500/10">
+                  <Sparkles className="h-7 w-7 animate-pulse text-amber-500" />
+                  <div className="absolute -inset-1 rounded-2xl border border-amber-500/20 animate-ping opacity-25" />
                 </div>
-                <h4 className="text-xs font-bold text-[var(--text-primary)] animate-pulse">
-                  Extracting Lecture Ground Truth...
-                </h4>
-                <p className="text-[11px] text-[var(--text-muted)] max-w-xs mx-auto">
-                  Parsing verbatim transcript, matching official chapters, and structuring code blocks.
-                </p>
-                <div className="space-y-2 mt-4 max-w-xs mx-auto">
-                  <div className="h-3 bg-[var(--bg-surface-subtle)] rounded animate-pulse w-3/4 mx-auto" />
-                  <div className="h-3 bg-[var(--bg-surface-subtle)] rounded animate-pulse w-1/2 mx-auto" />
+
+                <div className="space-y-1.5">
+                  <h4 className="text-xs font-bold text-[var(--text-primary)]">
+                    {generationStage === 0 && '🔍 ভিডিওর অডিও ও সাবটাইটেল ট্রান্সক্রিপ্ট স্ক্যান হচ্ছে...'}
+                    {generationStage === 1 && '🧠 মূল বৈজ্ঞানিক সূত্র ও একাডেমিক কনসেপ্ট গোছানো হচ্ছে...'}
+                    {generationStage === 2 && '✍️ স্ট্রাকচার্ড সামারি ও অ্যাক্টিভ রিকল কুইজ ড্রাফট হচ্ছে...'}
+                    {generationStage === 3 && '✨ শিক্ষার্থীবান্ধব মেন্টর টোনে ফাইনাল স্টাডি শিট প্রস্তুত হচ্ছে...'}
+                  </h4>
+                  <p className="text-[11px] text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed">
+                    {generationStage === 0 && 'Finding exact spoken timestamps and official chapter marks.'}
+                    {generationStage === 1 && 'Translating into natural pedagogical Bengali and LaTeX formulas.'}
+                    {generationStage === 2 && 'Synthesizing key takeaways and high-yield examination questions.'}
+                    {generationStage === 3 && 'Almost done! Formatting printable dark code cards & diagrams.'}
+                  </p>
+                </div>
+
+                {/* Animated Progress Bar */}
+                <div className="max-w-xs mx-auto space-y-1.5">
+                  <div className="h-1.5 w-full bg-[var(--bg-surface-subtle)] rounded-full overflow-hidden border border-[var(--border-subtle)]">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${Math.min(95, (generationStage + 1) * 25)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
+                    <span>AI Engine v2.4</span>
+                    <span>{Math.min(95, (generationStage + 1) * 25)}%</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -1354,6 +1437,14 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
         onSuccess={() => {
           setQuota(getAiNotesQuotaStatus());
         }}
+      />
+
+      {/* Share Note Modal */}
+      <ShareNoteModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        shareUrl={shareUrl}
+        videoTitle={videoTitle || ''}
       />
     </div>
   );
