@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Flame, Award, BookOpen, Layers, CheckCircle2, Compass, ArrowRight } from 'lucide-react';
+import { Plus, Flame, Award, BookOpen, Layers, CheckCircle2, Compass, ArrowRight, ListVideo, HelpCircle, FileText } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { CourseCard } from '@/components/dashboard/CourseCard';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
@@ -47,6 +47,7 @@ export default function KaizenFlowApp() {
   const [notes, setNotes] = useState<StudyNote[]>([]);
   const [activeTimestampSeconds, setActiveTimestampSeconds] = useState(0);
   const [focusWarning, setFocusWarning] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'queue' | 'ai_notes' | 'quiz' | 'notes'>('queue');
 
   useEffect(() => {
     const handleFocusReturn = (e: Event) => {
@@ -99,6 +100,7 @@ export default function KaizenFlowApp() {
 
   const handleOpenCourse = (course: Playlist) => {
     setActiveCourse(course);
+    setMobileTab('queue');
     // Select first unwatched video in this course, or first video
     const unwatched = course.videos.find(v => !progressMap[`${course.id}_${v.ytVideoId}`]);
     setActiveVideo(unwatched || course.videos[0]);
@@ -264,7 +266,7 @@ export default function KaizenFlowApp() {
       {/* Main View: Study Room vs Dashboard */}
       {activeCourse && activeVideo ? (
         /* STUDY ROOM / CINEMA FOCUS PLAYER VIEW */
-        <main className={`mx-auto px-4 sm:px-6 lg:px-8 py-6 transition-all duration-300 ${
+        <main className={`mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 transition-all duration-300 ${
           isTheaterMode ? 'max-w-[1600px]' : 'max-w-7xl'
         }`}>
           {isTheaterMode ? (
@@ -321,10 +323,10 @@ export default function KaizenFlowApp() {
               </div>
             </div>
           ) : (
-            /* DEFAULT VIEW: Standard 8-Col Player + MCQ below player & 4-Col Sidebar */
+            /* DEFAULT VIEW: Standard 8-Col Player + MCQ below player & 4-Col Sidebar on Desktop, Unified Tabbed on Mobile/Tablet */
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Left Cinema Player Area (8 cols) + MCQ Quiz right below player */}
-              <div className="lg:col-span-8 flex flex-col gap-6">
+              {/* Left Cinema Player Area (8 cols on desktop, full width on mobile) */}
+              <div className="lg:col-span-8 flex flex-col gap-4 sm:gap-6">
                 <CinemaPlayer
                   video={activeVideo}
                   playlistId={activeCourse.id}
@@ -341,15 +343,106 @@ export default function KaizenFlowApp() {
                   onToggleTheater={() => setIsTheaterMode(prev => !prev)}
                 />
 
-                {/* Video Active Recall MCQ Quiz directly below player */}
-                <LessonQuizSection
-                  video={activeVideo}
-                  courseTitle={activeCourse.customTitle}
-                />
+                {/* MOBILE / TABLET UNIFIED TABBED VIEW (< lg screens) */}
+                <div className="block lg:hidden space-y-3.5">
+                  {/* Segmented Control Bar */}
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] overflow-x-auto scrollbar-none shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setMobileTab('queue')}
+                      className={`flex-1 min-w-[70px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        mobileTab === 'queue'
+                          ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-bold'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <ListVideo className="h-3.5 w-3.5" />
+                      <span>কিউ ({activeCourse.videos.length})</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMobileTab('ai_notes')}
+                      className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        mobileTab === 'ai_notes'
+                          ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-bold'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <BookOpen className="h-3.5 w-3.5 text-amber-500" />
+                      <span>এআই নোটস</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMobileTab('quiz')}
+                      className={`flex-1 min-w-[65px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        mobileTab === 'quiz'
+                          ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-bold'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <HelpCircle className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>কুইজ</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMobileTab('notes')}
+                      className={`flex-1 min-w-[70px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        mobileTab === 'notes'
+                          ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xs font-bold'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>নোটস ({notes.length})</span>
+                    </button>
+                  </div>
+
+                  {/* Active Content on Mobile */}
+                  {mobileTab === 'quiz' ? (
+                    <LessonQuizSection
+                      video={activeVideo}
+                      courseTitle={activeCourse.customTitle}
+                    />
+                  ) : (
+                    <div className="h-[520px] sm:h-[600px] flex flex-col">
+                      <StudySidebar
+                        playlistId={activeCourse.id}
+                        videos={activeCourse.videos}
+                        currentVideoId={activeVideo.ytVideoId}
+                        onSelectVideo={video => setActiveVideo(video)}
+                        verifiedMap={progressMap}
+                        notes={notes}
+                        onAddNote={handleAddStudyNote}
+                        onAddNotesBulk={handleAddStudyNotesBulk}
+                        onDeleteNote={handleDeleteStudyNote}
+                        activeTimestampSeconds={activeTimestampSeconds}
+                        courseTitle={activeCourse.customTitle}
+                        videoTitle={activeVideo.title}
+                        externalActiveTab={mobileTab}
+                        onExternalTabChange={tab => setMobileTab(tab)}
+                        onOpenReviews={() => {
+                          setRawProgressMap(getVideoProgressList());
+                          setIsReviewModalOpen(true);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* DESKTOP ONLY: Video Active Recall MCQ Quiz directly below player (>= lg) */}
+                <div className="hidden lg:block">
+                  <LessonQuizSection
+                    video={activeVideo}
+                    courseTitle={activeCourse.customTitle}
+                  />
+                </div>
               </div>
 
-              {/* Right Sidebar: Queue & Notes (4 cols on large screens, scrollable on mobile) */}
-              <div className="lg:col-span-4 min-h-[440px] lg:min-h-0 lg:h-[calc(100vh-7.5rem)] lg:sticky top-20">
+              {/* DESKTOP ONLY: Right Sidebar (4 cols on large screens, >= lg) */}
+              <div className="hidden lg:block lg:col-span-4 min-h-[440px] lg:min-h-0 lg:h-[calc(100vh-7.5rem)] lg:sticky top-20">
                 <StudySidebar
                   playlistId={activeCourse.id}
                   videos={activeCourse.videos}

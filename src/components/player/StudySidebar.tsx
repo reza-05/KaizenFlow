@@ -59,6 +59,8 @@ interface StudySidebarProps {
   courseTitle?: string;
   videoTitle?: string;
   onOpenReviews?: () => void;
+  externalActiveTab?: 'queue' | 'ai_notes' | 'notes';
+  onExternalTabChange?: (tab: 'queue' | 'ai_notes' | 'notes') => void;
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
@@ -75,8 +77,17 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   courseTitle,
   videoTitle,
   onOpenReviews,
+  externalActiveTab,
+  onExternalTabChange,
 }) => {
-  const [activeTab, setActiveTab] = useState<'queue' | 'ai_notes' | 'notes'>('queue');
+  const [internalActiveTab, setInternalActiveTab] = useState<'queue' | 'ai_notes' | 'notes'>('queue');
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+
+  const handleTabChange = (tab: 'queue' | 'ai_notes' | 'notes') => {
+    setInternalActiveTab(tab);
+    onExternalTabChange?.(tab);
+  };
+
   const [newNoteContent, setNewNoteContent] = useState<string>('');
 
   // AI Notes State
@@ -194,7 +205,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
     setCopiedAllNotes(true);
     setTimeout(() => setCopiedAllNotes(false), 2500);
-    setActiveTab('notes');
+    handleTabChange('notes');
   };
 
   // Share AI notes publicly with a unique link
@@ -556,7 +567,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       <div className="flex border-b border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/50">
         {/* Tab 1: Queue */}
         <button
-          onClick={() => setActiveTab('queue')}
+          onClick={() => handleTabChange('queue')}
           className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors ${
             activeTab === 'queue'
               ? 'border-b-2 border-[var(--text-primary)] bg-[var(--bg-surface)] text-[var(--text-primary)]'
@@ -569,7 +580,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
         {/* Tab 2: AI Notes */}
         <button
-          onClick={() => setActiveTab('ai_notes')}
+          onClick={() => handleTabChange('ai_notes')}
           className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors relative ${
             activeTab === 'ai_notes'
               ? 'border-b-2 border-amber-500 bg-[var(--bg-surface)] text-[var(--text-primary)]'
@@ -585,7 +596,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
 
         {/* Tab 3: My Notes */}
         <button
-          onClick={() => setActiveTab('notes')}
+          onClick={() => handleTabChange('notes')}
           className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors ${
             activeTab === 'notes'
               ? 'border-b-2 border-[var(--text-primary)] bg-[var(--bg-surface)] text-[var(--text-primary)]'
@@ -808,7 +819,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 <div className="w-full max-w-xs pt-1 space-y-2">
                   <button
                     type="button"
-                    onClick={() => setActiveTab('notes')}
+                    onClick={() => handleTabChange('notes')}
                     className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
                   >
                     <FileText className="h-3.5 w-3.5" />

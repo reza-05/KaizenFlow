@@ -1110,7 +1110,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
 
         {/* Floating Focus Checkpoint Toast (Appears for 10s at checkpoints, dismissible via close button) */}
         {activeFloatingToast && !isLocallyVerified && (
-          <div className="absolute top-5 right-5 z-30 animate-in fade-in slide-in-from-top-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md p-3.5 shadow-2xl transition-all duration-200 min-w-[260px] max-w-[320px]">
+          <div className="absolute top-2 right-2 sm:top-5 sm:right-5 z-30 animate-in fade-in slide-in-from-top-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/95 backdrop-blur-md p-2.5 sm:p-3.5 shadow-2xl transition-all duration-200 max-w-[calc(100%-1rem)] sm:max-w-[320px]">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-2.5">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)]">
                 <KeyRound className="h-3.5 w-3.5 text-amber-500" />
@@ -1399,7 +1399,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 max="100"
                 value={isMuted ? 0 : volume}
                 onChange={e => handleVolumeChange(Number(e.target.value))}
-                className="w-14 sm:w-18 h-1 bg-[var(--border-subtle)] rounded-lg appearance-none cursor-pointer accent-[#059669]"
+                className="hidden sm:inline-block w-14 sm:w-18 h-1 bg-[var(--border-subtle)] rounded-lg appearance-none cursor-pointer accent-[#059669]"
               />
             </div>
 
@@ -1581,7 +1581,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 type="button"
                 onClick={onToggleTheater}
                 title={isTheaterMode ? 'স্বাভাবিক ভিউ (T)' : 'ওয়াইড স্ক্রিন / থিয়েটার ভিউ (T)'}
-                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                className={`hidden sm:flex h-8 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer ${
                   isTheaterMode
                     ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)]'
@@ -1610,7 +1610,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               type="button"
               onClick={() => setIsShortcutsOpen(true)}
               title="কীবোর্ড শর্টকাটস (?)"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+              className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
             >
               <HelpCircle className="h-4 w-4" />
             </button>
