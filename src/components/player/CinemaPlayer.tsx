@@ -23,10 +23,12 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
-  Star
+  Star,
+  HelpCircle
 } from 'lucide-react';
 import { VideoItem, VideoMilestone } from '@/types';
 import { getVideoProgress, saveVideoPlaybackProgress } from '@/lib/storage';
+import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 
 declare global {
   interface Window {
@@ -105,7 +107,16 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const lastSavedSecondsRef = useRef<number>(0);
 
   // Dedicated dock settings state (always accessible in normal mode & fullscreen)
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('kaizenflow_playback_speed');
+      if (saved) {
+        const parsed = parseFloat(saved);
+        if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 3.0) return parsed;
+      }
+    }
+    return 1.0;
+  });
   const [selectedQuality, setSelectedQuality] = useState<string>('default');
   const [isCaptionsOn, setIsCaptionsOn] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -121,6 +132,9 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [settingsView, setSettingsView] = useState<'main' | 'speed' | 'quality'>('main');
   const settingsMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Keyboard Shortcuts Modal State
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
 
   // Multi-Digit Milestone Verification State
   const [milestones, setMilestones] = useState<MilestoneDigit[]>([]);
@@ -327,6 +341,9 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             if (liveDur > 30 && Math.abs(liveDur - duration) > 5) {
               setDuration(liveDur);
             }
+            if (event.target.setPlaybackRate) {
+              event.target.setPlaybackRate(Math.min(2.0, playbackSpeed));
+            }
           },
           onStateChange: (event: any) => {
             if (event.data === 1) {
@@ -336,6 +353,9 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               const liveDur = Math.floor(event.target.getDuration() || 0);
               if (liveDur > 30 && Math.abs(liveDur - duration) > 5) {
                 setDuration(liveDur);
+              }
+              if (event.target.setPlaybackRate) {
+                event.target.setPlaybackRate(Math.min(2.0, playbackSpeed));
               }
             }
             if (event.data === 2) setIsPlaying(false);
@@ -646,6 +666,20 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     setCurrentTime(target);
   };
 
+  // Forward 10 Seconds (Permitted up to maxWatchedTime or anywhere if verified)
+  const handleForward10 = () => {
+    setIsEnded(false);
+    if (!playerRef.current || duration <= 0) return;
+    const target = currentTime + 10;
+    if (isLocallyVerified || target <= maxWatchedTime) {
+      playerRef.current.seekTo(target, true);
+      setCurrentTime(target);
+    } else if (maxWatchedTime > currentTime) {
+      playerRef.current.seekTo(maxWatchedTime, true);
+      setCurrentTime(maxWatchedTime);
+    }
+  };
+
   // Seekbar Click: ANY POINT IN THE PAST IS 100% FREELY ACCESSIBLE, FORWARD IS BLOCKED!
   const handleScrubberAction = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!playerRef.current || duration <= 0) return;
@@ -667,9 +701,12 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }
   };
 
-  // Speed Handler (Supports full spectrum 0.5x to 3.0x Ultra Boost)
+  // Speed Handler (Supports full spectrum 0.5x to 3.0x Ultra Boost with persistence)
   const handleSpeedChange = (speed: number) => {
     setPlaybackSpeed(speed);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kaizenflow_playback_speed', String(speed));
+    }
     if (playerRef.current?.setPlaybackRate) {
       playerRef.current.setPlaybackRate(Math.min(2.0, speed));
     }
@@ -758,27 +795,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     };
   }, []);
 
-  // Keyboard Shortcuts: 't' for Theater Mode, 'f' for Fullscreen
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) {
-        return;
-      }
-
-      if (e.key === 't' || e.key === 'T') {
-        e.preventDefault();
-        onToggleTheater?.();
-      } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        togglePureFullscreen();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onToggleTheater]);
-
   // Pure Fullscreen: Only the video element enters fullscreen
   const enterPureFullscreen = () => {
     const target = videoContainerRef.current || containerRef.current;
@@ -808,13 +824,74 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
     }
   };
 
-  const togglePureFullscreen = () => {
+  const togglePureFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       enterPureFullscreen();
     } else {
       exitPureFullscreen();
     }
-  };
+  }, []);
+
+  // Global Keyboard Shortcuts (Space/K, J/L, Shift+N, T, F, M, C, ?)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+
+      // Space or K: Toggle Play/Pause
+      if (e.key === ' ' || e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        togglePlay();
+      }
+      // J or Left Arrow: Rewind 10s
+      else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleRewind10();
+      }
+      // L or Right Arrow: Forward 10s
+      else if (e.key === 'l' || e.key === 'L' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleForward10();
+      }
+      // Shift + N: Next Lecture
+      else if (e.shiftKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        if (hasNextVideo && onNextVideo) {
+          onNextVideo();
+        }
+      }
+      // T: Theater Mode
+      else if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        onToggleTheater?.();
+      }
+      // F: Pure Fullscreen
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        togglePureFullscreen();
+      }
+      // M: Mute / Unmute
+      else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMute();
+      }
+      // C: Captions
+      else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        toggleCaptions();
+      }
+      // ? (Shift + /): Open Keyboard Shortcuts Modal
+      else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsShortcutsOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay, handleRewind10, handleForward10, hasNextVideo, onNextVideo, onToggleTheater, togglePureFullscreen, toggleMute, toggleCaptions]);
 
   // Sequential Maximize Flow (Default -> Theater -> Pure Fullscreen)
   const handleSequentialMaximize = () => {
@@ -1527,6 +1604,16 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             >
               {isPureFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             </button>
+
+            {/* Shortcuts Helper Button (?) */}
+            <button
+              type="button"
+              onClick={() => setIsShortcutsOpen(true)}
+              title="কীবোর্ড শর্টকাটস (?)"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -1710,6 +1797,12 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </p>
         )}
       </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
     </div>
   );
 };
