@@ -11,7 +11,7 @@ import {
   Trash2, 
   Download, 
   Clock,
-  Sparkles,
+  BookOpen,
   Copy,
   Check,
   RefreshCw,
@@ -29,7 +29,6 @@ import {
   Music,
   Tv,
   Crown,
-  Zap,
   Share2,
   Loader2
 } from 'lucide-react';
@@ -103,22 +102,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
   const [shareUrl, setShareUrl] = useState<string>('');
   const [isSharingNote, setIsSharingNote] = useState<boolean>(false);
-  const [generationStage, setGenerationStage] = useState<number>(0);
   const [isMounted, setIsMounted] = useState<boolean>(false);
-
-  // Progressive generation stages
-  useEffect(() => {
-    let interval: any;
-    if (isGeneratingAI) {
-      setGenerationStage(0);
-      interval = setInterval(() => {
-        setGenerationStage(prev => (prev < 3 ? prev + 1 : prev));
-      }, 2200);
-    } else {
-      setGenerationStage(0);
-    }
-    return () => clearInterval(interval);
-  }, [isGeneratingAI]);
 
   // Load quota status on mount
   useEffect(() => {
@@ -630,7 +614,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
-          <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+          <BookOpen className="h-3.5 w-3.5 text-amber-500" />
           <span>AI Notes</span>
           {aiNotes && (
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 absolute top-2 right-2" />
@@ -703,97 +687,72 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       {activeTab === 'ai_notes' && (
         <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-canvas)]">
           {/* Subheader Toolbar */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs">
-            {/* Language Selector */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-[var(--text-muted)]">Language:</span>
-              <select
-                value={aiLanguage}
-                onChange={e => setAiLanguage(e.target.value as any)}
-                className="rounded border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none font-medium"
-              >
-                <option value="bn">বাংলা (Bengali - Default)</option>
-                <option value="en">English (ইংরেজি)</option>
-                <option value="mixed">Mixed (বাংলা + English Terms)</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-              </select>
-            </div>
+          <div className="px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs space-y-2">
+            {/* Top Row: Language Selector */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-[var(--text-muted)] font-medium">ভাষা:</span>
+                <select
+                  value={aiLanguage}
+                  onChange={e => setAiLanguage(e.target.value as any)}
+                  className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-2 py-0.5 text-[11px] text-[var(--text-primary)] focus:outline-none font-medium cursor-pointer"
+                >
+                  <option value="bn">বাংলা</option>
+                  <option value="en">English</option>
+                  <option value="mixed">বাংলা + English</option>
+                  <option value="hi">हिन्दी</option>
+                </select>
+              </div>
 
-            {/* Actions & Quota / Pro Badge */}
-            <div className="flex items-center gap-1.5">
               {quota.isPro ? (
                 <button
                   type="button"
                   onClick={() => setShowPaywallModal(true)}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-[10.5px] cursor-pointer hover:opacity-90"
-                  title="KaizenFlow Pro Active - Unlimited AI Notes"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 font-bold text-[10px] cursor-pointer"
                 >
                   <Crown className="h-3 w-3 fill-current text-amber-500" />
-                  <span>PRO{quota.daysRemaining ? ` (${quota.daysRemaining}d)` : ''}</span>
+                  <span>PRO</span>
                 </button>
-              ) : quota.isUnlimitedBeta || quota.remaining === Infinity ? (
-                <div
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-500 font-bold text-[10.5px]"
-                  title="Beta Preview - Unlimited AI Notes"
-                >
-                  <Sparkles className="h-3 w-3 text-amber-500" />
-                  <span>Unlimited (Beta)</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowPaywallModal(true)}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10.5px] font-semibold transition-colors cursor-pointer ${
-                    quota.remaining === 0
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 animate-pulse'
-                      : 'bg-[var(--bg-canvas)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)]/40'
-                  }`}
-                  title="Click to view KaizenFlow Pro plans"
-                >
-                  <Zap className="h-3 w-3 text-amber-500 fill-amber-500/40" />
-                  <span>{quota.remaining}/{quota.max} Left</span>
-                </button>
-              )}
+              ) : null}
+            </div>
 
-              {aiNotes && (
-                <>
-                  {aiNotes.isEducational !== false && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleShareNotes}
-                        disabled={isSharingNote}
-                        title="Share AI Study Sheet with Friends"
-                        className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
-                      >
-                        {isSharingNote ? <Loader2 className="h-3 w-3 animate-spin text-amber-500" /> : <Share2 className="h-3 w-3 text-amber-500" />}
-                        <span>Share</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleImportAIToMyNotes}
-                        title="Add all notes to personal notes tab"
-                        className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--bg-surface-subtle)] text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
-                      >
-                        {copiedAllNotes ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                        <span>{copiedAllNotes ? 'Added!' : 'Save All'}</span>
-                      </button>
-                    </>
-                  )}
+            {/* Actions Bar (displayed clearly when notes exist) */}
+            {aiNotes && aiNotes.isEducational !== false && (
+              <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-[var(--border-subtle)]/50">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={handleShareNotes}
+                    disabled={isSharingNote}
+                    title="বন্ধুদের সাথে লেকচার শিট শেয়ার করুন"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500 text-black text-[11px] font-bold hover:bg-amber-400 transition-colors cursor-pointer shrink-0"
+                  >
+                    {isSharingNote ? <Loader2 className="h-3 w-3 animate-spin text-black" /> : <Share2 className="h-3 w-3" />}
+                    <span>Share Note</span>
+                  </button>
 
                   <button
                     type="button"
-                    onClick={() => handleGenerateAINotes(false)}
-                    disabled={isGeneratingAI}
-                    title="Regenerate lecture notes"
-                    className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                    onClick={handleImportAIToMyNotes}
+                    title="সব নোট My Notes-এ যুক্ত করুন"
+                    className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] text-[11px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
                   >
-                    <RefreshCw className={`h-3.5 w-3.5 ${isGeneratingAI ? 'animate-spin' : ''}`} />
+                    {copiedAllNotes ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                    <span>{copiedAllNotes ? 'Saved!' : 'Save All'}</span>
                   </button>
-                </>
-              )}
-            </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleGenerateAINotes(false)}
+                  disabled={isGeneratingAI}
+                  title="পুনরায় নোট তৈরি করুন"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer shrink-0"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isGeneratingAI ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* AI Notes Body */}
@@ -810,59 +769,45 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
             {!aiNotes && !isGeneratingAI && (
               <div className="flex flex-col items-center justify-center text-center p-6 my-4 border border-dashed border-[var(--border-subtle)] rounded-xl bg-[var(--bg-surface)]">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 mb-3">
-                  <Sparkles className="h-5 w-5" />
+                  <BookOpen className="h-5 w-5" />
                 </div>
                 <h4 className="text-xs font-bold text-[var(--text-primary)]">
-                  Instant AI Lecture Notes
+                  লেকচার নোট তৈরি করুন
                 </h4>
                 <p className="text-[11px] text-[var(--text-muted)] max-w-xs mt-1 mb-4 leading-relaxed">
-                  Extracted directly from the instructor&apos;s verbatim speech with clickable timestamps, code snippets, and core formulas.
+                  ভিডিওর আলোচনা থেকে টাইমস্ট্যাম্পসহ সামারি ও প্রয়োজনীয় কনসেপ্ট নোট তৈরি হবে।
                 </p>
                 <button
                   type="button"
                   onClick={() => handleGenerateAINotes(false)}
                   className="flex items-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-4 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                  <span>Generate Real Lecture Notes</span>
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <span>নোট তৈরি করুন</span>
                 </button>
               </div>
             )}
 
-            {/* STATE 2: Loading / Multi-Stage AI Generation Pipeline */}
+            {/* STATE 2: Loading State */}
             {isGeneratingAI && (
-              <div className="space-y-4 py-8 px-2 text-center animate-in fade-in duration-300">
-                <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-transparent border border-amber-500/30 text-amber-500 shadow-lg shadow-amber-500/10">
-                  <Sparkles className="h-7 w-7 animate-pulse text-amber-500" />
-                  <div className="absolute -inset-1 rounded-2xl border border-amber-500/20 animate-ping opacity-25" />
+              <div className="space-y-3 py-10 px-4 text-center animate-in fade-in duration-200">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 mb-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <h4 className="text-xs font-bold text-[var(--text-primary)]">
-                    {generationStage === 0 && '🔍 ভিডিওর অডিও ও সাবটাইটেল ট্রান্সক্রিপ্ট স্ক্যান হচ্ছে...'}
-                    {generationStage === 1 && '🧠 মূল বৈজ্ঞানিক সূত্র ও একাডেমিক কনসেপ্ট গোছানো হচ্ছে...'}
-                    {generationStage === 2 && '✍️ স্ট্রাকচার্ড সামারি ও অ্যাক্টিভ রিকল কুইজ ড্রাফট হচ্ছে...'}
-                    {generationStage === 3 && '✨ শিক্ষার্থীবান্ধব মেন্টর টোনে ফাইনাল স্টাডি শিট প্রস্তুত হচ্ছে...'}
+                    লেকচার নোট তৈরি হচ্ছে...
                   </h4>
                   <p className="text-[11px] text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed">
-                    {generationStage === 0 && 'Finding exact spoken timestamps and official chapter marks.'}
-                    {generationStage === 1 && 'Translating into natural pedagogical Bengali and LaTeX formulas.'}
-                    {generationStage === 2 && 'Synthesizing key takeaways and high-yield examination questions.'}
-                    {generationStage === 3 && 'Almost done! Formatting printable dark code cards & diagrams.'}
+                    ভিডিওর ট্রান্সক্রিপ্ট ও চ্যাপ্টার প্রসেস করা হচ্ছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।
                   </p>
                 </div>
 
-                {/* Animated Progress Bar */}
-                <div className="max-w-xs mx-auto space-y-1.5">
-                  <div className="h-1.5 w-full bg-[var(--bg-surface-subtle)] rounded-full overflow-hidden border border-[var(--border-subtle)]">
-                    <div 
-                      className="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${Math.min(95, (generationStage + 1) * 25)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
-                    <span>AI Engine v2.4</span>
-                    <span>{Math.min(95, (generationStage + 1) * 25)}%</span>
+                {/* Clean, subtle progress bar */}
+                <div className="max-w-[160px] mx-auto pt-2">
+                  <div className="h-1 w-full bg-[var(--bg-surface-subtle)] rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full animate-pulse w-3/4 mx-auto" />
                   </div>
                 </div>
               </div>
@@ -889,7 +834,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                     onClick={() => handleGenerateAINotes(true)}
                     className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2 text-xs font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                    <BookOpen className="h-3.5 w-3.5" />
                     <span>Force Generate Notes Anyway</span>
                   </button>
                   <button
@@ -910,7 +855,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 {/* Executive Summary Card */}
                 <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-2xs">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)] mb-1">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    <BookOpen className="h-3.5 w-3.5 text-amber-500" />
                     <span>Lecture Overview</span>
                   </div>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
@@ -919,7 +864,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                   {aiNotes.isRealTranscriptGrounded && (
                     <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-2 pt-2 border-t border-[var(--border-subtle)]">
                       <CheckCircle2 className="h-3 w-3" />
-                      <span>Grounded in verbatim video speech (Zero Hallucination)</span>
+                      <span>ভিডিও ট্রান্সক্রিপ্ট থেকে ভেরিফাইড (Verified Notes)</span>
                     </div>
                   )}
                 </div>
@@ -1373,8 +1318,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 <div className="relative rounded-2xl border-2 border-amber-500/60 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-orange-500/10 p-4 shadow-sm overflow-hidden">
                   <div className="flex items-center justify-between gap-3">
                     <div className="space-y-1">
-                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-extrabold uppercase tracking-wide">
-                        <Sparkles className="h-3 w-3 fill-current" />
+                      <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-extrabold uppercase tracking-wide">
                         <span>১ মাস ফুল এক্সেস</span>
                       </div>
                       <h4 className="text-sm font-bold text-[var(--text-primary)]">
@@ -1415,7 +1359,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 </button>
 
                 <p className="text-center text-[10.5px] text-[var(--text-muted)]">
-                  ⚡ ফ্রি ইউজারদের জন্য প্রতিদিন ৩টি ফ্রি এআই নোট স্বয়ংক্রিয়ভাবে রিফিল হয়।
+                  ফ্রি ইউজারদের জন্য প্রতিদিন ৩টি ফ্রি এআই নোট স্বয়ংক্রিয়ভাবে রিফিল হয়।
                 </p>
               </div>
             ) : (

@@ -8,7 +8,6 @@ import {
   Copy, 
   Check, 
   ExternalLink, 
-  Sparkles, 
   CheckCircle2, 
   Globe,
   MessageCircle,

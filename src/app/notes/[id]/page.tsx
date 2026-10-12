@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  Sparkles, 
   ArrowLeft, 
   BookOpen, 
   Clock, 
@@ -200,7 +199,7 @@ export default function SharedNotePage() {
           <div className="h-4 w-[1px] bg-[var(--border-subtle)]" />
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/15 text-amber-500 border border-amber-500/30">
-              <Sparkles className="h-4 w-4" />
+              <BookOpen className="h-4 w-4" />
             </div>
             <div>
               <span className="text-xs font-bold tracking-tight">KaizenFlow AI Study Sheet</span>
@@ -291,7 +290,7 @@ export default function SharedNotePage() {
         {notes.keyTakeaways && notes.keyTakeaways.length > 0 && (
           <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-5 sm:p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" />
+              <BookOpen className="h-4 w-4" />
               <span>মূল শিক্ষণীয় বিষয় (Key Takeaways)</span>
             </div>
             <div className="grid grid-cols-1 gap-2.5">
@@ -441,7 +440,7 @@ export default function SharedNotePage() {
         {/* Viral Bottom Footer CTA */}
         <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-6 text-center space-y-3 shadow-lg">
           <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-xl bg-amber-500 text-black">
-            <Sparkles className="h-5 w-5 fill-current" />
+            <BookOpen className="h-5 w-5" />
           </div>
           <h3 className="text-base font-bold text-[var(--text-primary)]">
             যেকোনো ইউটিউব প্লেলিস্টের নোট বানাতে চান?
