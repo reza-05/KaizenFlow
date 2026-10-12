@@ -25,7 +25,8 @@ import {
   RotateCcw,
   CheckCircle,
   XCircle,
-  Music
+  Music,
+  Tv
 } from 'lucide-react';
 import { VideoItem, StudyNote, AILectureNotes, LectureNoteChapter, LectureQuizQuestion } from '@/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
@@ -736,7 +737,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
             {aiNotes && !isGeneratingAI && aiNotes.isEducational === false && (
               <div className="flex flex-col items-center justify-center text-center p-6 my-4 border border-amber-500/30 rounded-xl bg-amber-500/5 space-y-3.5 shadow-2xs">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500 ring-1 ring-amber-500/30 mb-1">
-                  <Music className="h-6 w-6" />
+                  {aiNotes.contentType === 'music_entertainment' ? <Music className="h-6 w-6" /> : <Tv className="h-6 w-6" />}
                 </div>
                 <div className="space-y-1.5 max-w-xs">
                   <h4 className="text-xs font-bold text-[var(--text-primary)]">

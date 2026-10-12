@@ -188,18 +188,24 @@ export async function POST(req: NextRequest) {
 
     const hasMeaningfulSpeech = cleanedTranscriptWords.length >= 25;
 
-    // 3. Fast Heuristic Guardrail for Clear Music / Entertainment Videos (Zero Hallucination)
+    // 3. Fast Heuristic Guardrail for Clear Non-Educational Entertainment Videos (Zero Hallucination)
     const combinedTitle = `${videoTitle} ${courseTitle}`.toLowerCase();
-    const hasStrongEntertainmentTitle = /\b(official\s+music\s+video|official\s+video|official\s+audio|lyric\s+video|lyrics\s+video|full\s+album|lofi\s+hip\s*hop|lofi\s+beats|dj\s+remix|original\s+soundtrack|\bost\b|movie\s+trailer|teaser\s+trailer|gameplay\s+walkthrough|funny\s+moments|prank\s+video|standup\s+comedy|roast\s+video)\b/i.test(combinedTitle);
+    
+    // Explicit educational indicators (to prevent false negatives on creative lecture titles)
+    const hasExplicitEducationalKeywords = /\b(tutorial|lecture|class|lesson|course|chapter|learn|introduction\s+to|basics\s+of|crash\s+course|full\s+course|problem\s+solving|solution|formula|derivation|chemistry|physics|biology|math|mathematics|calculus|algebra|programming|coding|algorithm|data\s+structure|web\s+dev|frontend|backend|software|how\s+to|guide|explained|explanation|syllabus|hsc|ssc|admission|buet|du|medical|exam|question\s+bank)\b/i.test(combinedTitle);
+
+    // Broad spectrum of non-educational entertainment genres (gaming, movie clips, vlogs, comedy, sports, music)
+    const hasStrongEntertainmentTitle = !hasExplicitEducationalKeywords && /\b(official\s+music\s+video|official\s+video|official\s+audio|lyric\s+video|lyrics\s+video|full\s+album|lofi\s+beats|dj\s+remix|original\s+soundtrack|\bost\b|movie\s+trailer|teaser\s+trailer|teaser|full\s+movie|movie\s+scene|gameplay|playthrough|let's\s+play|gaming\s+montage|funny\s+moments|prank\s+video|prank|comedy\s+sketch|standup\s+comedy|roast\s+video|reaction\s+video|daily\s+vlog|travel\s+vlog|food\s+vlog|mukbang|24\s+hour\s+challenge|natok|telefilm|drama\s+serial|web\s+series|match\s+highlights|full\s+match|goals|knockout|\bwwe\b|\bipl\b|\bbpl\b)\b/i.test(combinedTitle);
+
     const totalSubs = subtitles.length;
     const musicSubCount = subtitles.filter(s => /\[(?:Music|Applause|Singing|Cheering)\]|[♪♫]/i.test(s.text)).length;
     const isAlmostExclusivelyMusicSubs = totalSubs > 0 && (musicSubCount / totalSubs) >= 0.65;
 
-    // Reject early ONLY if user didn't force generate AND it is unquestionably music/entertainment
+    // Reject early ONLY if user didn't force generate AND it is unquestionably non-educational
     if (!forceGenerate && (hasStrongEntertainmentTitle || isAlmostExclusivelyMusicSubs)) {
       const reason = targetLanguage === 'bn' || targetLanguage === 'mixed'
-        ? 'ভিডিওটি একটি গান, মিউজিক ট্র্যাক বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow-এর এআই নোট সাধারণত পড়াশোনা, টিউটোরিয়াল বা একাডেমিক ক্লাসের জন্য সবচেয়ে ভালো কাজ করে। আপনি যদি এই ভিডিওর জন্যও নোট তৈরি করতে চান, তবে নিচে "Force Generate" বাটনে ক্লিক করতে পারেন।'
-        : 'This video appears to be a music or entertainment video rather than an educational tutorial. KaizenFlow AI Notes work best for educational lectures. If you still want notes for this video, click "Force Generate Notes".';
+        ? 'ভিডিওটি একটি নন-এডুকেশনাল বা বিনোদনমূলক কনটেন্ট (যেমন: গান, গেমিং, নাটক, ভ্লগ, কমেডি বা মুভি ক্লিপ) হিসেবে শনাক্ত হয়েছে। KaizenFlow-এর এআই নোট সাধারণত পড়াশোনা, টিউটোরিয়াল বা একাডেমিক ক্লাসের জন্য সবচেয়ে ভালো কাজ করে। আপনি যদি এই ভিডিওর জন্যও নোট তৈরি করতে চান, তবে নিচে "Force Generate" বাটনে ক্লিক করতে পারেন।'
+        : 'This video appears to be entertainment or non-instructional content (e.g. music, gaming stream, vlog, comedy, drama, sports) rather than an educational tutorial. KaizenFlow AI Notes work best for educational lectures. If you still want notes for this video, click "Force Generate Notes".';
 
       const nonEduNotes: AILectureNotes = {
         videoId,
@@ -319,13 +325,13 @@ ${transcriptExcerpt}`
 
 TASK & CRITICAL RULES:
 1. EDUCATIONAL ASSESSMENT:
-${forceGenerate ? '- USER OVERRIDE: The user explicitly requested "FORCE GENERATE". You MUST set "isEducational": true and extract the most structured notes, key concepts, or timeline breakdown possible from this video.' : `- Evaluate whether this video is an educational / tutorial / instructional lecture, or non-educational entertainment (e.g. music video, song, album, movie trailer, standup comedy, purely video game stream).
-- If this is CLEARLY a non-educational song, music video, or entertainment video without educational teaching value:
+${forceGenerate ? '- USER OVERRIDE: The user explicitly requested "FORCE GENERATE". You MUST set "isEducational": true and extract structured notes, key concepts, or timeline breakdown regardless of video genre.' : `- Rigorously evaluate whether this video is an EDUCATIONAL, INSTRUCTIONAL, or ACADEMIC lesson (e.g. academic curriculum, coding/computer science, science, math, software/creative skill tutorials, language learning, business, how-to guides).
+- If this video is clearly NON-EDUCATIONAL entertainment (such as video gaming stream / Let's Play, movie/drama clip, music/song, prank, daily vlog, comedy skit, roast, sports match/highlights, celebrity talk show):
   * Set "isEducational": false
-  * Set "contentType": "music_entertainment"
-  * In "nonEducationalReason", write a polite message in ${targetLanguage === 'bn' || targetLanguage === 'mixed' ? 'Bengali (বাংলা)' : 'English'} explaining why lecture notes are not applicable for this entertainment/music video, and mentioning they can click "Force Generate" if they still wish.
+  * Set "contentType": "entertainment"
+  * In "nonEducationalReason", write a courteous, natural explanation in ${targetLanguage === 'bn' || targetLanguage === 'mixed' ? 'Bengali (বাংলা)' : 'English'} explaining that this video appears to be entertainment / non-instructional content (e.g. gaming, drama, music, vlog, sports) and that KaizenFlow AI Notes work best for educational tutorials, mentioning they can click "Force Generate" if they still want notes.
   * Return empty arrays for "chapters", "keyTakeaways", and null for "quiz".
-- Otherwise, set "isEducational": true, "contentType": "educational", and generate full lecture notes.`}
+- Otherwise (if it teaches any educational concept, skill, theory, or instructional technique), set "isEducational": true, "contentType": "educational", and generate full lecture notes.`}
 2. CURRICULUM GROUNDING: Cover the authentic concepts, mathematical definitions, chemical formulas/reactions, physics laws, or algorithms taught in this subject.
 3. ${isCodingTopic 
   ? `PROGRAMMING CODE FIDELITY: This is a programming course. Provide clean, authentic code snippets with syntax highlighting in 'codeSnippet' and specify 'codeLanguage' (e.g. cpp, python, java, js).`
