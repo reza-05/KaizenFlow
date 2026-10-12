@@ -52,7 +52,6 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
       setQuestions(existingQuestions);
       setAnswers(savedState.answers || {});
       setIsSubmitted(savedState.isSubmitted || false);
-      // If user had already started or answered before, show quiz view
       setHasStartedQuiz(Boolean(savedState.isSubmitted || Object.keys(savedState.answers || {}).length > 0));
     } else {
       setQuestions([]);
@@ -62,7 +61,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
     }
   }, [video.ytVideoId]);
 
-  // Handle "Take Quiz" click: fetch real AI questions
+  // Handle "Take Quiz" click
   const handleTakeQuiz = async (forceFresh: boolean = false) => {
     setIsLoadingQuiz(true);
     setErrorMessage(null);
@@ -80,10 +79,10 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
         setHasStartedQuiz(true);
         setActiveQuestionIndex(0);
       } else {
-        setErrorMessage('কুইজ প্রশ্ন লোড করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
+        setErrorMessage('কুইজ লোড করা সম্ভব হয়নি। পুনরায় চেষ্টা করুন।');
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'প্রশ্ন তৈরিতে সমস্যা হয়েছে।');
+      setErrorMessage(err.message || 'কুইজ লোড করতে সমস্যা হয়েছে।');
     } finally {
       setIsLoadingQuiz(false);
     }
@@ -99,6 +98,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
   const handleSelectOption = (questionIndex: number, optionIndex: number) => {
     if (answers[questionIndex] !== undefined) return; // Already answered
 
+    const isCorrect = optionIndex === questions[questionIndex]?.answerIndex;
     const updated = { ...answers, [questionIndex]: optionIndex };
     setAnswers(updated);
 
@@ -123,11 +123,11 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
       }
     } else {
       saveStoredQuizState(video.ytVideoId, updated, false);
-      // Auto-advance to next question after small delay
-      if (questionIndex < questions.length - 1) {
+      // Auto-advance ONLY if correct! If incorrect, stay here so user can read explanation
+      if (isCorrect && questionIndex < questions.length - 1) {
         setTimeout(() => {
           setActiveQuestionIndex(questionIndex + 1);
-        }, 450);
+        }, 500);
       }
     }
   };
@@ -150,16 +150,11 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
-                ভিডিও কনসেপ্ট কুইজ (AI Active Recall)
-              </h3>
-              <span className="rounded-full bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] px-2.5 py-0.5 text-[11px] font-mono font-semibold text-[var(--text-secondary)]">
-                5 Questions
-              </span>
-            </div>
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
+              ভিডিও কুইজ
+            </h3>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              এই ভিডিওর মূল বিষয়ের ওপর ভিত্তি করে এআই দিয়ে ৫টি প্রাসঙ্গিক কনসেপচুয়াল প্রশ্ন তৈরি করে প্রস্তুতি যাচাই করুন।
+              লেকচারের মূল বিষয়গুলো কতটুকু বুঝতে পেরেছেন যাচাই করে নিন।
             </p>
           </div>
         </div>
@@ -171,13 +166,13 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <Award className="h-3.5 w-3.5" />
-                  <span>স্কোর: {score}/{questions.length} ({scorePercentage}%)</span>
+                  <span>স্কোর: {score}/{questions.length}</span>
                 </span>
                 <button
                   type="button"
                   onClick={handleRetake}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--border-subtle)] px-3 py-1 text-xs font-semibold text-[var(--text-primary)] transition-colors cursor-pointer"
-                  title="পুনরায় পরীক্ষা দিন"
+                  title="পুনরায় কুইজ দিন"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>পুনরায় দিন</span>
@@ -195,17 +190,17 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
 
       {/* STATE 1: INITIAL UNSTARTED "TAKE QUIZ" CTA */}
       {!hasStartedQuiz && !isLoadingQuiz && (
-        <div className="rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/50 p-8 text-center space-y-4">
+        <div className="rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-8 text-center space-y-4">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-2xs">
             <BookOpen className="h-6 w-6" />
           </div>
 
-          <div className="max-w-md mx-auto space-y-1.5">
+          <div className="max-w-md mx-auto space-y-1">
             <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
-              ভিডিওর ওপর এআই দিয়ে ৫টি কনসেপচুয়াল প্রশ্ন তৈরি করুন
+              লেকচার কুইজ
             </h4>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              ভিডিওতে শেখানো মূল সিনট্যাক্স, লজিক বা নিয়মের ওপর ভিত্তি করে এআই প্রাসঙ্গিক ৫টি প্রশ্ন তৈরি করবে।
+              ভিডিওর মূল কনসেপ্টগুলোর ওপর ভিত্তি করে কুইজ দিন।
             </p>
           </div>
 
@@ -222,7 +217,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
               className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-canvas)] px-6 py-2.5 text-xs sm:text-sm font-bold shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer"
             >
               <Play className="h-4 w-4 fill-current" />
-              <span>Take Quiz (কুইজ শুরু করুন)</span>
+              <span>Take Quiz</span>
             </button>
           </div>
         </div>
@@ -230,18 +225,15 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
 
       {/* STATE 2: LOADING SPINNER */}
       {isLoadingQuiz && (
-        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-10 text-center space-y-3">
-          <Loader2 className="mx-auto h-7 w-7 animate-spin text-[var(--text-primary)]" />
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-10 text-center space-y-2.5">
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-[var(--text-primary)]" />
           <p className="text-xs font-semibold text-[var(--text-primary)]">
-            ভিডিওর মূল কনসেপ্ট বিশ্লেষণ করে এআই দিয়ে ৫টি প্রশ্ন তৈরি হচ্ছে...
-          </p>
-          <p className="text-[11px] text-[var(--text-secondary)]">
-            কয়েক সেকেন্ড সময় লাগতে পারে, অনুগ্রহ করে অপেক্ষা করুন।
+            কুইজ প্রস্তুত করা হচ্ছে...
           </p>
         </div>
       )}
 
-      {/* STATE 3: ACTIVE 5-QUESTION QUIZ VIEW */}
+      {/* STATE 3: ACTIVE QUIZ VIEW */}
       {hasStartedQuiz && !isLoadingQuiz && questions.length > 0 && (
         <div className="space-y-5 animate-in fade-in duration-200">
           {/* Question Stepper Tabs */}
@@ -285,6 +277,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
             const currentQ = questions[qIndex];
             const selectedOpt = answers[qIndex];
             const isAnswered = selectedOpt !== undefined;
+            const isUserCorrect = isAnswered && selectedOpt === currentQ.answerIndex;
 
             return (
               <div className="space-y-4">
@@ -346,16 +339,32 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                   })}
                 </div>
 
-                {/* Explanation Box */}
+                {/* Explanation Box (Always visible when answered) */}
                 {isAnswered && (
-                  <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                      <HelpCircle className="h-3.5 w-3.5" />
-                      <span>কনসেপ্ট ও ব্যাখ্যা</span>
+                  <div className="space-y-3 pt-1 animate-in fade-in duration-200">
+                    <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 space-y-1.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                        <HelpCircle className="h-3.5 w-3.5" />
+                        <span>ব্যাখ্যা</span>
+                      </div>
+                      <p className="text-xs text-[var(--text-primary)] leading-relaxed pl-5 whitespace-pre-line">
+                        {currentQ.explanation}
+                      </p>
                     </div>
-                    <p className="text-xs text-[var(--text-primary)] leading-relaxed pl-5 whitespace-pre-line">
-                      {currentQ.explanation}
-                    </p>
+
+                    {/* Next Question Button (Specially important if incorrect, so user controls when to proceed) */}
+                    {qIndex < questions.length - 1 && (
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setActiveQuestionIndex(qIndex + 1)}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-canvas)] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                          <span>পরের প্রশ্ন</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -371,12 +380,12 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-[var(--text-primary)]">
-                    কুইজ সম্পন্ন হয়েছে! ({score}/{questions.length} সঠিক - {scorePercentage}%)
+                    কুইজ সম্পন্ন ({score}/{questions.length} সঠিক - {scorePercentage}%)
                   </h4>
                   <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                     {score === questions.length
-                      ? 'অসাধারণ! আপনি এই ভিডিওর সম্পূর্ণ মূল ধারণা পরিষ্কারভাবে বুঝতে পেরেছেন।'
-                      : 'বেশ ভালো প্রস্তুতি! ভুল হওয়া প্রশ্নগুলোর ব্যাখ্যা রিভিশন দিয়ে আরও স্পষ্ট করে নিন।'}
+                      ? 'সবগুলো উত্তর সঠিক হয়েছে!'
+                      : 'ভুল উত্তরগুলোর ব্যাখ্যা দেখে নিয়ে পুনরায় চেষ্টা করতে পারেন।'}
                   </p>
                 </div>
               </div>
@@ -394,7 +403,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                   onClick={() => handleTakeQuiz(true)}
                   className="px-3.5 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-canvas)] hover:opacity-90 text-xs font-bold transition-all cursor-pointer"
                 >
-                  নতুন ৫টি প্রশ্ন জেনারেট করুন
+                  নতুন কুইজ
                 </button>
               </div>
             </div>
