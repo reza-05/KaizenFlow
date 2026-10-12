@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Crown, X, Check, Copy, AlertCircle, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { activateProSubscription } from '@/lib/storage';
 
@@ -15,6 +16,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
   onClose,
   onSuccess,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [method, setMethod] = useState<'bkash' | 'nagad'>('bkash');
   const [senderPhone, setSenderPhone] = useState('');
   const [trxId, setTrxId] = useState('');
@@ -29,7 +31,11 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
     expiresAt: string;
   } | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   // Official reception numbers
   const receptionNumber = method === 'bkash' ? '01886-241920' : '01712-345678';
@@ -112,9 +118,17 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-[var(--bg-surface)] p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
+  return createPortal(
+    <div 
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-[var(--bg-surface)] p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto my-auto"
+      >
         {/* Close Button */}
         <button
           type="button"
@@ -349,6 +363,7 @@ export const BkashNagadCheckoutModal: React.FC<BkashNagadCheckoutModalProps> = (
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

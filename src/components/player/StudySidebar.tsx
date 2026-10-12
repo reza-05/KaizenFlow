@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   CheckCircle2, 
   Play, 
@@ -96,9 +97,11 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   });
   const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
   // Load quota status on mount
   useEffect(() => {
+    setIsMounted(true);
     if (typeof window !== 'undefined') {
       setQuota(getAiNotesQuotaStatus());
     }
@@ -1196,9 +1199,17 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       )}
 
       {/* KaizenFlow Pro Subscription Modal */}
-      {showPaywallModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-amber-500/30 bg-[var(--bg-surface)] p-6 shadow-2xl animate-in zoom-in-95 duration-200 space-y-5">
+      {showPaywallModal && isMounted && createPortal(
+        <div 
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowPaywallModal(false)}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md rounded-2xl border border-amber-500/30 bg-[var(--bg-surface)] p-6 shadow-2xl animate-in zoom-in-95 duration-200 space-y-5 my-auto"
+          >
             {/* Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
@@ -1332,7 +1343,8 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* bKash & Nagad Checkout Modal */}
