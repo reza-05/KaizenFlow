@@ -1622,12 +1622,12 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                   title={`চেকপয়েন্ট #${m.index} (${formatTime(m.triggerSecond)}) - ডিজিট দেখতে ক্লিক করুন`}
                   className={`flex h-7 items-center gap-1 px-2.5 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                     activeFloatingToast?.index === m.index
-                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/30'
-                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-950 dark:text-emerald-100 ring-2 ring-emerald-500/30 font-bold'
+                      : 'border-emerald-500/40 bg-emerald-500/15 text-emerald-950 dark:text-emerald-100 font-bold hover:bg-emerald-500/25'
                   }`}
                 >
                   <span>#{m.index}</span>
-                  <Check className="h-3 w-3 stroke-[2.5]" />
+                  <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
                 </button>
               ) : (
                 <div
@@ -1695,8 +1695,8 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                 </button>
               </form>
             ) : (
-              <div className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 dark:text-emerald-100 bg-emerald-500/15 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>সম্পন্ন</span>
               </div>
             )}

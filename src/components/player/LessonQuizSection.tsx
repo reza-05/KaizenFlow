@@ -204,8 +204,8 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
           <div className="flex items-center gap-2 self-start sm:self-center">
             {isAllAnswered ? (
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                  <Award className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-950 dark:text-emerald-100 shadow-2xs">
+                  <Award className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
                   <span>স্কোর: {score}/{questions.length}</span>
                 </span>
                 <button
@@ -293,17 +293,17 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                       ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-canvas)] shadow-xs'
                       : isAnswered
                       ? isCorrect
-                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                        : 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
+                        ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-950 dark:text-emerald-100 font-bold'
+                        : 'border-red-500/50 bg-red-500/15 text-red-950 dark:text-red-100 font-bold'
                       : 'border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   <span>প্রশ্ন {idx + 1}</span>
                   {isAnswered && (
                     isCorrect ? (
-                      <CheckCircle2 className="h-3 w-3 stroke-[2.5]" />
+                      <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
                     ) : (
-                      <XCircle className="h-3 w-3 stroke-[2.5]" />
+                      <XCircle className="h-3 w-3 text-red-600 dark:text-red-400 stroke-[2.5]" />
                     )
                   )}
                 </button>
@@ -344,11 +344,11 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
 
                     if (isAnswered) {
                       if (isCorrectOpt) {
-                        optCardStyle = 'border-emerald-500/80 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-medium shadow-xs';
-                        letterBadgeStyle = 'bg-emerald-500 text-white border-emerald-500';
+                        optCardStyle = 'border-emerald-500 bg-emerald-500/15 text-[var(--text-primary)] font-semibold shadow-xs ring-1 ring-emerald-500/30';
+                        letterBadgeStyle = 'bg-emerald-600 text-white border-emerald-600 font-bold';
                       } else if (isSelected && !isCorrectOpt) {
-                        optCardStyle = 'border-red-500/80 bg-red-500/10 text-red-800 dark:text-red-300 shadow-xs';
-                        letterBadgeStyle = 'bg-red-500 text-white border-red-500';
+                        optCardStyle = 'border-red-500 bg-red-500/15 text-[var(--text-primary)] font-semibold shadow-xs ring-1 ring-red-500/30';
+                        letterBadgeStyle = 'bg-red-600 text-white border-red-600 font-bold';
                       } else {
                         optCardStyle = 'opacity-40 border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-muted)]';
                       }
@@ -365,14 +365,14 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
                         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-xs font-bold font-mono transition-colors ${letterBadgeStyle}`}>
                           {optionLetters[optIdx]}
                         </span>
-                        <div className="flex-1 leading-relaxed pt-0.5 whitespace-pre-line">
+                        <div className="flex-1 leading-relaxed pt-0.5 whitespace-pre-line text-[var(--text-primary)] font-medium">
                           {renderFormattedText(optionText)}
                         </div>
                         {isAnswered && isCorrectOpt && (
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
                         )}
                         {isAnswered && isSelected && !isCorrectOpt && (
-                          <XCircle className="h-4 w-4 shrink-0 text-red-500 mt-0.5" />
+                          <XCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
                         )}
                       </button>
                     );
