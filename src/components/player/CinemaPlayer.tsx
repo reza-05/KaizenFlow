@@ -1531,24 +1531,23 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         </div>
       </div>
 
-      {/* Video Title & Meta */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
+      {/* Video Title & Meta Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
+        <div className="min-w-0 flex-1 space-y-1">
+          <h1 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)] leading-snug">
             {video.title}
           </h1>
-          <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-secondary)]">
-            <span>Duration: {formatTime(duration)}</span>
-            <span>&bull;</span>
-            <span className="font-mono text-[var(--text-primary)] font-semibold">
-              Watched: {formatTime(maxWatchedTime)}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <span className="font-mono text-[11px] font-medium">
+              দৈর্ঘ্য: {formatTime(duration)}
             </span>
-            <span>&bull;</span>
+            <span className="text-[var(--border-subtle)]">•</span>
             <button
+              type="button"
               onClick={() => onTimestampCapture?.(currentTime)}
-              className="text-[var(--text-primary)] hover:underline font-medium cursor-pointer"
+              className="inline-flex items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer hover:underline text-[11px] font-medium"
             >
-              + Note Timestamp
+              <span>+ নোট টাইমস্ট্যাম্প ({formatTime(currentTime)})</span>
             </button>
           </div>
         </div>
@@ -1557,7 +1556,7 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           <button
             type="button"
             onClick={onOpenReviews}
-            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-bold text-amber-500 transition-colors cursor-pointer shrink-0"
+            className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-semibold text-amber-600 dark:text-amber-400 transition-all cursor-pointer shrink-0 shadow-2xs"
             title="কোর্স রিভিউ ও রেটিং দেখুন বা দিন"
           >
             <Star className="h-3.5 w-3.5 fill-current" />
@@ -1566,23 +1565,53 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
         )}
       </div>
 
-      {/* 4-Milestone Progress Tracker Bar */}
-      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-[var(--text-secondary)]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                Focus Checkpoints (4 Digits)
-              </h3>
+      {/* Lesson Verification & Checkpoints Card */}
+      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 sm:p-4 shadow-xs transition-all">
+        {/* Top Tier: Status & Checkpoint Pills */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-colors ${
+              isLocallyVerified 
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' 
+                : isGateUnlocked 
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' 
+                : 'bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)]'
+            }`}>
+              {isLocallyVerified ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : isGateUnlocked ? (
+                <KeyRound className="h-4 w-4" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
             </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              4 digits appear throughout the lesson. If you ever forget one, click any reached checkpoint (#1, #2...) below to jump back and view it.
-            </p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold text-[var(--text-primary)]">
+                  {isLocallyVerified
+                    ? 'লেসন সম্পন্ন (+৫০ XP অর্জিত)'
+                    : isGateUnlocked
+                    ? 'ভেরিফিকেশন কোড আনলক হয়েছে'
+                    : 'লেসন ভেরিফিকেশন'}
+                </h3>
+                {!isLocallyVerified && (
+                  <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                    (৪ ডিজিট)
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                {isLocallyVerified
+                  ? 'এই লেকচারটি সফলভাবে সম্পন্ন হিসেবে চিহ্নিত হয়েছে।'
+                  : isGateUnlocked
+                  ? 'ভিডিওতে দেখানো ৪টি ডিজিট বসিয়ে লেসন সম্পন্ন করুন।'
+                  : `আনলক করতে আরও ${formatTime(Math.max(0, requiredSeconds - maxWatchedTime))} দেখতে হবে (৮০% ওয়াচটাইম)`}
+              </p>
+            </div>
           </div>
 
-          {/* 4 Checkpoint Indicator Pills (Interactive Buttons) */}
-          <div className="flex items-center gap-2">
+          {/* 4 Checkpoint Indicator Pills */}
+          <div className="flex items-center gap-1.5 self-start sm:self-center">
             {milestones.map(m => {
               const hasTriggered = currentTime >= m.triggerSecond || maxWatchedTime >= m.triggerSecond;
               return hasTriggered ? (
@@ -1590,11 +1619,11 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
                   key={m.index}
                   type="button"
                   onClick={() => handleMilestoneClick(m)}
-                  title={`Click to jump to Checkpoint #${m.index} (${formatTime(m.triggerSecond)}) and view digit`}
-                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-xs ${
+                  title={`চেকপয়েন্ট #${m.index} (${formatTime(m.triggerSecond)}) - ডিজিট দেখতে ক্লিক করুন`}
+                  className={`flex h-7 items-center gap-1 px-2.5 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                     activeFloatingToast?.index === m.index
-                      ? 'border-[#059669] bg-[#059669]/25 text-[#059669] ring-2 ring-[#059669]/40'
-                      : 'border-[#059669] bg-[#059669]/10 text-[#059669] hover:bg-[#059669]/20'
+                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/30'
+                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
                   }`}
                 >
                   <span>#{m.index}</span>
@@ -1603,8 +1632,8 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
               ) : (
                 <div
                   key={m.index}
-                  title={`Checkpoint #${m.index} unlocks at ${formatTime(m.triggerSecond)}`}
-                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] px-3 py-1.5 text-xs font-mono font-bold text-[var(--text-muted)] opacity-60 cursor-not-allowed select-none"
+                  title={`চেকপয়েন্ট #${m.index} (${formatTime(m.triggerSecond)} সময়ে আনলক হবে)`}
+                  className="flex h-7 items-center gap-1 px-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-[11px] font-mono font-medium text-[var(--text-secondary)] opacity-60 cursor-not-allowed select-none"
                 >
                   <span>#{m.index}</span>
                   <span>•</span>
@@ -1614,64 +1643,64 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
           </div>
         </div>
 
-        {/* Verification Form & Watch Gate Status */}
-        <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                isLocallyVerified 
-                  ? 'bg-[#059669]/10 text-[#059669]'
-                  : isGateUnlocked 
-                  ? 'bg-[#d97706]/10 text-[#d97706]' 
-                  : 'bg-[var(--bg-surface-subtle)] text-[var(--text-muted)]'
-              }`}>
-                {isLocallyVerified ? <CheckCircle2 className="h-4 w-4" /> : isGateUnlocked ? <KeyRound className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-              </div>
-
-              <span className="text-xs font-bold text-[var(--text-primary)]">
-                {isLocallyVerified 
-                  ? 'Lesson Verified (+50 XP awarded)' 
-                  : isGateUnlocked 
-                  ? 'Enter the 4 collected digits to complete this lesson:' 
-                  : `Watch ${formatTime(Math.max(0, requiredSeconds - maxWatchedTime))} more to unlock verification`}
-              </span>
+        {/* Bottom Tier: Progress Bar & Form */}
+        <div className="mt-3 pt-2.5 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          {/* Watch Progress Indicator */}
+          <div className="flex-1 max-w-sm space-y-1">
+            <div className="flex justify-between text-[10px] text-[var(--text-secondary)] font-mono">
+              <span>ওয়াচটাইম: {watchPercent}%</span>
+              <span>টার্গেট: ৮০%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-surface-subtle)]">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  isLocallyVerified
+                    ? 'bg-emerald-500'
+                    : isGateUnlocked
+                    ? 'bg-amber-500'
+                    : 'bg-[var(--text-primary)]'
+                }`}
+                style={{ width: `${isLocallyVerified ? 100 : Math.min(100, (watchPercent / 80) * 100)}%` }}
+              />
             </div>
           </div>
 
-          {/* Form */}
-          {!isLocallyVerified ? (
-            <form onSubmit={handleVerifySubmission} className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder={isGateUnlocked ? "e.g. 7429" : "Locked"}
-                disabled={!isGateUnlocked}
-                maxLength={4}
-                value={inputCode}
-                onChange={e => setInputCode(e.target.value)}
-                className={`w-28 rounded-md border px-3 py-1.5 text-center font-mono text-xs font-bold tracking-widest transition-colors focus:outline-none ${
-                  isGateUnlocked 
-                    ? 'border-[var(--border-strong)] bg-[var(--bg-canvas)] text-[var(--text-primary)] focus:border-[#059669]' 
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-[var(--text-muted)] cursor-not-allowed'
-                }`}
-              />
-              <button
-                type="submit"
-                disabled={!isGateUnlocked}
-                className={`rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                  isGateUnlocked
-                    ? 'bg-[#059669] text-white hover:bg-[#047857] shadow-xs cursor-pointer'
-                    : 'bg-[var(--bg-surface-subtle)] text-[var(--text-muted)] cursor-not-allowed'
-                }`}
-              >
-                Verify Code
-              </button>
-            </form>
-          ) : (
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#059669] bg-[#059669]/10 px-3 py-1.5 rounded-md">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Verified [✓]</span>
-            </div>
-          )}
+          {/* Form / Verified Badge */}
+          <div>
+            {!isLocallyVerified ? (
+              <form onSubmit={handleVerifySubmission} className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  placeholder={isGateUnlocked ? "৪ ডিজিট কোড" : "লক করা"}
+                  disabled={!isGateUnlocked}
+                  maxLength={4}
+                  value={inputCode}
+                  onChange={e => setInputCode(e.target.value)}
+                  className={`w-24 sm:w-28 rounded-lg border px-2.5 py-1 text-center font-mono text-xs font-bold tracking-widest transition-colors focus:outline-none ${
+                    isGateUnlocked
+                      ? 'border-amber-500/50 bg-[var(--bg-canvas)] text-[var(--text-primary)] focus:border-emerald-500'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)] cursor-not-allowed opacity-75'
+                  }`}
+                />
+                <button
+                  type="submit"
+                  disabled={!isGateUnlocked}
+                  className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all ${
+                    isGateUnlocked
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer active:scale-95'
+                      : 'bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)] opacity-60 cursor-not-allowed'
+                  }`}
+                >
+                  ভেরিফাই
+                </button>
+              </form>
+            ) : (
+              <div className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>সম্পন্ন</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Verification Error */}
@@ -1680,26 +1709,6 @@ export const CinemaPlayer: React.FC<CinemaPlayerProps> = ({
             {verificationError}
           </p>
         )}
-
-        {/* Anti-Cheat Watch Progress Indicator */}
-        <div className="mt-3">
-          <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono mb-1">
-            <span>Study Progress: {watchPercent}%</span>
-            <span>Verification at 80%</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-surface-subtle)]">
-            <div
-              className={`h-full transition-all duration-300 ${
-                isLocallyVerified 
-                  ? 'bg-[#059669]' 
-                  : isGateUnlocked 
-                  ? 'bg-[#d97706]' 
-                  : 'bg-[var(--text-primary)]'
-              }`}
-              style={{ width: `${isLocallyVerified ? 100 : watchPercent}%` }}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );
