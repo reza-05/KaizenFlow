@@ -11,7 +11,10 @@ import {
   Award,
   Loader2,
   Play,
-  ArrowRight
+  ArrowRight,
+  Music,
+  Tv,
+  FileText
 } from 'lucide-react';
 import { VideoItem, LectureQuizQuestion } from '@/types';
 import { 
@@ -22,6 +25,7 @@ import {
   clearStoredQuizState,
   clearAllQuizDataForVideo
 } from '@/lib/quizGenerator';
+import { classifyVideoContent } from '@/lib/contentClassifier';
 
 interface LessonQuizSectionProps {
   video: VideoItem;
@@ -40,6 +44,11 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
   const [hasStartedQuiz, setHasStartedQuiz] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Non-educational detection state
+  const [isNonEduBlocked, setIsNonEduBlocked] = useState<boolean>(false);
+  const [nonEduReason, setNonEduReason] = useState<string>('');
+  const [nonEduContentType, setNonEduContentType] = useState<'music_entertainment' | 'gaming' | 'vlog' | 'drama' | 'other'>('music_entertainment');
+
   // Load existing questions and saved user answers whenever video changes
   useEffect(() => {
     setErrorMessage(null);
@@ -53,16 +62,28 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
       setAnswers(savedState.answers || {});
       setIsSubmitted(savedState.isSubmitted || false);
       setHasStartedQuiz(Boolean(savedState.isSubmitted || Object.keys(savedState.answers || {}).length > 0));
+      setIsNonEduBlocked(false);
     } else {
       setQuestions([]);
       setAnswers({});
       setIsSubmitted(false);
       setHasStartedQuiz(false);
+
+      // Fast-classify video to check if it's non-educational
+      const classification = classifyVideoContent(video.title, courseTitle, video.ytVideoId);
+      if (classification.isNonEducational) {
+        setIsNonEduBlocked(true);
+        setNonEduReason(classification.reason);
+        setNonEduContentType(classification.contentType);
+      } else {
+        setIsNonEduBlocked(false);
+        setNonEduReason('');
+      }
     }
-  }, [video.ytVideoId]);
+  }, [video.ytVideoId, video.title, courseTitle]);
 
   // Handle "Take Quiz" click
-  const handleTakeQuiz = async (forceFresh: boolean = false) => {
+  const handleTakeQuiz = async (forceFresh: boolean = false, forceGenerate: boolean = false) => {
     setIsLoadingQuiz(true);
     setErrorMessage(null);
 
@@ -73,10 +94,23 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
         setIsSubmitted(false);
       }
 
-      const freshQuestions = await fetchAiQuizForVideo(video, courseTitle, forceFresh);
-      if (freshQuestions && freshQuestions.length >= 3) {
-        setQuestions(freshQuestions);
+      const res = await fetchAiQuizForVideo(video, courseTitle, forceFresh, forceGenerate);
+
+      // If backend detected non-educational content and not forced
+      if (res.isEducational === false) {
+        setIsNonEduBlocked(true);
+        setNonEduReason(res.reason || 'এই ভিডিওটি বিনোদনমূলক বা অ-শিক্ষামূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে।');
+        if (res.contentType) {
+          setNonEduContentType(res.contentType);
+        }
+        setHasStartedQuiz(false);
+        return;
+      }
+
+      if (res.questions && res.questions.length >= 3) {
+        setQuestions(res.questions);
         setHasStartedQuiz(true);
+        setIsNonEduBlocked(false);
         setActiveQuestionIndex(0);
       } else {
         setErrorMessage('কুইজ লোড করা সম্ভব হয়নি। পুনরায় চেষ্টা করুন।');
@@ -85,6 +119,20 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
       setErrorMessage(err.message || 'কুইজ লোড করতে সমস্যা হয়েছে।');
     } finally {
       setIsLoadingQuiz(false);
+    }
+  };
+
+  const handleGoToPersonalNotes = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('kaizenflow-switch-tab', {
+          detail: { tab: 'notes' },
+        })
+      );
+      const notesEl = document.getElementById('study-notes-section');
+      if (notesEl) {
+        notesEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -228,8 +276,54 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
         )}
       </div>
 
-      {/* STATE 1: INITIAL UNSTARTED "TAKE QUIZ" CTA */}
-      {!hasStartedQuiz && !isLoadingQuiz && (
+      {/* STATE 1: INITIAL UNSTARTED - NON-EDUCATIONAL CONTENT BARRIER */}
+      {!hasStartedQuiz && !isLoadingQuiz && isNonEduBlocked && (
+        <div className="flex flex-col items-center justify-center text-center p-6 sm:p-8 border border-amber-500/30 rounded-xl bg-amber-500/5 space-y-3.5 shadow-2xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500 ring-1 ring-amber-500/30 mb-1">
+            {nonEduContentType === 'music_entertainment' ? (
+              <Music className="h-6 w-6" />
+            ) : (
+              <Tv className="h-6 w-6" />
+            )}
+          </div>
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+              নন-এডুকেশনাল কনটেন্ট শনাক্ত হয়েছে
+            </h4>
+            <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed">
+              {renderFormattedText(nonEduReason || 'এই ভিডিওটি বিনোদনমূলক বা অ-শিক্ষামূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শিক্ষামূলক বিষয়ের কনসেপ্ট যাচাইয়ের জন্য তৈরি। আপনি চাইলে ব্যক্তিগত নোট নিতে পারেন অথবা ফোর্স করে কুইজ জেনারেট করতে পারেন।')}
+            </p>
+          </div>
+
+          {errorMessage && (
+            <p className="text-xs text-red-500 font-medium">
+              {errorMessage}
+            </p>
+          )}
+
+          <div className="w-full max-w-xs sm:max-w-sm pt-1 space-y-2">
+            <button
+              type="button"
+              onClick={handleGoToPersonalNotes}
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2.5 text-xs sm:text-sm font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Take Personal Notes Instead</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTakeQuiz(true, true)}
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 py-2 text-xs sm:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span>Force Generate Quiz Anyway</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STATE 2: INITIAL UNSTARTED "TAKE QUIZ" CTA (EDUCATIONAL CONTENT) */}
+      {!hasStartedQuiz && !isLoadingQuiz && !isNonEduBlocked && (
         <div className="rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/40 p-8 text-center space-y-4">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-2xs">
             <BookOpen className="h-6 w-6" />

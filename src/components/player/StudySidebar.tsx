@@ -90,6 +90,17 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     onExternalTabChange?.(tab);
   };
 
+  useEffect(() => {
+    const handleSwitchTab = (e: Event) => {
+      const customEvent = e as CustomEvent<{ tab: 'queue' | 'ai_notes' | 'notes' }>;
+      if (customEvent.detail?.tab) {
+        handleTabChange(customEvent.detail.tab);
+      }
+    };
+    window.addEventListener('kaizenflow-switch-tab', handleSwitchTab);
+    return () => window.removeEventListener('kaizenflow-switch-tab', handleSwitchTab);
+  }, []);
+
   const [newNoteContent, setNewNoteContent] = useState<string>('');
 
   // Queue Search & Star Filter State

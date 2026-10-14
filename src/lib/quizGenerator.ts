@@ -7,11 +7,20 @@ import { humanizeBengaliText } from './bengaliHumanizer';
  */
 
 // Fetch 5 genuine AI-generated conceptual questions from backend
+export interface QuizFetchResponse {
+  questions: LectureQuizQuestion[];
+  isEducational: boolean;
+  reason?: string;
+  contentType?: 'music_entertainment' | 'gaming' | 'vlog' | 'drama' | 'other';
+}
+
+// Fetch 5 genuine AI-generated conceptual questions from backend
 export async function fetchAiQuizForVideo(
   video: VideoItem,
   courseTitle?: string,
-  forceFresh: boolean = false
-): Promise<LectureQuizQuestion[]> {
+  forceFresh: boolean = false,
+  forceGenerate: boolean = false
+): Promise<QuizFetchResponse> {
   const cacheKey = `kaizenflow_quiz_data_${video.ytVideoId}`;
 
   // Check cache first unless forced fresh
@@ -21,7 +30,7 @@ export async function fetchAiQuizForVideo(
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length >= 3) {
-          return parsed;
+          return { questions: parsed, isEducational: true };
         }
       }
     } catch {}
@@ -37,11 +46,23 @@ export async function fetchAiQuizForVideo(
         videoTitle: video.title,
         courseTitle: courseTitle || '',
         language: 'bn',
+        forceGenerate: Boolean(forceGenerate),
       }),
     });
 
     if (res.ok) {
       const data = await res.json();
+
+      // Check if API rejected as non-educational
+      if (data.isEducational === false) {
+        return {
+          questions: [],
+          isEducational: false,
+          reason: data.reason,
+          contentType: data.contentType,
+        };
+      }
+
       if (Array.isArray(data.quiz) && data.quiz.length >= 3) {
         const sanitized: LectureQuizQuestion[] = data.quiz.map((q: any) => ({
           question: humanizeBengaliText(q.question || ''),
@@ -56,21 +77,21 @@ export async function fetchAiQuizForVideo(
           } catch {}
         }
 
-        return sanitized;
+        return { questions: sanitized, isEducational: true };
       }
     }
   } catch (err) {
     console.warn('[QuizEngine] API fetch failed, falling back to topic concept bank:', err);
   }
 
-  // Fallback to rich subject-matter concept questions (NEVER chronological/timestamp questions!)
+  // Fallback to rich subject-matter concept questions
   const fallback = generateConceptQuizFallback(video.title, courseTitle);
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(cacheKey, JSON.stringify(fallback));
     } catch {}
   }
-  return fallback;
+  return { questions: fallback, isEducational: true };
 }
 
 // Read cached questions if they already exist

@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
     const courseTitle = (body.courseTitle || '').trim();
     const language = (body.language || 'bn').trim(); // 'bn' or 'en'
     const customApiKey = (body.customApiKey || '').trim();
+    const forceGenerate = Boolean(body.forceGenerate);
 
     if (!videoId) {
       return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
@@ -120,6 +121,25 @@ export async function POST(req: NextRequest) {
       try {
         subtitles = await getSubtitles({ videoID: videoId });
       } catch {}
+    }
+
+    // Check for non-educational content upfront unless explicitly forced
+    const combinedTitle = `${videoTitle} ${courseTitle}`.toLowerCase();
+    const hasExplicitEducationalKeywords = /\b(tutorial|lecture|class|lesson|course|chapter|learn|introduction\s+to|basics\s+of|crash\s+course|full\s+course|problem\s+solving|solution|formula|derivation|chemistry|physics|biology|math|mathematics|calculus|algebra|programming|coding|algorithm|data\s+structure|web\s+dev|frontend|backend|software|how\s+to|guide|explained|explanation|syllabus|hsc|ssc|admission|buet|du|medical|exam|question\s+bank)\b/i.test(combinedTitle);
+
+    const hasStrongEntertainmentTitle = !hasExplicitEducationalKeywords && /\b(official\s+music\s+video|official\s+video|official\s+audio|lyric\s+video|lyrics\s+video|full\s+album|lofi\s+beats|dj\s+remix|original\s+soundtrack|\bost\b|movie\s+trailer|teaser\s+trailer|teaser|full\s+movie|movie\s+scene|gameplay|playthrough|let's\s+play|gaming\s+montage|funny\s+moments|prank\s+video|prank|comedy\s+sketch|standup\s+comedy|roast\s+video|reaction\s+video|daily\s+vlog|travel\s+vlog|food\s+vlog|mukbang|24\s+hour\s+challenge|natok|telefilm|drama\s+serial|web\s+series|match\s+highlights|full\s+match|goals|knockout|\bwwe\b|\bipl\b|\bbpl\b|band\s+song|bangla\s+song|music\s+video|audio\s+song|album\s+song|artcell|oniket\s+prantor)\b/i.test(combinedTitle);
+
+    const totalSubs = subtitles.length;
+    const musicSubCount = subtitles.filter(s => /\[(?:Music|Applause|Singing|Cheering)\]|[♪♫]/i.test(s.text)).length;
+    const isAlmostExclusivelyMusicSubs = totalSubs > 0 && (musicSubCount / totalSubs) >= 0.65;
+
+    if (!forceGenerate && (hasStrongEntertainmentTitle || isAlmostExclusivelyMusicSubs)) {
+      return NextResponse.json({
+        isEducational: false,
+        contentType: 'music_entertainment',
+        reason: 'এই ভিডিওটি মনে হচ্ছে বিনোদনমূলক বা অ-শিক্ষামূলক কনটেন্ট, যেমন গেমিং, ড্রামা, মিউজিক বা ব্লগের মতো। KaizenFlow কুইজ শিক্ষামূলক টিউটোরিয়ালের বিষয়বস্তু যাচাইয়ের জন্য সবচেয়ে উপযোগী, তাই আপনি যদি তবুও কুইজ দিতে চান তাহলে ‘Force Generate’ অপশনটি ব্যবহার করতে পারেন।',
+        quiz: []
+      });
     }
 
     // 2. Fetch official chapter markers
@@ -142,7 +162,8 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = `
-Generate EXACTLY 5 high-yield, challenging, and strictly conceptual Multiple Choice Questions (MCQ) testing the core subject matter taught in this specific educational video lecture.
+Generate EXACTLY 5 high-yield, challenging, and strictly conceptual Multiple Choice Questions (MCQ) testing the core subject matter taught in this video lecture.
+${forceGenerate ? '- USER OVERRIDE: The user explicitly requested "FORCE GENERATE". Generate questions testing key concepts, lyrics, or themes from the video regardless of genre.' : ''}
 
 VIDEO TITLE: "${videoTitle}"
 ${courseTitle ? `COURSE / PLAYLIST: "${courseTitle}"` : ''}

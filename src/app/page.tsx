@@ -57,8 +57,19 @@ export default function KaizenFlowApp() {
       setTimeout(() => setFocusWarning(null), 6000);
     };
 
+    const handleCustomTabSwitch = (e: Event) => {
+      const customEvt = e as CustomEvent<{ tab: 'queue' | 'ai_notes' | 'quiz' | 'notes' }>;
+      if (customEvt.detail?.tab) {
+        setMobileTab(customEvt.detail.tab);
+      }
+    };
+
     window.addEventListener('kaizenflow-focus-return', handleFocusReturn);
-    return () => window.removeEventListener('kaizenflow-focus-return', handleFocusReturn);
+    window.addEventListener('kaizenflow-switch-tab', handleCustomTabSwitch);
+    return () => {
+      window.removeEventListener('kaizenflow-focus-return', handleFocusReturn);
+      window.removeEventListener('kaizenflow-switch-tab', handleCustomTabSwitch);
+    };
   }, []);
 
   // Reload user data whenever auth user changes
