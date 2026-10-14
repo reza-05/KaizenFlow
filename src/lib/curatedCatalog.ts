@@ -276,7 +276,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from বন্দি পাঠশালা. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Saikat Abdullah",
       "Complete syllabus & exam preparation",
@@ -309,7 +309,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Learn with Hemel Bhai. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "মোলারিটি, টাইট্রেশন, অম্ল-ক্ষারক প্রশমন, জারণ-বিজারণ ব্যালেন্সিং ও স্টয়কিওমেট্রি গাণিতিক সমস্যার ক্লাস।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -342,7 +342,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Learn with Hemel Bhai. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সরল ছন্দিত স্পন্দন (SHM), সরল দোলক, সেকেন্ড দোলক ও দোলকের যান্ত্রিক শক্তির রূপান্তরের বিস্তারিত লেকচার।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -375,7 +375,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from বন্দি পাঠশালা. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Saikat Abdullah",
       "Complete syllabus & exam preparation",
@@ -408,7 +408,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Learn with Hemel Bhai. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -441,7 +441,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Learn with Hemel Bhai. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -474,7 +474,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Learn with Hemel Bhai. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বয়েল ও চার্লসের সূত্র, ডাল্টনের আংশিক চাপ, গ্রাহামের ব্যাপন সূত্র ও গ্রিনহাউস গ্যাসের পূর্ণাঙ্গ লেকচার।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -507,7 +507,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Learn with Hemel Bhai. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের খুঁটিনাটি লেকচার।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -540,7 +540,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "উচ্চতর গণিতের নিয়মাবলী, গুরুত্বপূর্ণ সূত্রের প্রমাণ এবং বিগত বছরের বোর্ড ও এডমিশন প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -573,7 +573,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "ম্যাট্রিক্সের গুণন, বিপরীত ম্যাট্রিক্স নির্ণয়, ক্র্যামারের নিয়ম এবং নির্ণায়কের মান বের করার সহজ নিয়ম।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -606,7 +606,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "উচ্চতর গণিতের নিয়মাবলী, গুরুত্বপূর্ণ সূত্রের প্রমাণ এবং বিগত বছরের বোর্ড ও এডমিশন প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -639,7 +639,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জটিল সংখ্যার রূপ, মডুলাস ও আর্গুমেন্ট নির্ণয়, পোলার আকার এবং এককের কাল্পনিক ঘনমূলের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -672,7 +672,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "স্থানাঙ্ক জ্যামিতি, ঢাল, সমীকরণ গঠন, দুটি রেখার মধ্যবর্তী কোণ, লম্ব দূরত্ব ও সঞ্চারপথের সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -705,7 +705,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "উচ্চতর গণিতের নিয়মাবলী, গুরুত্বপূর্ণ সূত্রের প্রমাণ এবং বিগত বছরের বোর্ড ও এডমিশন প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -738,7 +738,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "অনির্দিষ্ট ও নির্দিষ্ট যোগজীকরণ, প্রতিস্থাপন পদ্ধতি, আংশিক ভগ্নাংশ ও ক্ষেত্রফল নির্ণয়ের প্রয়োগমূলক ক্লাস।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -771,7 +771,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 50,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সায়েন্টিফিক ক্যালকুলেটরের শর্টকাট ট্রিকস, সমীকরণ সমাধান, ম্যাট্রিক্স ও জটিল সংখ্যার কুইক টেকনিক।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -804,7 +804,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বহুপদী সমীকরণের মূলের প্রকৃতি, মূল ও সহগ সম্পর্ক, দ্বিঘাত ও ত্রিঘাত সমীকরণ গঠনের নিয়মাবলী।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -837,7 +837,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Rakib's Classroom - HSC. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বৃত্তের প্রমিত সমীকরণ, কেন্দ্র ও ব্যাসার্ধ নির্ণয়, স্পর্শক ও অভিলম্বের সমীকরণ এবং স্পর্শকের দৈর্ঘ্যের অঙ্ক।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -870,7 +870,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "ভেক্টর যোজন-বিয়োজন, ডট ও ক্রস গুণন, নদী-নৌকা সমস্যা, বৃষ্টির আপেক্ষিক বেগ ও অপারেটরের ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -903,7 +903,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পরিবর্তনশীল বলের কাজ, স্প্রিং বল, গতিশক্তি ও বিভবশক্তি, কুয়ার অঙ্ক এবং কর্মদক্ষতার সমস্যার সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -936,7 +936,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "নিউটনের মহাকর্ষ সূত্র, 'g' এর মান পরিবর্তন, মুক্তিবেগ, উপগ্রহের পর্যায়কাল ও মহাকর্ষীয় বিভবের পূর্ণাঙ্গ ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -969,7 +969,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সরল ছন্দিত স্পন্দন (SHM), সরল দোলক, সেকেন্ড দোলক ও দোলকের যান্ত্রিক শক্তির রূপান্তরের বিস্তারিত লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1002,7 +1002,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "আদর্শ গ্যাস সমীকরণ, গ্যাসের গতিতত্ত্বের মূল স্বীকার্য, RMS বেগ ও শিশিরাঙ্ক-আপেক্ষিক আর্দ্রতার গাণিতিক ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1035,7 +1035,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "তাপগতিবিদ্যার ১ম ও ২য় সূত্র, সমোষ্ণ ও রুদ্ধতাপীয় প্রক্রিয়া, কার্নো চক্র এবং এন্ট্রপির বিস্তারিত গাণিতিক আলোচনা।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1068,7 +1068,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "কুলম্বের সূত্র, তড়িৎ প্রাবল্য, তড়িৎ বিভব, গাউসের সূত্র এবং ধারকের শক্তি সঞ্চয় সংক্রান্ত সমস্যা সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1101,7 +1101,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "ওহমের সূত্র, রোধের সূত্র, কার্শফের সূত্র, হুইটস্টোন ব্রিজ, মিটার ব্রিজ ও পটেনশিওমিটারের সার্কিট এনালাইসিস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1134,7 +1134,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1167,7 +1167,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1200,7 +1200,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "আদর্শ গ্যাস সমীকরণ, গ্যাসের গতিতত্ত্বের মূল স্বীকার্য, RMS বেগ ও শিশিরাঙ্ক-আপেক্ষিক আর্দ্রতার গাণিতিক ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1233,7 +1233,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1266,7 +1266,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1299,7 +1299,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "নিউটনের মহাকর্ষ সূত্র, 'g' এর মান পরিবর্তন, মুক্তিবেগ, উপগ্রহের পর্যায়কাল ও মহাকর্ষীয় বিভবের পূর্ণাঙ্গ ক্লাস।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1332,7 +1332,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 59,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "ভেক্টর যোজন-বিয়োজন, ডট ও ক্রস গুণন, নদী-নৌকা সমস্যা, বৃষ্টির আপেক্ষিক বেগ ও অপারেটরের ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1365,7 +1365,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "নিউটনের গতিসূত্র, ঘর্ষণ, কৌণিক গতি, জড়তার ভ্রামক, ভরবেগের সংরক্ষণশীলতা ও ব্যাংকিং সংক্রান্ত লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1398,7 +1398,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "নিউটনের গতিসূত্র, ঘর্ষণ, কৌণিক গতি, জড়তার ভ্রামক, ভরবেগের সংরক্ষণশীলতা ও ব্যাংকিং সংক্রান্ত লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1431,7 +1431,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পরিবর্তনশীল বলের কাজ, স্প্রিং বল, গতিশক্তি ও বিভবশক্তি, কুয়ার অঙ্ক এবং কর্মদক্ষতার সমস্যার সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1464,7 +1464,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1497,7 +1497,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1530,7 +1530,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1563,7 +1563,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Chinmoy's Physics Solutions. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "p-n জংশন ডায়োড, রেকটিফায়ার, ট্রানজিস্টর, অ্যামপ্লিফায়ার এবং ডিজিটাল লজিক গেটের প্রাথমিক ধারণা।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1596,7 +1596,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "তাপগতিবিদ্যার ১ম ও ২য় সূত্র, সমোষ্ণ ও রুদ্ধতাপীয় প্রক্রিয়া, কার্নো চক্র এবং এন্ট্রপির বিস্তারিত গাণিতিক আলোচনা।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1629,7 +1629,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "গতির সমীকরণ, গ্রাফ বিশ্লেষণ, প্রক্ষেপক (প্রাস), উলম্ব গতি এবং আপেক্ষিক বেগের গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1662,7 +1662,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "ভেক্টর যোজন-বিয়োজন, ডট ও ক্রস গুণন, নদী-নৌকা সমস্যা, বৃষ্টির আপেক্ষিক বেগ ও অপারেটরের ক্লাস।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1695,7 +1695,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "ভেক্টর যোজন-বিয়োজন, ডট ও ক্রস গুণন, নদী-নৌকা সমস্যা, বৃষ্টির আপেক্ষিক বেগ ও অপারেটরের ক্লাস।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1728,7 +1728,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo physics. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1761,7 +1761,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Apurbo Physics online class. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1794,7 +1794,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সংযুক্ত কোণের অনুপাত, যৌগিক কোণ, বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ সমাধানের ক্লাস।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1827,7 +1827,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি সাধারণ ও উচ্চতর গণিতের সূত্রাবলি, সমাধান পদ্ধতি এবং বোর্ড পরীক্ষার ক্যাটাগরিভিত্তিক অঙ্ক।",
     "highlights": [
       "Official course by Rubayet Sir",
       "Complete syllabus & exam preparation",
@@ -1860,7 +1860,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সংযুক্ত কোণের অনুপাত, যৌগিক কোণ, বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ সমাধানের ক্লাস।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1893,7 +1893,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1926,7 +1926,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 56,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "প্যাসকেলের সূত্র, আর্কিমিডিসের নীতি, প্লবতা, বস্তুর নিমজ্জন ও প্লবমান অবস্থা এবং পদার্থের স্থিতিস্থাপকতা।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1959,7 +1959,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সরল স্পন্দন গতি, তরঙ্গের সমীকরণ, তীব্রতা লেভেল, ডপলার ক্রিয়া ও বিট সংক্রান্ত গাণিতিক সমস্যা।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1992,7 +1992,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2025,7 +2025,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 59,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "তড়িৎ বিভব, ওহমের সূত্র, রোধের সূত্র, বর্তনীর তুল্যরোধ নির্ণয় এবং তড়িৎ ক্ষমতার বাস্তব হিসাব।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2058,7 +2058,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পর্যায় সারণির পর্যায়বৃত্ত ধর্ম, রাসায়নিক বন্ধন, সংকরায়ন (Hybridization) এবং আন্তঃআণবিক আকর্ষণের গভীর আলোচনা।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2091,7 +2091,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2124,7 +2124,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2157,7 +2157,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2190,7 +2190,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2223,7 +2223,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "দূরত্ব, সরণ, বেগ, ত্বরণ, গতির সমীকরণ প্রতিপাদন এবং লেখচিত্র (s-t, v-t) ব্যাখ্যার সহজ লেকচার।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2256,7 +2256,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2289,7 +2289,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2322,7 +2322,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2355,7 +2355,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Right form of verbs, modifiers, connectors, narration, preposition এবং বোর্ড স্ট্যান্ডার্ড গ্রামার সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2388,7 +2388,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2421,7 +2421,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2454,7 +2454,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad's Tutorial. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2487,7 +2487,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Fahad Sir's Student. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2519,7 +2519,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Edspira. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Balance sheets, income statements, cash flow statements, journal entries, debit/credit rules, and accrual accounting.",
     "highlights": [
       "Official course by Prof. Kevin Smith",
       "Complete syllabus & exam preparation",
@@ -2551,7 +2551,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Edspira. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Cost classification, cost-volume-profit (CVP) analysis, job-order costing, activity-based costing (ABC), and budgeting.",
     "highlights": [
       "Official course by Prof. Kevin Smith",
       "Complete syllabus & exam preparation",
@@ -2583,7 +2583,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Edspira. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Time value of money (TVM), capital budgeting (NPV & IRR), cost of capital (WACC), valuation, and working capital.",
     "highlights": [
       "Official course by Prof. Kevin Smith",
       "Complete syllabus & exam preparation",
@@ -2615,7 +2615,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from CrashCourse. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Core economic principles: incentives, scarcity, trade-offs, fiscal interventions, and market dynamics.",
     "highlights": [
       "Official course by Adriene Hill & Jacob Clifford",
       "Complete syllabus & exam preparation",
@@ -2647,7 +2647,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Jacob Clifford. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Gross Domestic Product (GDP), inflation, unemployment, fiscal policy, monetary policy, and international trade balance.",
     "highlights": [
       "Official course by Jacob Clifford",
       "Complete syllabus & exam preparation",
@@ -2679,7 +2679,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Jacob Clifford. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Supply & demand elasticity, consumer utility, production costs, perfect competition, monopoly, and market equilibrium.",
     "highlights": [
       "Official course by Jacob Clifford",
       "Complete syllabus & exam preparation",
@@ -2711,7 +2711,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Number systems, Boolean algebra, K-Maps, Adders, Multiplexers, Flip-Flops, Registers, and Synchronous Counters.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -2743,7 +2743,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Vector spaces, matrix operations, determinants, eigenvalues, eigenvectors, and linear transformations.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2775,7 +2775,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 50,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "CPU datapath, instruction pipelining, hazards, cache memory hierarchy, mapping techniques, and secondary storage.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2807,7 +2807,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Lexical analysis, LL & LR parsing, Syntax-Directed Translation (SDT), intermediate representation, and optimization.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2839,7 +2839,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "DFA, NFA, Regular Languages, Pumping Lemma, Context-Free Grammars, Pushdown Automata, and Turing Machines.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2871,7 +2871,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from take U forward. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Raj Vikramaditya (Striver)",
       "Complete syllabus & exam preparation",
@@ -2903,7 +2903,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Relational model, SQL query design, ER diagrams, 1NF to BCNF normalization, and ACID transaction concurrency.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2935,7 +2935,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Asymptotic bounds, Divide & Conquer, Greedy strategies, Dynamic Programming (DP), and Graph traversals (Dijkstra, MST).",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2967,7 +2967,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -2999,7 +2999,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 50,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "OSI & TCP/IP stack, IP subnetting, flow and error control, routing protocols (OSPF, BGP), and transport protocols.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -3031,7 +3031,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Comprehensive review of core Computer Science concepts and problem solving for competitive exams.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -3063,7 +3063,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -3095,7 +3095,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Propositional logic, sets, relations, functions, recurrence relations, graph theory, and combinatorics for CS.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -3127,7 +3127,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 54,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from Gate Smashers. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "SDLC phases, Agile methodologies, design patterns, software testing, maintenance, and project cost estimation.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -3159,7 +3159,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Number systems, Boolean algebra, K-Maps, Adders, Multiplexers, Flip-Flops, Registers, and Synchronous Counters.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3191,7 +3191,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 56,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "8085 microprocessor architecture, pin diagram, instruction set, timing cycles, and memory/IO interfacing.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3223,7 +3223,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "CPU datapath, instruction pipelining, hazards, cache memory hierarchy, mapping techniques, and secondary storage.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3255,7 +3255,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "CPU datapath, instruction pipelining, hazards, cache memory hierarchy, mapping techniques, and secondary storage.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3287,7 +3287,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 59,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "DFA, NFA, Regular Languages, Pumping Lemma, Context-Free Grammars, Pushdown Automata, and Turing Machines.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3319,7 +3319,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "DFA, NFA, Regular Languages, Pumping Lemma, Context-Free Grammars, Pushdown Automata, and Turing Machines.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3351,7 +3351,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Abdul Bari. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Asymptotic bounds, Divide & Conquer, Greedy strategies, Dynamic Programming (DP), and Graph traversals (Dijkstra, MST).",
     "highlights": [
       "Official course by Abdul Bari",
       "Complete syllabus & exam preparation",
@@ -3383,7 +3383,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from take U forward. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Raj Vikramaditya (Striver)",
       "Complete syllabus & exam preparation",
@@ -3415,7 +3415,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from CodeHelp - by Babbar. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Love Babbar",
       "Complete syllabus & exam preparation",
@@ -3447,7 +3447,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Official curriculum course from CodeHelp - by Babbar. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Love Babbar",
       "Complete syllabus & exam preparation",
@@ -3479,7 +3479,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "OSI & TCP/IP stack, IP subnetting, flow and error control, routing protocols (OSPF, BGP), and transport protocols.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3511,7 +3511,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Diode circuits, BJT & MOSFET biasing, small-signal AC models, Op-Amps, feedback amplifiers, and active filters.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3543,7 +3543,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Continuous & discrete signals, LTI systems, convolution integral, Fourier series, Fourier transform, and Z-transform.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3575,7 +3575,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Transfer functions, block diagram reduction, Routh-Hurwitz stability, Root Locus techniques, Bode plots, and state-space.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3607,7 +3607,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "8085 microprocessor architecture, pin diagram, instruction set, timing cycles, and memory/IO interfacing.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3639,7 +3639,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "KVL, KCL, mesh and nodal analysis, Thevenin/Norton theorems, transient response, AC circuits, and two-port networks.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3671,7 +3671,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "KVL, KCL, mesh and nodal analysis, Thevenin/Norton theorems, transient response, AC circuits, and two-port networks.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3703,7 +3703,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Essential electrical engineering curriculum covering circuit principles, analysis methods, and applications.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3735,7 +3735,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Continuous & discrete signals, LTI systems, convolution integral, Fourier series, Fourier transform, and Z-transform.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3767,7 +3767,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Neso Academy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Transfer functions, block diagram reduction, Routh-Hurwitz stability, Root Locus techniques, Bode plots, and state-space.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3799,7 +3799,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Professor Leonard. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Professor Leonard",
       "Complete syllabus & exam preparation",
@@ -3831,7 +3831,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Professor Leonard. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Professor Leonard",
       "Complete syllabus & exam preparation",
@@ -3863,7 +3863,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Professor Leonard. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "First-order separable and linear ODEs, second-order linear homogeneous equations, Laplace transforms, and series solutions.",
     "highlights": [
       "Official course by Professor Leonard",
       "Complete syllabus & exam preparation",
@@ -3895,7 +3895,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from MIT OpenCourseWare. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Vector spaces, matrix operations, determinants, eigenvalues, eigenvectors, and linear transformations.",
     "highlights": [
       "Official course by Prof. Gilbert Strang",
       "Complete syllabus & exam preparation",
@@ -3927,7 +3927,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from 3Blue1Brown. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Vector spaces, matrix operations, determinants, eigenvalues, eigenvectors, and linear transformations.",
     "highlights": [
       "Official course by Grant Sanderson",
       "Complete syllabus & exam preparation",
@@ -3959,7 +3959,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from 3Blue1Brown. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "University mathematics curriculum with rigorous proofs, geometric intuition, and worked problems.",
     "highlights": [
       "Official course by Grant Sanderson",
       "Complete syllabus & exam preparation",
@@ -3991,7 +3991,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from CodeWithHarry. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Python syntax, data structures (lists, tuples, dicts), functions, modules, and object-oriented programming (OOP).",
     "highlights": [
       "Official course by Haris Khan (CodeWithHarry)",
       "Complete syllabus & exam preparation",
@@ -4023,7 +4023,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from CodeWithHarry. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Python syntax, data structures (lists, tuples, dicts), functions, modules, and object-oriented programming (OOP).",
     "highlights": [
       "Official course by Haris Khan (CodeWithHarry)",
       "Complete syllabus & exam preparation",
@@ -4055,7 +4055,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Andrej Karpathy. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "OSI & TCP/IP stack, IP subnetting, flow and error control, routing protocols (OSPF, BGP), and transport protocols.",
     "highlights": [
       "Official course by Andrej Karpathy",
       "Complete syllabus & exam preparation",
@@ -4087,7 +4087,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 50,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from GFXMentor. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Adobe Illustrator CC: Pen tool mastery, vector illustration, logo design, typography, and professional brand identity.",
     "highlights": [
       "Official course by Imran Ali Dina",
       "Complete syllabus & exam preparation",
@@ -4119,7 +4119,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from GFXMentor. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Adobe Illustrator CC: Pen tool mastery, vector illustration, logo design, typography, and professional brand identity.",
     "highlights": [
       "Official course by Imran Ali Dina",
       "Complete syllabus & exam preparation",
@@ -4151,7 +4151,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from GFXMentor. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Imran Ali Dina",
       "Complete syllabus & exam preparation",
@@ -4183,7 +4183,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from GFXMentor. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Imran Ali Dina",
       "Complete syllabus & exam preparation",
@@ -4215,7 +4215,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 54,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Fastrack IELTS. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "IELTS Academic & General training: Writing Task 1 & 2 templates, reading skimming methods, and speaking fluency.",
     "highlights": [
       "Official course by Asiya (Fastrack IELTS)",
       "Complete syllabus & exam preparation",
@@ -4247,7 +4247,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Fastrack IELTS. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "IELTS Listening strategies, question types, audio prediction techniques, and accent comprehension practice.",
     "highlights": [
       "Official course by Asiya (Fastrack IELTS)",
       "Complete syllabus & exam preparation",
@@ -4279,7 +4279,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from CodeWithHarry. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
     "highlights": [
       "Official course by Haris Khan (CodeWithHarry)",
       "Complete syllabus & exam preparation",
@@ -4311,7 +4311,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from Chai aur Code. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "React components, Virtual DOM, props, hooks (useState, useEffect), state lifting, and project development.",
     "highlights": [
       "Official course by Hitesh Choudhary",
       "Complete syllabus & exam preparation",
@@ -4343,7 +4343,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Akshay Saini. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "JavaScript execution context, call stack, closures, prototypes, asynchronous event loop, and modern ES6+ features.",
     "highlights": [
       "Official course by Akshay Saini",
       "Complete syllabus & exam preparation",
@@ -4375,7 +4375,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Akshay Saini. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "JavaScript execution context, call stack, closures, prototypes, asynchronous event loop, and modern ES6+ features.",
     "highlights": [
       "Official course by Akshay Saini",
       "Complete syllabus & exam preparation",
@@ -4407,7 +4407,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from Chai aur Code. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
     "highlights": [
       "Official course by Hitesh Choudhary",
       "Complete syllabus & exam preparation",
@@ -4439,7 +4439,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from Chai aur Code. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
     "highlights": [
       "Official course by Hitesh Choudhary",
       "Complete syllabus & exam preparation",
@@ -4472,7 +4472,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from বন্দি পাঠশালা. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "কোষের অঙ্গাণু, প্লাজমামেমব্রেন (ফ্লুইড মোজাইক মডেল), ডিএনএ রেপ্লিকেশন, ট্রান্সক্রিপশন ও ট্রান্সলেশন।",
     "highlights": [
       "Official course by Dr. Abrar Hamim",
       "Complete syllabus & exam preparation",
@@ -4505,7 +4505,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Toufiq Hasan Protik",
       "Complete syllabus & exam preparation",
@@ -4538,7 +4538,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 56,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Dr. Abrar Hamim ( Master Biology ). Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "কোষের অঙ্গাণু, প্লাজমামেমব্রেন (ফ্লুইড মোজাইক মডেল), ডিএনএ রেপ্লিকেশন, ট্রান্সক্রিপশন ও ট্রান্সলেশন।",
     "highlights": [
       "Official course by Dr. Abrar Hamim",
       "Complete syllabus & exam preparation",
@@ -4571,7 +4571,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from বন্দি পাঠশালা. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Bandi Pathshala Faculty",
       "Complete syllabus & exam preparation",
@@ -4604,7 +4604,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from বন্দি পাঠশালা. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Bandi Pathshala Faculty",
       "Complete syllabus & exam preparation",
@@ -4637,7 +4637,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 59,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from বন্দি পাঠশালা. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Bandi Pathshala Faculty",
       "Complete syllabus & exam preparation",
@@ -4670,7 +4670,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Toufiq Hasan Protik",
       "Complete syllabus & exam preparation",
@@ -4703,7 +4703,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Toufiq Hasan Protik",
       "Complete syllabus & exam preparation",
@@ -4736,7 +4736,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের খুঁটিনাটি লেকচার।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4769,7 +4769,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের খুঁটিনাটি লেকচার।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4802,7 +4802,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "রসায়ন ১ম ও ২য় পত্রের মূল কনসেপ্ট, রাসায়নিক বিক্রিয়ার মেকানিজম এবং বোর্ড পরীক্ষার স্ট্যান্ডার্ড সমস্যা সমাধান।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4835,7 +4835,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4868,7 +4868,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Anisul Islam. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বিশ্ব ও বাংলাদেশ প্রেক্ষিত, সংখ্যা পদ্ধতি, ডিজিটাল লজিক গেট, এইচটিএমএল এবং সি প্রোগ্রামিংয়ের পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Anisul Islam",
       "Complete syllabus & exam preparation",
@@ -4901,7 +4901,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 50,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Anisul Islam. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বিশ্ব ও বাংলাদেশ প্রেক্ষিত, সংখ্যা পদ্ধতি, ডিজিটাল লজিক গেট, এইচটিএমএল এবং সি প্রোগ্রামিংয়ের পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Anisul Islam",
       "Complete syllabus & exam preparation",
@@ -4934,7 +4934,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Hiramon's Classroom. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Right form of verbs, modifiers, connectors, narration, preposition এবং বোর্ড স্ট্যান্ডার্ড গ্রামার সমাধান।",
     "highlights": [
       "Official course by Hiramon Sir",
       "Complete syllabus & exam preparation",
@@ -4967,7 +4967,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from English Moja. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Official comprehensive course on Freehand Writing-এর লাইভ ক্লাস by English Moja Faculty from English Moja.",
     "highlights": [
       "Official course by English Moja Faculty",
       "Complete syllabus & exam preparation",
@@ -5000,7 +5000,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Abida Purvin Chowdhury. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Official comprehensive course on HSC Bangla 1st Paper by Abida Purvin Chowdhury from Abida Purvin Chowdhury.",
     "highlights": [
       "Official course by Abida Purvin Chowdhury",
       "Complete syllabus & exam preparation",
@@ -5033,7 +5033,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বিশ্ব ও বাংলাদেশ প্রেক্ষিত, সংখ্যা পদ্ধতি, ডিজিটাল লজিক গেট, এইচটিএমএল এবং সি প্রোগ্রামিংয়ের পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Sourav Saha",
       "Complete syllabus & exam preparation",
@@ -5066,7 +5066,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Anisul Islam. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Official comprehensive course on C Basic-Advanced 2026 Bangla Tutorials by Anisul Islam from Anisul Islam.",
     "highlights": [
       "Official course by Anisul Islam",
       "Complete syllabus & exam preparation",
@@ -5099,7 +5099,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Hiramon's Classroom. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Official comprehensive course on HSC 26 Admission Free Class | DU & Others by Hiramon Sir from Hiramon's Classroom.",
     "highlights": [
       "Official course by Hiramon Sir",
       "Complete syllabus & exam preparation",
@@ -5132,7 +5132,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from English Moja. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Right form of verbs, modifiers, connectors, narration, preposition এবং বোর্ড স্ট্যান্ডার্ড গ্রামার সমাধান।",
     "highlights": [
       "Official course by English Moja Faculty",
       "Complete syllabus & exam preparation",
@@ -5165,7 +5165,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from Abida Purvin Chowdhury. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Official comprehensive course on Bangla One Shot HSC by Abida Purvin Chowdhury from Abida Purvin Chowdhury.",
     "highlights": [
       "Official course by Abida Purvin Chowdhury",
       "Complete syllabus & exam preparation",
@@ -5198,7 +5198,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 54,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "লিমিটের নিয়মাবলী, পর্যায়ক্রমিক অন্তরীকরণ, স্পর্শক-অভিলম্ব এবং চরম মানের বাস্তব সমস্যার সমাধান।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -5231,7 +5231,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "লিমিটের নিয়মাবলী, পর্যায়ক্রমিক অন্তরীকরণ, স্পর্শক-অভিলম্ব এবং চরম মানের বাস্তব সমস্যার সমাধান।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -5264,7 +5264,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বিশ্ব ও বাংলাদেশ প্রেক্ষিত, সংখ্যা পদ্ধতি, ডিজিটাল লজিক গেট, এইচটিএমএল এবং সি প্রোগ্রামিংয়ের পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -5296,7 +5296,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from ACS Future School. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "বিশ্ব ও বাংলাদেশ প্রেক্ষিত, সংখ্যা পদ্ধতি, ডিজিটাল লজিক গেট, এইচটিএমএল এবং সি প্রোগ্রামিংয়ের পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by ACS Future School Faculty",
       "Complete syllabus & exam preparation",
@@ -5329,7 +5329,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from 10 Minute School. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Right form of verbs, modifiers, connectors, narration, preposition এবং বোর্ড স্ট্যান্ডার্ড গ্রামার সমাধান।",
     "highlights": [
       "Official course by Munzereen Shahid",
       "Complete syllabus & exam preparation",
@@ -5362,7 +5362,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি সাধারণ ও উচ্চতর গণিতের সূত্রাবলি, সমাধান পদ্ধতি এবং বোর্ড পরীক্ষার ক্যাটাগরিভিত্তিক অঙ্ক।",
     "highlights": [
       "Official course by Shafiul Muznamin Jeem",
       "Complete syllabus & exam preparation",
@@ -5395,7 +5395,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি সাধারণ ও উচ্চতর গণিতের সূত্রাবলি, সমাধান পদ্ধতি এবং বোর্ড পরীক্ষার ক্যাটাগরিভিত্তিক অঙ্ক।",
     "highlights": [
       "Official course by Shafiul Muznamin Jeem",
       "Complete syllabus & exam preparation",
@@ -5428,7 +5428,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "প্যাসকেলের সূত্র, আর্কিমিডিসের নীতি, প্লবতা, বস্তুর নিমজ্জন ও প্লবমান অবস্থা এবং পদার্থের স্থিতিস্থাপকতা।",
     "highlights": [
       "Official course by Md. Riasat Morshed Khan",
       "Complete syllabus & exam preparation",
@@ -5461,7 +5461,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Md. Shamir Montazid",
       "Complete syllabus & exam preparation",
@@ -5494,7 +5494,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Md. Shah Alam Rubel",
       "Complete syllabus & exam preparation",
@@ -5526,7 +5526,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Amader School. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Amader School Faculty",
       "Complete syllabus & exam preparation",
@@ -5558,7 +5558,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Amader School. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Amader School Faculty",
       "Complete syllabus & exam preparation",
@@ -5591,7 +5591,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "দূরত্ব, সরণ, বেগ, ত্বরণ, গতির সমীকরণ প্রতিপাদন এবং লেখচিত্র (s-t, v-t) ব্যাখ্যার সহজ লেকচার।",
     "highlights": [
       "Official course by Md. Riasat Morshed Khan",
       "Complete syllabus & exam preparation",
@@ -5624,7 +5624,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Md. Riasat Morshed Khan",
       "Complete syllabus & exam preparation",
@@ -5657,7 +5657,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "React components, Virtual DOM, props, hooks (useState, useEffect), state lifting, and project development.",
     "highlights": [
       "Official course by Md. Shamir Montazid",
       "Complete syllabus & exam preparation",
@@ -5690,7 +5690,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Md. Shamir Montazid",
       "Complete syllabus & exam preparation",
@@ -5723,7 +5723,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from OnnoRokom Pathshala. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
     "highlights": [
       "Official course by Md. Shah Alam Rubel",
       "Complete syllabus & exam preparation",
@@ -5755,7 +5755,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 54,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Kunal Kushwaha. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Kunal Kushwaha",
       "Complete syllabus & exam preparation",
@@ -5787,7 +5787,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Gaurav Sen. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "High-level architecture, scalability, load balancing, caching, sharding, microservices, and distributed consistency.",
     "highlights": [
       "Official course by Gaurav Sen",
       "Complete syllabus & exam preparation",
@@ -5819,7 +5819,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from TechWorld with Nana. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Containerization, CI/CD pipelines, Docker, Kubernetes deployment, cloud architecture, and infrastructure as code.",
     "highlights": [
       "Official course by TechWorld with Nana",
       "Complete syllabus & exam preparation",
@@ -5851,7 +5851,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from NetworkChuck. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "University-level curriculum covering theoretical fundamentals, gate preparation, and practical examples.",
     "highlights": [
       "Official course by NetworkChuck",
       "Complete syllabus & exam preparation",
@@ -5883,7 +5883,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Kunal Kushwaha. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Arrays, Linked Lists, Stacks, Queues, Binary Trees, BSTs, Heaps, Hashing, and core algorithmic problem solving.",
     "highlights": [
       "Official course by Kunal Kushwaha",
       "Complete syllabus & exam preparation",
@@ -5915,7 +5915,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Gaurav Sen. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "University-level curriculum covering theoretical fundamentals, gate preparation, and practical examples.",
     "highlights": [
       "Official course by Gaurav Sen",
       "Complete syllabus & exam preparation",
@@ -5947,7 +5947,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from TechWorld with Nana. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Containerization, CI/CD pipelines, Docker, Kubernetes deployment, cloud architecture, and infrastructure as code.",
     "highlights": [
       "Official course by TechWorld with Nana",
       "Complete syllabus & exam preparation",
@@ -5979,7 +5979,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from NetworkChuck. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "OSI & TCP/IP stack, IP subnetting, flow and error control, routing protocols (OSPF, BGP), and transport protocols.",
     "highlights": [
       "Official course by NetworkChuck",
       "Complete syllabus & exam preparation",
@@ -6011,7 +6011,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Brian Douglas. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
     "highlights": [
       "Official course by Brian Douglas",
       "Complete syllabus & exam preparation",
@@ -6043,7 +6043,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 59,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from GATE Wallah - ME, CE, XE, CH, PI & ES. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Pure substances, 1st & 2nd laws of thermodynamics, Carnot cycle, Rankine/Brayton cycles, and entropy.",
     "highlights": [
       "Official course by GATE Wallah Faculty",
       "Complete syllabus & exam preparation",
@@ -6075,7 +6075,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from IMS GATE ACADEMY. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Fluid statics, manometry, continuity equation, Bernoulli theorem, laminar/turbulent pipe flow, and boundary layer theory.",
     "highlights": [
       "Official course by Atul Negi Sir",
       "Complete syllabus & exam preparation",
@@ -6107,7 +6107,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from GATE Wallah (English). Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Equilibrium of rigid bodies, free body diagrams (FBD), friction, moment of inertia, kinematics, and kinetics.",
     "highlights": [
       "Official course by GATE Wallah Mechanical",
       "Complete syllabus & exam preparation",
@@ -6139,7 +6139,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from GATE Wallah - ME, CE, XE, CH, PI & ES. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Stress, strain, Hooke's law, shear force & bending moment diagrams (SFD/BMD), deflection of beams, and Mohr's circle.",
     "highlights": [
       "Official course by GATE Wallah Faculty",
       "Complete syllabus & exam preparation",
@@ -6171,7 +6171,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from GATE Wallah - ME, CE, XE, CH, PI & ES. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Conduction (Fourier law), convection heat transfer coefficients, radiation (blackbody & grey surface), and heat exchangers.",
     "highlights": [
       "Official course by GATE Wallah Faculty",
       "Complete syllabus & exam preparation",
@@ -6203,7 +6203,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from GATE Wallah - ME, CE, XE, CH, PI & ES. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Mechanical engineering fundamentals with theoretical derivation and engineering problem solving.",
     "highlights": [
       "Official course by GATE Wallah Faculty",
       "Complete syllabus & exam preparation",
@@ -6235,7 +6235,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from GATE Wallah - ME, CE, XE, CH, PI & ES. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Pure substances, 1st & 2nd laws of thermodynamics, Carnot cycle, Rankine/Brayton cycles, and entropy.",
     "highlights": [
       "Official course by GATE Wallah Faculty",
       "Complete syllabus & exam preparation",
@@ -6267,7 +6267,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Dr. Bevin Maultsby. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Partial derivatives, gradient vectors, directional derivatives, Lagrange multipliers, double/triple integrals, and line integrals.",
     "highlights": [
       "Official course by Dr. Bevin Maultsby",
       "Complete syllabus & exam preparation",
@@ -6299,7 +6299,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from StatQuest with Josh Starmer. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Probability distributions, hypothesis testing, p-values, confidence intervals, regression analysis, and machine learning stats.",
     "highlights": [
       "Official course by Josh Starmer",
       "Complete syllabus & exam preparation",
@@ -6331,7 +6331,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "English",
-    "description": "Official curriculum course from Lectures by Walter Lewin. They will make you ♥ Physics.. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "MIT 8.01 classical mechanics: Newton's laws, gravitation, circular motion, rotational dynamics, and planetary orbits.",
     "highlights": [
       "Official course by Prof. Walter Lewin",
       "Complete syllabus & exam preparation",
@@ -6363,7 +6363,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 56,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from Krish Naik. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and deep neural nets.",
     "highlights": [
       "Official course by Krish Naik",
       "Complete syllabus & exam preparation",
@@ -6395,7 +6395,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from freeCodeCamp.org. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Python for scientific computing: NumPy arrays, Pandas DataFrames, data cleaning, and Matplotlib visualization.",
     "highlights": [
       "Official course by freeCodeCamp",
       "Complete syllabus & exam preparation",
@@ -6427,7 +6427,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from CampusX. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and deep neural nets.",
     "highlights": [
       "Official course by Nitish Singh",
       "Complete syllabus & exam preparation",
@@ -6459,7 +6459,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from CampusX. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and deep neural nets.",
     "highlights": [
       "Official course by Nitish Singh",
       "Complete syllabus & exam preparation",
@@ -6491,7 +6491,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from WsCube Tech. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Dart programming, Flutter widget trees, state management, UI layouts, REST API integration, and cross-platform app builds.",
     "highlights": [
       "Official course by WsCube Tech Team",
       "Complete syllabus & exam preparation",
@@ -6523,7 +6523,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from WsCube Tech. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Dart programming, Flutter widget trees, state management, UI layouts, REST API integration, and cross-platform app builds.",
     "highlights": [
       "Official course by WsCube Tech Team",
       "Complete syllabus & exam preparation",
@@ -6556,7 +6556,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Anisul Islam. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "সি প্রোগ্রামিংয়ের বেসিক সিনট্যাক্স, ভ্যারিয়েবল, কন্ট্রোল ফ্লো, ফাংশন, পয়েন্টার ও ফাইল হ্যান্ডলিংয়ের সহজ গাইড।",
     "highlights": [
       "Official course by Anisul Islam",
       "Complete syllabus & exam preparation",
@@ -6589,7 +6589,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Official curriculum course from Anisul Islam. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Python syntax, data structures (lists, tuples, dicts), functions, modules, and object-oriented programming (OOP).",
     "highlights": [
       "Official course by Anisul Islam",
       "Complete syllabus & exam preparation",
@@ -6621,7 +6621,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from Apna College. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Asymptotic bounds, Divide & Conquer, Greedy strategies, Dynamic Programming (DP), and Graph traversals (Dijkstra, MST).",
     "highlights": [
       "Official course by Shradha Khapra",
       "Complete syllabus & exam preparation",
@@ -6653,7 +6653,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from CS50. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Harvard's legendary introduction to computer science: C, Python, SQL, web development, algorithms, and cybersecurity.",
     "highlights": [
       "Official course by David J. Malan",
       "Complete syllabus & exam preparation",
@@ -6685,7 +6685,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 50,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from freeCodeCamp.org. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Python syntax, data structures (lists, tuples, dicts), functions, modules, and object-oriented programming (OOP).",
     "highlights": [
       "Official course by freeCodeCamp",
       "Complete syllabus & exam preparation",
@@ -6717,7 +6717,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Official curriculum course from Thapa Technical. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "React components, Virtual DOM, props, hooks (useState, useEffect), state lifting, and project development.",
     "highlights": [
       "Official course by Vinod Bahadur Thapa",
       "Complete syllabus & exam preparation",
@@ -6749,7 +6749,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 54,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Codevolution. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "Next.js App Router, Server Components, SSR vs SSG, client components, API routes, and full-stack deployment.",
     "highlights": [
       "Official course by Codevolution",
       "Complete syllabus & exam preparation",
@@ -6781,7 +6781,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Beginner",
     "language": "English",
-    "description": "Official curriculum course from Traversy Media. Designed for complete concept mastery, syllabus coverage, and exams.",
+    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
     "highlights": [
       "Official course by Brad Traversy",
       "Complete syllabus & exam preparation",
@@ -6800,7 +6800,6 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "badge": "Traversy JS"
   }
 ];
-
 export function getCuratedCourses(): CuratedCourse[] {
   return CURATED_COURSES;
 }
