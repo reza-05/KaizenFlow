@@ -288,9 +288,29 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Intelligent Topic / Keyword Search Fallback
-    // If the input is a study topic query (e.g. "Learn Python Bangla", "SSC Physics", "Linear Algebra")
+    // If the input was a failed playlist/video URL or ID:
+    const isUrlOrId = Boolean(
+      playlistId || 
+      singleVideoId || 
+      urlOrId.startsWith('http://') || 
+      urlOrId.startsWith('https://') || 
+      /^(?:PL|OLAK5uy_|UU|FL|RD|TL)[a-zA-Z0-9_-]{10,}$/i.test(urlOrId)
+    );
+
+    let effectiveSearchTerm = urlOrId;
+    if (isUrlOrId) {
+      if (customName && customName.trim().length > 3) {
+        effectiveSearchTerm = `${customName.trim()} full course lecture`;
+      } else {
+        return NextResponse.json(
+          { error: 'Could not load videos from this playlist. Please ensure the playlist is public and contains active videos.' },
+          { status: 404 }
+        );
+      }
+    }
+
     try {
-      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(urlOrId)}`;
+      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(effectiveSearchTerm)}`;
       const searchRes = await fetch(searchUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
