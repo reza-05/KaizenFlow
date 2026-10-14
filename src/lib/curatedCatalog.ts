@@ -276,7 +276,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ অধ্যায়ভিত্তিক লেকচার।",
     "highlights": [
       "Official course by Saikat Abdullah",
       "Complete syllabus & exam preparation",
@@ -309,7 +309,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "মোলারিটি, টাইট্রেশন, অম্ল-ক্ষারক প্রশমন, জারণ-বিজারণ ব্যালেন্সিং ও স্টয়কিওমেট্রি গাণিতিক সমস্যার ক্লাস।",
+    "description": "মোলারিটি, টাইট্রেশন, এসিড-ক্ষার প্রশমন, জারণ-বিজারণ ব্যালেন্সিং ও স্টয়কিওমেট্রি গাণিতিক সমস্যার ক্লাস।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -342,7 +342,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "সরল ছন্দিত স্পন্দন (SHM), সরল দোলক, সেকেন্ড দোলক ও দোলকের যান্ত্রিক শক্তির রূপান্তরের বিস্তারিত লেকচার।",
+    "description": "পর্যায় সারণির পর্যায়বৃত্ত ধর্ম, রাসায়নিক বন্ধন, সংকরায়ন (Hybridization) এবং আন্তঃআণবিক আকর্ষণ বলের ক্লাস।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -375,7 +375,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ অধ্যায়ভিত্তিক লেকচার।",
     "highlights": [
       "Official course by Saikat Abdullah",
       "Complete syllabus & exam preparation",
@@ -408,7 +408,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ অধ্যায়ভিত্তিক লেকচার।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -441,7 +441,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন, বেনজিন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ কনসেপ্ট ও বোর্ড প্রশ্ন সমাধান।",
+    "description": "জৈব যৌগের নামকরণ, সমাণুতা, হাইড্রোকার্বন ও কার্যকরী মূলক রূপান্তরের সম্পূর্ণ অধ্যায়ভিত্তিক লেকচার।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -474,7 +474,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "বয়েল ও চার্লসের সূত্র, ডাল্টনের আংশিক চাপ, গ্রাহামের ব্যাপন সূত্র ও গ্রিনহাউস গ্যাসের পূর্ণাঙ্গ লেকচার।",
+    "description": "গ্যাসের সূত্রাবলি (বয়েল, চার্লস, ডাল্টন, গ্রাহাম), আদর্শ ও বাস্তব গ্যাস এবং বায়ুমণ্ডলীয় দূষণের লেকচার।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -507,7 +507,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের খুঁটিনাটি লেকচার।",
+    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by Hemel Bhai",
       "Complete syllabus & exam preparation",
@@ -540,7 +540,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "উচ্চতর গণিতের নিয়মাবলী, গুরুত্বপূর্ণ সূত্রের প্রমাণ এবং বিগত বছরের বোর্ড ও এডমিশন প্রশ্ন সমাধান।",
+    "description": "উচ্চতর গণিতের অধ্যায়ভিত্তিক শর্টকাট, বেসিক কনসেপ্ট এবং বোর্ড ও এডমিশন স্ট্যান্ডার্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -606,7 +606,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "উচ্চতর গণিতের নিয়মাবলী, গুরুত্বপূর্ণ সূত্রের প্রমাণ এবং বিগত বছরের বোর্ড ও এডমিশন প্রশ্ন সমাধান।",
+    "description": "উচ্চতর গণিতের অধ্যায়ভিত্তিক শর্টকাট, বেসিক কনসেপ্ট এবং বোর্ড ও এডমিশন স্ট্যান্ডার্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -705,7 +705,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "উচ্চতর গণিতের নিয়মাবলী, গুরুত্বপূর্ণ সূত্রের প্রমাণ এবং বিগত বছরের বোর্ড ও এডমিশন প্রশ্ন সমাধান।",
+    "description": "উচ্চতর গণিতের অধ্যায়ভিত্তিক শর্টকাট, বেসিক কনসেপ্ট এবং বোর্ড ও এডমিশন স্ট্যান্ডার্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by Kazi Rakibul Hasan",
       "Complete syllabus & exam preparation",
@@ -969,7 +969,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "সরল ছন্দিত স্পন্দন (SHM), সরল দোলক, সেকেন্ড দোলক ও দোলকের যান্ত্রিক শক্তির রূপান্তরের বিস্তারিত লেকচার।",
+    "description": "সরল ছন্দিত স্পন্দন (SHM), সরল দোলক, সেকেন্ড দোলক ও দোলকের যান্ত্রিক শক্তির রূপান্তরের বিস্তারিত ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1002,7 +1002,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "আদর্শ গ্যাস সমীকরণ, গ্যাসের গতিতত্ত্বের মূল স্বীকার্য, RMS বেগ ও শিশিরাঙ্ক-আপেক্ষিক আর্দ্রতার গাণিতিক ক্লাস।",
+    "description": "আদর্শ গ্যাস সমীকরণ, গ্যাসের গতিতত্ত্বের মূল স্বীকার্য, RMS বেগ ও আপেক্ষিক আর্দ্রতার গাণিতিক লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1035,7 +1035,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "তাপগতিবিদ্যার ১ম ও ২য় সূত্র, সমোষ্ণ ও রুদ্ধতাপীয় প্রক্রিয়া, কার্নো চক্র এবং এন্ট্রপির বিস্তারিত গাণিতিক আলোচনা।",
+    "description": "তাপগতিবিদ্যার ১ম ও ২য় সূত্র, সমোষ্ণ ও রুদ্ধতাপীয় প্রক্রিয়া, কার্নো চক্র এবং এন্ট্রপির গাণিতিক আলোচনা।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1101,7 +1101,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "ওহমের সূত্র, রোধের সূত্র, কার্শফের সূত্র, হুইটস্টোন ব্রিজ, মিটার ব্রিজ ও পটেনশিওমিটারের সার্কিট এনালাইসিস।",
+    "description": "ওহমের সূত্র, রোধের সূত্র, কার্শফের সূত্র, হুইটস্টোন ব্রিজ, মিটার ব্রিজ ও সার্কিট এনালাইসিস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1134,7 +1134,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অপবর্তন, ব্যতিচার এবং অপটিক্যাল যন্ত্রপাতির বিশ্লেষণ।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1167,7 +1167,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
+    "description": "এইচএসসি পদার্থবিজ্ঞানের অধ্যায়ভিত্তিক মূল কনসেপ্ট, প্রয়োজনীয় সূত্র ও বোর্ড-এডমিশন গাণিতিক সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1200,7 +1200,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "আদর্শ গ্যাস সমীকরণ, গ্যাসের গতিতত্ত্বের মূল স্বীকার্য, RMS বেগ ও শিশিরাঙ্ক-আপেক্ষিক আর্দ্রতার গাণিতিক ক্লাস।",
+    "description": "আদর্শ গ্যাস সমীকরণ, গ্যাসের গতিতত্ত্বের মূল স্বীকার্য, RMS বেগ ও আপেক্ষিক আর্দ্রতার গাণিতিক লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1233,7 +1233,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
+    "description": "বিগত বছরের বুয়েট ও ইঞ্জিনিয়ারিং ভর্তি পরীক্ষার ফিজিক্স প্রশ্ন বিশ্লেষণ ও সমাধান।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1266,7 +1266,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
+    "description": "বিগত বছরের বুয়েট ও ইঞ্জিনিয়ারিং ভর্তি পরীক্ষার ফিজিক্স প্রশ্ন বিশ্লেষণ ও সমাধান।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1365,7 +1365,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "নিউটনের গতিসূত্র, ঘর্ষণ, কৌণিক গতি, জড়তার ভ্রামক, ভরবেগের সংরক্ষণশীলতা ও ব্যাংকিং সংক্রান্ত লেকচার।",
+    "description": "নিউটনের গতিসূত্র, ঘর্ষণ বল, জড়তার ভ্রামক, ভরবেগের সংরক্ষণশীলতা ও ব্যাংকিং সংক্রান্ত লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1398,7 +1398,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "নিউটনের গতিসূত্র, ঘর্ষণ, কৌণিক গতি, জড়তার ভ্রামক, ভরবেগের সংরক্ষণশীলতা ও ব্যাংকিং সংক্রান্ত লেকচার।",
+    "description": "নিউটনের গতিসূত্র, ঘর্ষণ বল, জড়তার ভ্রামক, ভরবেগের সংরক্ষণশীলতা ও ব্যাংকিং সংক্রান্ত লেকচার।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1464,7 +1464,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
+    "description": "নিউটনের মহাকর্ষ সূত্র, 'g' এর মান পরিবর্তন, মুক্তিবেগ, উপগ্রহের পর্যায়কাল ও মহাকর্ষীয় বিভবের পূর্ণাঙ্গ ক্লাস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1497,7 +1497,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
+    "description": "বিগত বছরের বুয়েট ও ইঞ্জিনিয়ারিং ভর্তি পরীক্ষার ফিজিক্স প্রশ্ন বিশ্লেষণ ও সমাধান।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1530,7 +1530,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পদার্থবিজ্ঞান ১ম ও ২য় পত্রের অধ্যায়ভিত্তিক থিওরি, প্রয়োজনীয় সূত্রের প্রমাণ এবং বোর্ড ও এডমিশন প্রশ্নের গাণিতিক সমাধান।",
+    "description": "ওহমের সূত্র, রোধের সূত্র, কার্শফের সূত্র, হুইটস্টোন ব্রিজ, মিটার ব্রিজ ও সার্কিট এনালাইসিস।",
     "highlights": [
       "Official course by Chinmoy Saha",
       "Complete syllabus & exam preparation",
@@ -1596,7 +1596,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "তাপগতিবিদ্যার ১ম ও ২য় সূত্র, সমোষ্ণ ও রুদ্ধতাপীয় প্রক্রিয়া, কার্নো চক্র এবং এন্ট্রপির বিস্তারিত গাণিতিক আলোচনা।",
+    "description": "তাপগতিবিদ্যার ১ম ও ২য় সূত্র, সমোষ্ণ ও রুদ্ধতাপীয় প্রক্রিয়া, কার্নো চক্র এবং এন্ট্রপির গাণিতিক আলোচনা।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1728,7 +1728,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অপবর্তন, ব্যতিচার এবং অপটিক্যাল যন্ত্রপাতির বিশ্লেষণ।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1761,7 +1761,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
+    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অপবর্তন, ব্যতিচার এবং অপটিক্যাল যন্ত্রপাতির বিশ্লেষণ।",
     "highlights": [
       "Official course by Apurbo Opu",
       "Complete syllabus & exam preparation",
@@ -1794,7 +1794,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "সংযুক্ত কোণের অনুপাত, যৌগিক কোণ, বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ সমাধানের ক্লাস।",
+    "description": "ত্রিকোণমিতিক অনুপাত, সূক্ষ্মকোণের মান, ত্রিকোণমিতিক অভেদাবলি এবং উচ্চতা ও দূরত্বের সমস্যা সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1827,7 +1827,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি সাধারণ ও উচ্চতর গণিতের সূত্রাবলি, সমাধান পদ্ধতি এবং বোর্ড পরীক্ষার ক্যাটাগরিভিত্তিক অঙ্ক।",
+    "description": "বীজগণিতীয় সূত্রের প্রয়োগ, উৎপাদক বিশ্লেষণ, মান নির্ণয় এবং বীজগণিতীয় ভগ্নাংশের সরলীকরণ।",
     "highlights": [
       "Official course by Rubayet Sir",
       "Complete syllabus & exam preparation",
@@ -1860,7 +1860,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "সংযুক্ত কোণের অনুপাত, যৌগিক কোণ, বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ সমাধানের ক্লাস।",
+    "description": "ত্রিকোণমিতিক অনুপাত, সূক্ষ্মকোণের মান, ত্রিকোণমিতিক অভেদাবলি এবং উচ্চতা ও দূরত্বের সমস্যা সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1893,7 +1893,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "কাজের প্রকারভেদ, গতিশক্তি ও বিভবশক্তি, শক্তির সংরক্ষণশীলতা নীতি এবং কর্মদক্ষতার অঙ্কের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1926,7 +1926,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 56,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "প্যাসকেলের সূত্র, আর্কিমিডিসের নীতি, প্লবতা, বস্তুর নিমজ্জন ও প্লবমান অবস্থা এবং পদার্থের স্থিতিস্থাপকতা।",
+    "description": "প্যাসকেলের সূত্র, আর্কিমিডিসের নীতি, প্লবতা, বস্তুর নিমজ্জন ও প্লবমান অবস্থা এবং প্যাসকেলের সিলিন্ডার।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1959,7 +1959,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "সরল স্পন্দন গতি, তরঙ্গের সমীকরণ, তীব্রতা লেভেল, ডপলার ক্রিয়া ও বিট সংক্রান্ত গাণিতিক সমস্যা।",
+    "description": "সরল স্পন্দন গতি, তরঙ্গের প্রকারভেদ, তরঙ্গ দৈর্ঘ্য, শব্দের বেগ ও প্রতিধ্বনি সংক্রান্ত গাণিতিক ক্লাস।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -1992,7 +1992,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "দর্পণ ও লেন্সের প্রতিফলন ও প্রতিসরণ, প্রতিসরণাঙ্ক, সংকট কোণ ও পূর্ণ অভ্যন্তরীণ প্রতিফলনের অঙ্ক।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2058,7 +2058,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "পর্যায় সারণির পর্যায়বৃত্ত ধর্ম, রাসায়নিক বন্ধন, সংকরায়ন (Hybridization) এবং আন্তঃআণবিক আকর্ষণের গভীর আলোচনা।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2091,7 +2091,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2124,7 +2124,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2157,7 +2157,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "জীববিজ্ঞানের শাখা, দ্বিপদ নামকরণ এবং উদ্ভিদ ও প্রাণিকোষের বিভিন্ন অঙ্গাণুর বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2190,7 +2190,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "জীববিজ্ঞানের শাখা, দ্বিপদ নামকরণ এবং উদ্ভিদ ও প্রাণিকোষের বিভিন্ন অঙ্গাণুর বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2256,7 +2256,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "কাজের প্রকারভেদ, গতিশক্তি ও বিভবশক্তি, শক্তির সংরক্ষণশীলতা নীতি এবং কর্মদক্ষতার অঙ্কের সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2289,7 +2289,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "আলোর প্রতিফলন ও প্রতিসরণ, প্রিজম, লেন্স, অণুবীক্ষণ ও দূরবীক্ষণ যন্ত্রের গঠন এবং চোখের দৃষ্টিত্রুটি।",
+    "description": "দর্পণ ও লেন্সের প্রতিফলন ও প্রতিসরণ, প্রতিসরণাঙ্ক, সংকট কোণ ও পূর্ণ অভ্যন্তরীণ প্রতিফলনের অঙ্ক।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2322,7 +2322,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "এসএসসি পদার্থবিজ্ঞানের অধ্যায়ভিত্তিক বেসিক, সূত্রের প্রমাণ ও বোর্ড পরীক্ষার গাণিতিক সমস্যা।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2355,7 +2355,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "Right form of verbs, modifiers, connectors, narration, preposition এবং বোর্ড স্ট্যান্ডার্ড গ্রামার সমাধান।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -2421,7 +2421,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Fahad Hossain",
       "Complete syllabus & exam preparation",
@@ -3031,7 +3031,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 51,
     "level": "Intermediate",
     "language": "Hindi",
-    "description": "Comprehensive review of core Computer Science concepts and problem solving for competitive exams.",
+    "description": "Comprehensive computer science engineering course covering foundational theory and exam preparation.",
     "highlights": [
       "Official course by Varun Singla",
       "Complete syllabus & exam preparation",
@@ -3479,7 +3479,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Intermediate",
     "language": "English",
-    "description": "OSI & TCP/IP stack, IP subnetting, flow and error control, routing protocols (OSPF, BGP), and transport protocols.",
+    "description": "KVL, KCL, mesh and nodal analysis, Thevenin/Norton theorems, transient response, AC circuits, and two-port networks.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3607,7 +3607,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Intermediate",
     "language": "English",
-    "description": "8085 microprocessor architecture, pin diagram, instruction set, timing cycles, and memory/IO interfacing.",
+    "description": "Transfer functions, block diagram reduction, Routh-Hurwitz stability, Root Locus techniques, Bode plots, and state-space.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3703,7 +3703,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "English",
-    "description": "Essential electrical engineering curriculum covering circuit principles, analysis methods, and applications.",
+    "description": "Electrical and electronics engineering fundamentals covering theory, circuit analysis, and practical design.",
     "highlights": [
       "Official course by Neso Academy Team",
       "Complete syllabus & exam preparation",
@@ -3799,7 +3799,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "English",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "Limits, derivatives, product/quotient/chain rules, implicit differentiation, optimization, and related rates intuitively.",
     "highlights": [
       "Official course by Professor Leonard",
       "Complete syllabus & exam preparation",
@@ -3831,7 +3831,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 31,
     "level": "Intermediate",
     "language": "English",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "Integration by parts, trigonometric substitutions, partial fractions, improper integrals, and infinite series tests.",
     "highlights": [
       "Official course by Professor Leonard",
       "Complete syllabus & exam preparation",
@@ -3895,7 +3895,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 34,
     "level": "Intermediate",
     "language": "English",
-    "description": "Vector spaces, matrix operations, determinants, eigenvalues, eigenvectors, and linear transformations.",
+    "description": "Vector spaces, linear transformations, matrices, determinants, eigenvalues, eigenvectors, and orthogonal projections.",
     "highlights": [
       "Official course by Prof. Gilbert Strang",
       "Complete syllabus & exam preparation",
@@ -3927,7 +3927,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Intermediate",
     "language": "English",
-    "description": "Vector spaces, matrix operations, determinants, eigenvalues, eigenvectors, and linear transformations.",
+    "description": "Vector spaces, linear transformations, matrices, determinants, eigenvalues, eigenvectors, and orthogonal projections.",
     "highlights": [
       "Official course by Grant Sanderson",
       "Complete syllabus & exam preparation",
@@ -3959,7 +3959,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "English",
-    "description": "University mathematics curriculum with rigorous proofs, geometric intuition, and worked problems.",
+    "description": "Visualizing the essence of calculus, limits, derivatives, chain rule, and integration through geometric intuition.",
     "highlights": [
       "Official course by Grant Sanderson",
       "Complete syllabus & exam preparation",
@@ -3991,7 +3991,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Python syntax, data structures (lists, tuples, dicts), functions, modules, and object-oriented programming (OOP).",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and neural nets.",
     "highlights": [
       "Official course by Haris Khan (CodeWithHarry)",
       "Complete syllabus & exam preparation",
@@ -4023,7 +4023,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Python syntax, data structures (lists, tuples, dicts), functions, modules, and object-oriented programming (OOP).",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and neural nets.",
     "highlights": [
       "Official course by Haris Khan (CodeWithHarry)",
       "Complete syllabus & exam preparation",
@@ -4055,7 +4055,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Beginner",
     "language": "English",
-    "description": "OSI & TCP/IP stack, IP subnetting, flow and error control, routing protocols (OSPF, BGP), and transport protocols.",
+    "description": "Building micrograd, neural networks from scratch, backpropagation, language modeling, and GPT transformers.",
     "highlights": [
       "Official course by Andrej Karpathy",
       "Complete syllabus & exam preparation",
@@ -4151,7 +4151,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "Adobe Photoshop CC: Layer masks, photo retouching, color grading, background removal, and digital composite design.",
     "highlights": [
       "Official course by Imran Ali Dina",
       "Complete syllabus & exam preparation",
@@ -4183,7 +4183,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "Adobe Photoshop CC: Layer masks, photo retouching, color grading, background removal, and digital composite design.",
     "highlights": [
       "Official course by Imran Ali Dina",
       "Complete syllabus & exam preparation",
@@ -4407,7 +4407,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 42,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
+    "description": "JavaScript execution context, call stack, closures, prototypes, asynchronous event loop, and modern ES6+ features.",
     "highlights": [
       "Official course by Hitesh Choudhary",
       "Complete syllabus & exam preparation",
@@ -4439,7 +4439,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
+    "description": "JavaScript execution context, call stack, closures, prototypes, asynchronous event loop, and modern ES6+ features.",
     "highlights": [
       "Official course by Hitesh Choudhary",
       "Complete syllabus & exam preparation",
@@ -4505,7 +4505,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 38,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
+    "description": "এইচএসসি জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং পরীক্ষার স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Toufiq Hasan Protik",
       "Complete syllabus & exam preparation",
@@ -4571,7 +4571,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "এইচএসসি জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং পরীক্ষার স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Bandi Pathshala Faculty",
       "Complete syllabus & exam preparation",
@@ -4604,7 +4604,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
+    "description": "এইচএসসি জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং পরীক্ষার স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Bandi Pathshala Faculty",
       "Complete syllabus & exam preparation",
@@ -4637,7 +4637,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 59,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
+    "description": "এইচএসসি জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং পরীক্ষার স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Bandi Pathshala Faculty",
       "Complete syllabus & exam preparation",
@@ -4670,7 +4670,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 25,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
+    "description": "এইচএসসি জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং পরীক্ষার স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Toufiq Hasan Protik",
       "Complete syllabus & exam preparation",
@@ -4703,7 +4703,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 26,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং মেডিকেল ও বোর্ড স্ট্যান্ডার্ড প্রস্তুতি।",
+    "description": "এইচএসসি জীববিজ্ঞানের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক আলোচনা, চিত্রাঙ্কন কৌশল এবং পরীক্ষার স্ট্যান্ডার্ড প্রস্তুতি।",
     "highlights": [
       "Official course by Toufiq Hasan Protik",
       "Complete syllabus & exam preparation",
@@ -4736,7 +4736,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের খুঁটিনাটি লেকচার।",
+    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4769,7 +4769,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের খুঁটিনাটি লেকচার।",
+    "description": "পরমাণু মডেল, কোয়ান্টাম সংখ্যা, বর্ণালী, দ্রাব্যতা ও দ্রাব্যতা গুণফল এবং আয়ন শনাক্তকরণের বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4802,7 +4802,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "রসায়ন ১ম ও ২য় পত্রের মূল কনসেপ্ট, রাসায়নিক বিক্রিয়ার মেকানিজম এবং বোর্ড পরীক্ষার স্ট্যান্ডার্ড সমস্যা সমাধান।",
+    "description": "এইচএসসি রসায়নের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক থিওরি, বিক্রিয়া মেকানিজম ও বোর্ড স্ট্যান্ডার্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4835,7 +4835,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "এইচএসসি রসায়নের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক থিওরি, বিক্রিয়া মেকানিজম ও বোর্ড স্ট্যান্ডার্ড প্রশ্ন সমাধান।",
     "highlights": [
       "Official course by OnnoRokom Faculty",
       "Complete syllabus & exam preparation",
@@ -4967,7 +4967,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 52,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official comprehensive course on Freehand Writing-এর লাইভ ক্লাস by English Moja Faculty from English Moja.",
+    "description": "HSC English 2nd Paper: Paragraph, Formal Letter, Report Writing & Essay Templates.",
     "highlights": [
       "Official course by English Moja Faculty",
       "Complete syllabus & exam preparation",
@@ -5000,7 +5000,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 53,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official comprehensive course on HSC Bangla 1st Paper by Abida Purvin Chowdhury from Abida Purvin Chowdhury.",
+    "description": "এইচএসসি সিলেবাসের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক থিওরি ও বোর্ড পরীক্ষার পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Abida Purvin Chowdhury",
       "Complete syllabus & exam preparation",
@@ -5033,7 +5033,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 37,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "বিশ্ব ও বাংলাদেশ প্রেক্ষিত, সংখ্যা পদ্ধতি, ডিজিটাল লজিক গেট, এইচটিএমএল এবং সি প্রোগ্রামিংয়ের পূর্ণাঙ্গ প্রস্তুতি।",
+    "description": "বাইনারি, অক্টাল, হেক্সাডেসিমেল রূপান্তর, ২-এর পরিপূরক ও লজিক গেটের সমীকরণ সরলীকরণ।",
     "highlights": [
       "Official course by Sourav Saha",
       "Complete syllabus & exam preparation",
@@ -5066,7 +5066,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 27,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official comprehensive course on C Basic-Advanced 2026 Bangla Tutorials by Anisul Islam from Anisul Islam.",
+    "description": "এইচএসসি সিলেবাসের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক থিওরি ও বোর্ড পরীক্ষার পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Anisul Islam",
       "Complete syllabus & exam preparation",
@@ -5099,7 +5099,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 28,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official comprehensive course on HSC 26 Admission Free Class | DU & Others by Hiramon Sir from Hiramon's Classroom.",
+    "description": "এইচএসসি সিলেবাসের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক থিওরি ও বোর্ড পরীক্ষার পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Hiramon Sir",
       "Complete syllabus & exam preparation",
@@ -5165,7 +5165,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 30,
     "level": "Intermediate",
     "language": "Bangla",
-    "description": "Official comprehensive course on Bangla One Shot HSC by Abida Purvin Chowdhury from Abida Purvin Chowdhury.",
+    "description": "এইচএসসি সিলেবাসের গুরুত্বপূর্ণ অধ্যায়ভিত্তিক থিওরি ও বোর্ড পরীক্ষার পূর্ণাঙ্গ প্রস্তুতি।",
     "highlights": [
       "Official course by Abida Purvin Chowdhury",
       "Complete syllabus & exam preparation",
@@ -5362,7 +5362,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 32,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি সাধারণ ও উচ্চতর গণিতের সূত্রাবলি, সমাধান পদ্ধতি এবং বোর্ড পরীক্ষার ক্যাটাগরিভিত্তিক অঙ্ক।",
+    "description": "সেট প্রকাশের পদ্ধতি, উপসেট, শক্তি সেট, ভেনচিত্র এবং ফাংশন ও ডোমেন-রেঞ্জ নির্ণয়।",
     "highlights": [
       "Official course by Shafiul Muznamin Jeem",
       "Complete syllabus & exam preparation",
@@ -5395,7 +5395,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 41,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি সাধারণ ও উচ্চতর গণিতের সূত্রাবলি, সমাধান পদ্ধতি এবং বোর্ড পরীক্ষার ক্যাটাগরিভিত্তিক অঙ্ক।",
+    "description": "সেট প্রকাশের পদ্ধতি, উপসেট, শক্তি সেট, ভেনচিত্র এবং ফাংশন ও ডোমেন-রেঞ্জ নির্ণয়।",
     "highlights": [
       "Official course by Shafiul Muznamin Jeem",
       "Complete syllabus & exam preparation",
@@ -5428,7 +5428,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 33,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "প্যাসকেলের সূত্র, আর্কিমিডিসের নীতি, প্লবতা, বস্তুর নিমজ্জন ও প্লবমান অবস্থা এবং পদার্থের স্থিতিস্থাপকতা।",
+    "description": "প্যাসকেলের সূত্র, আর্কিমিডিসের নীতি, প্লবতা, বস্তুর নিমজ্জন ও প্লবমান অবস্থা এবং প্যাসকেলের সিলিন্ডার।",
     "highlights": [
       "Official course by Md. Riasat Morshed Khan",
       "Complete syllabus & exam preparation",
@@ -5494,7 +5494,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 35,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "জীববিজ্ঞানের শাখা, দ্বিপদ নামকরণ এবং উদ্ভিদ ও প্রাণিকোষের বিভিন্ন অঙ্গাণুর বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by Md. Shah Alam Rubel",
       "Complete syllabus & exam preparation",
@@ -5526,7 +5526,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Beginner",
     "language": "English",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Amader School Faculty",
       "Complete syllabus & exam preparation",
@@ -5558,7 +5558,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 40,
     "level": "Beginner",
     "language": "English",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "জীববিজ্ঞানের শাখা, দ্বিপদ নামকরণ এবং উদ্ভিদ ও প্রাণিকোষের বিভিন্ন অঙ্গাণুর বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by Amader School Faculty",
       "Complete syllabus & exam preparation",
@@ -5624,7 +5624,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 43,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "দর্পণ ও লেন্সের প্রতিফলন ও প্রতিসরণ, প্রতিসরণাঙ্ক, সংকট কোণ ও পূর্ণ অভ্যন্তরীণ প্রতিফলনের অঙ্ক।",
     "highlights": [
       "Official course by Md. Riasat Morshed Khan",
       "Complete syllabus & exam preparation",
@@ -5657,7 +5657,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 44,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "React components, Virtual DOM, props, hooks (useState, useEffect), state lifting, and project development.",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Md. Shamir Montazid",
       "Complete syllabus & exam preparation",
@@ -5690,7 +5690,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 45,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "এসএসসি রসায়নের মূল অধ্যায়ভিত্তিক কনসেপ্ট, সংকেত, সমীকরণ ও বোর্ড পরীক্ষার সৃজনশীল সমাধান।",
     "highlights": [
       "Official course by Md. Shamir Montazid",
       "Complete syllabus & exam preparation",
@@ -5723,7 +5723,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 46,
     "level": "Beginner",
     "language": "Bangla",
-    "description": "এসএসসি বিজ্ঞান বিভাগের মূল কনসেপ্ট, অধ্যায়ভিত্তিক বেসিক ও বোর্ড পরীক্ষার সৃজনশীল প্রশ্নের সমাধান।",
+    "description": "জীববিজ্ঞানের শাখা, দ্বিপদ নামকরণ এবং উদ্ভিদ ও প্রাণিকোষের বিভিন্ন অঙ্গাণুর বিস্তারিত আলোচনা।",
     "highlights": [
       "Official course by Md. Shah Alam Rubel",
       "Complete syllabus & exam preparation",
@@ -5851,7 +5851,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Intermediate",
     "language": "English",
-    "description": "University-level curriculum covering theoretical fundamentals, gate preparation, and practical examples.",
+    "description": "Comprehensive computer science engineering course covering foundational theory and exam preparation.",
     "highlights": [
       "Official course by NetworkChuck",
       "Complete syllabus & exam preparation",
@@ -5915,7 +5915,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 36,
     "level": "Intermediate",
     "language": "English",
-    "description": "University-level curriculum covering theoretical fundamentals, gate preparation, and practical examples.",
+    "description": "Comprehensive computer science engineering course covering foundational theory and exam preparation.",
     "highlights": [
       "Official course by Gaurav Sen",
       "Complete syllabus & exam preparation",
@@ -6011,7 +6011,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 39,
     "level": "Intermediate",
     "language": "English",
-    "description": "Process scheduling algorithms, synchronization (semaphores), deadlocks, virtual memory paging, and file systems.",
+    "description": "Transfer functions, block diagram reduction, Routh-Hurwitz stability, Root Locus techniques, Bode plots, and state-space.",
     "highlights": [
       "Official course by Brian Douglas",
       "Complete syllabus & exam preparation",
@@ -6203,7 +6203,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 29,
     "level": "Intermediate",
     "language": "English",
-    "description": "Mechanical engineering fundamentals with theoretical derivation and engineering problem solving.",
+    "description": "Mechanical engineering core curriculum with theoretical derivation, problem solving, and GATE exam focus.",
     "highlights": [
       "Official course by GATE Wallah Faculty",
       "Complete syllabus & exam preparation",
@@ -6363,7 +6363,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 56,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and deep neural nets.",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and neural nets.",
     "highlights": [
       "Official course by Krish Naik",
       "Complete syllabus & exam preparation",
@@ -6395,7 +6395,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 57,
     "level": "Beginner",
     "language": "English",
-    "description": "Python for scientific computing: NumPy arrays, Pandas DataFrames, data cleaning, and Matplotlib visualization.",
+    "description": "Python for data analysis: NumPy arrays, Pandas DataFrames, data cleaning, and statistical visualizations.",
     "highlights": [
       "Official course by freeCodeCamp",
       "Complete syllabus & exam preparation",
@@ -6427,7 +6427,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 47,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and deep neural nets.",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and neural nets.",
     "highlights": [
       "Official course by Nitish Singh",
       "Complete syllabus & exam preparation",
@@ -6459,7 +6459,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and deep neural nets.",
+    "description": "Supervised & unsupervised learning, gradient descent, regression, classification, model evaluation, and neural nets.",
     "highlights": [
       "Official course by Nitish Singh",
       "Complete syllabus & exam preparation",
@@ -6491,7 +6491,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 58,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Dart programming, Flutter widget trees, state management, UI layouts, REST API integration, and cross-platform app builds.",
+    "description": "Dart programming, Flutter widget trees, state management, UI layouts, REST API integration, and mobile app builds.",
     "highlights": [
       "Official course by WsCube Tech Team",
       "Complete syllabus & exam preparation",
@@ -6523,7 +6523,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 49,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Dart programming, Flutter widget trees, state management, UI layouts, REST API integration, and cross-platform app builds.",
+    "description": "Dart programming, Flutter widget trees, state management, UI layouts, REST API integration, and mobile app builds.",
     "highlights": [
       "Official course by WsCube Tech Team",
       "Complete syllabus & exam preparation",
@@ -6621,7 +6621,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 48,
     "level": "Beginner",
     "language": "Hindi",
-    "description": "Asymptotic bounds, Divide & Conquer, Greedy strategies, Dynamic Programming (DP), and Graph traversals (Dijkstra, MST).",
+    "description": "C++ syntax, STL (vectors, maps, sets), memory pointers, time complexity, and algorithmic problem solving.",
     "highlights": [
       "Official course by Shradha Khapra",
       "Complete syllabus & exam preparation",
@@ -6781,7 +6781,7 @@ export const CURATED_COURSES: CuratedCourse[] = [
     "totalVideosApprox": 55,
     "level": "Beginner",
     "language": "English",
-    "description": "HTML5, CSS3, JavaScript, DOM manipulation, responsive design, and modern web application development.",
+    "description": "JavaScript execution context, call stack, closures, prototypes, asynchronous event loop, and modern ES6+ features.",
     "highlights": [
       "Official course by Brad Traversy",
       "Complete syllabus & exam preparation",
