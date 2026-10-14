@@ -3,6 +3,7 @@ import { getSubtitles } from 'youtube-caption-extractor';
 import { LectureQuizQuestion } from '@/types';
 import { decodeHtmlEntities } from '@/lib/youtube';
 import { humanizeBengaliText } from '@/lib/bengaliHumanizer';
+import { isCourseIntroVideo } from '@/lib/contentClassifier';
 
 // Scrape official YouTube chapters if available
 async function fetchYouTubeOfficialChapters(videoId: string): Promise<Array<{ title: string; timeDesc: string; seconds: number }>> {
@@ -105,11 +106,22 @@ export async function POST(req: NextRequest) {
     const videoId = (body.videoId || '').trim();
     const videoTitle = (body.videoTitle || 'Lecture Video').trim();
     const courseTitle = (body.courseTitle || '').trim();
+    const durationSeconds = typeof body.durationSeconds === 'number' ? body.durationSeconds : 0;
     const language = (body.language || 'bn').trim(); // 'bn' or 'en'
     const customApiKey = (body.customApiKey || '').trim();
 
     if (!videoId) {
       return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+    }
+
+    // Check if the video is a course intro / trailer / overview video upfront
+    if (isCourseIntroVideo(videoTitle, durationSeconds, courseTitle)) {
+      return NextResponse.json({
+        isEducational: false,
+        contentType: 'intro_promo',
+        reason: 'এই ভিডিওটি একটি কোর্স পরিচিতি বা ইন্ট্রোডাকশন ভিডিও, যেখানে কোনো মূল লেকচার কনসেপ্ট পড়ানো হয়নি। বিষয়ভিত্তিক লেকচার ভিডিওগুলোতে স্বয়ংক্রিয়ভাবে কুইজ পেয়ে যাবেন।',
+        quiz: []
+      });
     }
 
     // 1. Fetch transcript lines if available
@@ -155,6 +167,17 @@ export async function POST(req: NextRequest) {
       .join(' ')
       .slice(0, 3500);
 
+    // If transcript is extremely sparse and video is short, it's an intro/announcement
+    const wordCount = cleanWords.split(/\s+/).filter(Boolean).length;
+    if (wordCount > 0 && wordCount < 60 && (durationSeconds === 0 || durationSeconds <= 180)) {
+      return NextResponse.json({
+        isEducational: false,
+        contentType: 'intro_promo',
+        reason: 'এই ভিডিওটি একটি সংক্ষিপ্ত পরিচিতি বা ইন্ট্রোডাকশন ভিডিও, যেখানে কুইজের উপযোগী পর্যাপ্ত লেকচার কনসেপ্ট আলোচনা করা হয়নি। পরবর্তী লেকচার ভিডিওগুলোতে কুইজ পেয়ে যাবেন।',
+        quiz: []
+      });
+    }
+
     const apiKey = customApiKey || process.env.GROQ_API_KEY || '';
     if (!apiKey) {
       return NextResponse.json({ error: 'AI API Key is not configured' }, { status: 500 });
@@ -172,7 +195,13 @@ ${cleanWords ? `TRANSCRIPT EXCERPT:\n${cleanWords}\n` : ''}
 
 TASK & EDUCATIONAL ASSESSMENT:
 1. EDUCATIONAL ASSESSMENT:
-   First evaluate whether this video is an EDUCATIONAL, INSTRUCTIONAL, ACADEMIC, or SKILL-LEARNING lesson (e.g. computer science, coding, sciences, math, engineering, humanities, business, tutorials, lectures, how-to guides).
+   First evaluate whether this video is an actual EDUCATIONAL / INSTRUCTIONAL lecture teaching specific academic or technical concepts.
+   - If this video is a COURSE INTRO, TRAILER, PROMO, WELCOME, or SYLLABUS OVERVIEW video (where the instructor only introduces themselves, course outline, or roadmap without teaching real core subject matter):
+     * Set "isEducational": false
+     * Set "contentType": "intro_promo"
+     * Set "reason": "এই ভিডিওটি একটি কোর্স পরিচিতি বা ইন্ট্রোডাকশন ভিডিও, যেখানে কোনো মূল লেকচার কনসেপ্ট পড়ানো হয়নি। বিষয়ভিত্তিক লেকচার ভিডিওগুলোতে স্বয়ংক্রিয়ভাবে কুইজ পেয়ে যাবেন।"
+     * Set "quiz": []
+     * Respond with this JSON structure and STOP.
    - If this video is clearly ENTERTAINMENT / NON-EDUCATIONAL (such as music songs, music videos, movie/drama clips, gaming streams/let's plays, comedy pranks, daily vlogs, sports match highlights):
      * Set "isEducational": false
      * Set "contentType": "music_entertainment" (or "gaming" / "vlog" / "drama")

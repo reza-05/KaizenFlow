@@ -13,7 +13,8 @@ import {
   Play,
   ArrowRight,
   Music,
-  Tv
+  Tv,
+  Info
 } from 'lucide-react';
 import { VideoItem, LectureQuizQuestion } from '@/types';
 import { 
@@ -43,10 +44,10 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
   const [hasStartedQuiz, setHasStartedQuiz] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Non-educational detection state
+  // Non-educational / intro detection state
   const [isNonEduBlocked, setIsNonEduBlocked] = useState<boolean>(false);
   const [nonEduReason, setNonEduReason] = useState<string>('');
-  const [nonEduContentType, setNonEduContentType] = useState<'music_entertainment' | 'gaming' | 'vlog' | 'drama' | 'other'>('music_entertainment');
+  const [nonEduContentType, setNonEduContentType] = useState<'music_entertainment' | 'gaming' | 'vlog' | 'drama' | 'intro_promo' | 'other'>('music_entertainment');
 
   // Load existing questions and saved user answers whenever video changes
   useEffect(() => {
@@ -68,8 +69,8 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
       setIsSubmitted(false);
       setHasStartedQuiz(false);
 
-      // Fast-classify video to check if it's non-educational
-      const classification = classifyVideoContent(video.title, courseTitle, video.ytVideoId);
+      // Fast-classify video to check if it's non-educational or a course intro video
+      const classification = classifyVideoContent(video.title, courseTitle, video.ytVideoId, video.durationSeconds);
       if (classification.isNonEducational) {
         setIsNonEduBlocked(true);
         setNonEduReason(classification.reason);
@@ -79,7 +80,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
         setNonEduReason('');
       }
     }
-  }, [video.ytVideoId, video.title, courseTitle]);
+  }, [video.ytVideoId, video.title, video.durationSeconds, courseTitle]);
 
   // Handle "Take Quiz" click
   const handleTakeQuiz = async (forceFresh: boolean = false) => {
@@ -261,11 +262,13 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
         )}
       </div>
 
-      {/* STATE 1: INITIAL UNSTARTED - NON-EDUCATIONAL CONTENT BARRIER */}
+      {/* STATE 1: INITIAL UNSTARTED - NON-EDUCATIONAL OR INTRO CONTENT BARRIER */}
       {!hasStartedQuiz && !isLoadingQuiz && isNonEduBlocked && (
         <div className="flex flex-col items-center justify-center text-center p-6 sm:p-8 border border-amber-500/30 rounded-xl bg-amber-500/5 space-y-3.5 shadow-2xs">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500 ring-1 ring-amber-500/30 mb-1">
-            {nonEduContentType === 'music_entertainment' ? (
+            {nonEduContentType === 'intro_promo' ? (
+              <Info className="h-6 w-6 text-amber-500" />
+            ) : nonEduContentType === 'music_entertainment' ? (
               <Music className="h-6 w-6" />
             ) : (
               <Tv className="h-6 w-6" />
@@ -273,16 +276,25 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
             <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-              নন-এডুকেশনাল কনটেন্ট
+              {nonEduContentType === 'intro_promo'
+                ? 'কোর্স পরিচিতি / ইন্ট্রো ভিডিও'
+                : 'নন-এডুকেশনাল কনটেন্ট'}
             </h4>
             <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed">
-              {renderFormattedText(nonEduReason || 'এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।')}
+              {renderFormattedText(
+                nonEduReason ||
+                  (nonEduContentType === 'intro_promo'
+                    ? 'এই ভিডিওটি একটি কোর্স পরিচিতি বা ইন্ট্রোডাকশন ভিডিও, যেখানে কোনো মূল লেকচার কনসেপ্ট পড়ানো হয়নি। বিষয়ভিত্তিক লেকচার ভিডিওগুলোতে স্বয়ংক্রিয়ভাবে কুইজ পেয়ে যাবেন।'
+                    : 'এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।')
+              )}
             </p>
           </div>
 
           <div className="pt-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[11px] font-medium text-[var(--text-muted)]">
-              কুইজ শুধুমাত্র শিক্ষামূলক ভিডিওর জন্য প্রযোজ্য
+              {nonEduContentType === 'intro_promo'
+                ? 'পরিচিতি পর্ব • কুইজ প্রযোজ্য নয়'
+                : 'কুইজ শুধুমাত্র শিক্ষামূলক ভিডিওর জন্য প্রযোজ্য'}
             </span>
           </div>
         </div>

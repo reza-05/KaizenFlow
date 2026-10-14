@@ -11,7 +11,7 @@ export interface QuizFetchResponse {
   questions: LectureQuizQuestion[];
   isEducational: boolean;
   reason?: string;
-  contentType?: 'music_entertainment' | 'gaming' | 'vlog' | 'drama' | 'other';
+  contentType?: 'music_entertainment' | 'gaming' | 'vlog' | 'drama' | 'intro_promo' | 'other';
 }
 
 // Fetch 5 genuine AI-generated conceptual questions from backend
@@ -44,6 +44,7 @@ export async function fetchAiQuizForVideo(
         videoId: video.ytVideoId,
         videoTitle: video.title,
         courseTitle: courseTitle || '',
+        durationSeconds: video.durationSeconds,
         language: 'bn',
       }),
     });
