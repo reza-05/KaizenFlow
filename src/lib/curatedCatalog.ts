@@ -72,7 +72,7 @@ export const ACADEMIC_LEVELS: AcademicLevelOption[] = [
     id: 'all',
     nameEn: 'All Tracks',
     nameBn: 'সব লেভেল',
-    iconName: 'Sparkles',
+    iconName: 'LayoutGrid',
     badge: 'All Tracks',
     description: 'Explore all courses across schools, colleges, universities, and tech careers',
   },

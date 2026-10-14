@@ -656,7 +656,7 @@ export default function KaizenFlowApp() {
                   >
                     <div>
                       {/* Image Thumbnail */}
-                      <div className="relative aspect-video w-full overflow-hidden bg-black/10">
+                      <div className="relative aspect-video w-full overflow-hidden bg-black/5 dark:bg-white/5">
                         <img
                           src={course.thumbnailUrl}
                           alt={course.title}
@@ -666,42 +666,33 @@ export default function KaizenFlowApp() {
                             target.onerror = null;
                             target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80';
                           }}
-                          className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
+                          className="h-full w-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-                        
-                        <div className="absolute top-2 left-2 rounded-full bg-black/70 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
-                          {course.categoryNameBn}
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
 
-                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] text-white/90">
-                          <span className="flex items-center gap-1">
-                            <ListVideo className="h-2.5 w-2.5" />
-                            <span>~{course.totalVideosApprox} Lessons</span>
-                          </span>
-                          <span className="flex items-center gap-0.5 text-amber-400 font-bold">
-                            <Star className="h-2.5 w-2.5 fill-current" />
-                            <span>{course.rating.toFixed(1)}</span>
-                          </span>
+                        <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/80 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs">
+                          <ListVideo className="h-2.5 w-2.5 opacity-80" />
+                          <span>~{course.totalVideosApprox} Lessons</span>
                         </div>
                       </div>
 
                       {/* Content */}
-                      <div className="p-3.5 space-y-2">
+                      <div className="p-3.5 space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)]">
+                          <span className="font-medium truncate">{course.categoryNameBn}</span>
+                          <span className="text-amber-500 font-semibold text-[10px]">★ {course.rating.toFixed(1)}</span>
+                        </div>
+
+                        <h3 className="text-xs font-semibold text-[var(--text-primary)] line-clamp-2 leading-snug group-hover:text-blue-500 transition-colors">
+                          {course.title}
+                        </h3>
+
                         <div className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
-                          <span className="font-semibold text-[var(--text-primary)] truncate">
+                          <span className="font-medium text-[var(--text-primary)] truncate">
                             {course.instructor}
                           </span>
                           <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
                         </div>
-
-                        <h3 className="text-xs font-bold text-[var(--text-primary)] line-clamp-2 leading-snug group-hover:text-blue-500 transition-colors">
-                          {course.title}
-                        </h3>
-
-                        <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2">
-                          {course.description}
-                        </p>
                       </div>
                     </div>
 
