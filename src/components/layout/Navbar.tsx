@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Award, BookOpen, Sun, Moon, ArrowLeft, Trophy, LogIn, LogOut, Check, RefreshCw, User } from 'lucide-react';
+import { Award, BookOpen, Sun, Moon, ArrowLeft, Trophy, LogIn, LogOut, Check, RefreshCw, User, Compass } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { ClashFlame } from '@/components/ui/ClashFlame';
 import { IsolationToggle } from '@/components/isolation/IsolationToggle';
@@ -102,6 +102,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
           )}
 
+          {!activeCourseTitle && (
+            <Link
+              href="/courses"
+              className="hidden lg:flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:bg-[var(--bg-surface)] hover:border-[var(--border-strong)] px-2.5 py-1 text-xs font-semibold text-[var(--text-primary)] transition-all ml-1 shadow-2xs"
+            >
+              <Compass className="h-3.5 w-3.5 text-blue-500" />
+              <span>Explore Courses</span>
+            </Link>
+          )}
+
           {activeCourseTitle && (
             <div className="hidden md:flex items-center gap-2 border-l border-[var(--border-subtle)] pl-4 min-w-0">
               <span className="max-w-[180px] lg:max-w-xs truncate text-xs font-semibold text-[var(--text-primary)]">
@@ -113,6 +123,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Action & Stats Bar */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Explore Courses Link for Mobile/Tablet */}
+          <Link
+            href="/courses"
+            title="Explore Curated Courses • কোর্সসমূহ"
+            className="flex lg:hidden items-center gap-1 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:border-[var(--border-strong)] px-2.5 py-1 text-xs font-semibold text-[var(--text-primary)] transition-colors shrink-0 shadow-2xs"
+          >
+            <Compass className="h-3.5 w-3.5 text-blue-500" />
+            <span className="hidden sm:inline">Courses</span>
+          </Link>
           {/* Level & Rank Pill (Hidden on mobile < sm, visible on tablet & desktop) */}
           <Link
             href="/rewards"

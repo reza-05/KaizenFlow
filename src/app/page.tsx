@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import confetti from 'canvas-confetti';
-import { Plus, Flame, Award, BookOpen, Layers, CheckCircle2, Compass, ArrowRight, ListVideo, HelpCircle, FileText } from 'lucide-react';
+import { Plus, Flame, Award, BookOpen, Layers, CheckCircle2, Compass, ArrowRight, ListVideo, HelpCircle, FileText, Star, Play, Check } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { CourseCard } from '@/components/dashboard/CourseCard';
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap';
 import { AddCourseModal } from '@/components/dashboard/AddCourseModal';
 import { CompletionBadgeModal } from '@/components/dashboard/CompletionBadgeModal';
+import { getFeaturedPreviewCourses, CuratedCourse } from '@/lib/curatedCatalog';
+import { parseYouTubePlaylist } from '@/lib/youtube';
 import { CinemaPlayer } from '@/components/player/CinemaPlayer';
 import { StudySidebar } from '@/components/player/StudySidebar';
 import { LessonQuizSection } from '@/components/player/LessonQuizSection';
@@ -48,6 +51,7 @@ export default function KaizenFlowApp() {
   const [activeTimestampSeconds, setActiveTimestampSeconds] = useState(0);
   const [focusWarning, setFocusWarning] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'queue' | 'ai_notes' | 'quiz' | 'notes'>('queue');
+  const [enrollingPreviewId, setEnrollingPreviewId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleFocusReturn = (e: Event) => {
@@ -92,6 +96,19 @@ export default function KaizenFlowApp() {
       }
     });
     setProgressMap(verifiedStatus);
+
+    // Auto-open course if requested from course catalog or external link
+    const pendingCourseId = typeof window !== 'undefined' ? localStorage.getItem('kaizenflow_pending_open_course') : null;
+    if (pendingCourseId) {
+      localStorage.removeItem('kaizenflow_pending_open_course');
+      const target = loadedPlaylists.find(p => p.id === pendingCourseId || p.ytPlaylistId === pendingCourseId);
+      if (target) {
+        setActiveCourse(target);
+        setMobileTab('queue');
+        const unwatched = target.videos.find(v => !verifiedStatus[`${target.id}_${v.ytVideoId}`]);
+        setActiveVideo(unwatched || target.videos[0]);
+      }
+    }
   }, [user?.uid, authProfile]);
 
   // Sync notes when active video changes
@@ -134,6 +151,37 @@ export default function KaizenFlowApp() {
       }
     }
     return res;
+  };
+
+  const handleQuickEnrollOrOpen = async (course: CuratedCourse) => {
+    // 1. If already in library, open directly
+    const existing = playlists.find(p => p.ytPlaylistId === course.ytPlaylistId);
+    if (existing) {
+      handleOpenCourse(existing);
+      return;
+    }
+
+    // 2. Check quota
+    if (playlists.length >= 10) {
+      alert('You have reached the limit of 10 active courses. Please remove an existing course to add a new one.');
+      return;
+    }
+
+    setEnrollingPreviewId(course.id);
+    try {
+      const parsed = await parseYouTubePlaylist(course.ytPlaylistId, course.title);
+      const res = handleAddCourse(parsed);
+      if (res.success) {
+        confetti({ particleCount: 65, spread: 55, origin: { y: 0.6 } });
+        handleOpenCourse(parsed);
+      } else {
+        alert(res.error || 'Failed to add course.');
+      }
+    } catch (err: any) {
+      alert(err?.message || 'Could not load course. Please try again.');
+    } finally {
+      setEnrollingPreviewId(null);
+    }
   };
 
   const handleDeleteCourse = (courseId: string) => {
@@ -557,6 +605,122 @@ export default function KaizenFlowApp() {
                 )}
               </div>
             )}
+          </section>
+
+          {/* Curated Top Courses Shelf */}
+          <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-7 space-y-6 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Compass className="h-4 w-4 text-blue-500" />
+                  <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--text-primary)]">
+                    Featured Deep-Dive Playlists (জনপ্রিয় সিলেক্টেড কোর্সসমূহ)
+                  </h2>
+                </div>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  Handpicked courses by Chinmoy Saha, Kazi Rakibul, Learn with Hemel, Saikat Abdullah, CodeWithHarry, Apna College, and more.
+                </p>
+              </div>
+
+              <Link
+                href="/courses"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] hover:border-[var(--border-strong)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--text-primary)] transition-all shrink-0 cursor-pointer shadow-2xs group"
+              >
+                <span>View All Courses (সবগুলো দেখুন)</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Grid of 4 top featured courses */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {getFeaturedPreviewCourses().slice(0, 4).map(course => {
+                const isEnrolled = playlists.some(p => p.ytPlaylistId === course.ytPlaylistId);
+                const isEnrolling = enrollingPreviewId === course.id;
+
+                return (
+                  <div
+                    key={course.id}
+                    className="group flex flex-col justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)]/30 hover:bg-[var(--bg-surface)] hover:border-[var(--border-strong)] transition-all duration-200 overflow-hidden shadow-2xs"
+                  >
+                    <div>
+                      {/* Image Thumbnail */}
+                      <div className="relative aspect-video w-full overflow-hidden bg-black/10">
+                        <img
+                          src={course.thumbnailUrl}
+                          alt={course.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+                        
+                        <div className="absolute top-2 left-2 rounded-full bg-black/70 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
+                          {course.categoryNameBn}
+                        </div>
+
+                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] text-white/90">
+                          <span className="flex items-center gap-1">
+                            <ListVideo className="h-2.5 w-2.5" />
+                            <span>~{course.totalVideosApprox} Lessons</span>
+                          </span>
+                          <span className="flex items-center gap-0.5 text-amber-400 font-bold">
+                            <Star className="h-2.5 w-2.5 fill-current" />
+                            <span>{course.rating.toFixed(1)}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-3.5 space-y-2">
+                        <div className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
+                          <span className="font-semibold text-[var(--text-primary)] truncate">
+                            {course.instructor}
+                          </span>
+                          <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
+                        </div>
+
+                        <h3 className="text-xs font-bold text-[var(--text-primary)] line-clamp-2 leading-snug group-hover:text-blue-500 transition-colors">
+                          {course.title}
+                        </h3>
+
+                        <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2">
+                          {course.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Footer Button */}
+                    <div className="p-3.5 pt-0">
+                      <button
+                        onClick={() => handleQuickEnrollOrOpen(course)}
+                        disabled={isEnrolling}
+                        className={`w-full flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                          isEnrolled
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            : 'bg-[var(--text-primary)] hover:opacity-90 text-[var(--bg-surface)]'
+                        } disabled:opacity-50`}
+                      >
+                        {isEnrolling ? (
+                          <>
+                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            <span>Enrolling...</span>
+                          </>
+                        ) : isEnrolled ? (
+                          <>
+                            <Check className="h-3 w-3" />
+                            <span>Resume</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-3 w-3 fill-current" />
+                            <span>Start Course</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </section>
         </main>
       )}
