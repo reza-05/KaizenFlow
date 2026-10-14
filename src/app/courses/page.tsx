@@ -8,11 +8,9 @@ import {
   Compass, 
   Search, 
   BookOpen, 
-  Award, 
   Flame, 
   CheckCircle2, 
   ArrowLeft, 
-  ArrowRight, 
   Play, 
   GraduationCap, 
   Clock, 
@@ -22,14 +20,20 @@ import {
   AlertCircle,
   ExternalLink,
   Star,
-  Check
+  Check,
+  Sparkles,
+  Cpu,
+  Code,
+  Layers
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { 
   CURATED_COURSES, 
   COURSE_CATEGORIES, 
+  ACADEMIC_LEVELS,
   CuratedCourse, 
-  CourseCategory 
+  AcademicLevel,
+  CourseCategoryId
 } from '@/lib/curatedCatalog';
 import { getPlaylists, addPlaylist, getInitialUserProfile } from '@/lib/storage';
 import { parseYouTubePlaylist } from '@/lib/youtube';
@@ -46,7 +50,8 @@ export default function CoursesCatalogPage() {
   
   // Search & filter states
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | CuratedCourse['category']>('all');
+  const [selectedLevel, setSelectedLevel] = useState<AcademicLevel>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | CourseCategoryId>('all');
   const [selectedLanguage, setSelectedLanguage] = useState<'all' | 'Bangla' | 'English' | 'Hindi'>('all');
   const [sortBy, setSortBy] = useState<'popular' | 'rating' | 'lessons'>('popular');
   
@@ -72,9 +77,31 @@ export default function CoursesCatalogPage() {
     return map;
   }, [enrolledPlaylists]);
 
+  // Categories visible under the selected academic level
+  const visibleCategories = useMemo(() => {
+    if (selectedLevel === 'all') {
+      return COURSE_CATEGORIES;
+    }
+    return [
+      COURSE_CATEGORIES[0], // 'all'
+      ...COURSE_CATEGORIES.filter(c => c.academicLevel === selectedLevel)
+    ];
+  }, [selectedLevel]);
+
+  // Handle switching academic level
+  const handleLevelChange = (lvl: AcademicLevel) => {
+    setSelectedLevel(lvl);
+    setSelectedCategory('all');
+  };
+
   // Filter and sort courses
   const filteredCourses = useMemo(() => {
     return CURATED_COURSES.filter(course => {
+      // Academic Level filter
+      if (selectedLevel !== 'all' && course.academicLevel !== selectedLevel) {
+        return false;
+      }
+
       // Category filter
       if (selectedCategory !== 'all' && course.category !== selectedCategory) {
         return false;
@@ -113,16 +140,29 @@ export default function CoursesCatalogPage() {
       if (!a.featured && b.featured) return 1;
       return b.rating - a.rating;
     });
-  }, [selectedCategory, selectedLanguage, searchQuery, sortBy]);
+  }, [selectedLevel, selectedCategory, selectedLanguage, searchQuery, sortBy]);
 
-  // Category counts
-  const categoryCounts = useMemo(() => {
+  // Academic level counts
+  const levelCounts = useMemo(() => {
     const counts: Record<string, number> = { all: CURATED_COURSES.length };
     CURATED_COURSES.forEach(course => {
-      counts[course.category] = (counts[course.category] || 0) + 1;
+      counts[course.academicLevel] = (counts[course.academicLevel] || 0) + 1;
     });
     return counts;
   }, []);
+
+  // Category counts within the selected academic level
+  const categoryCounts = useMemo(() => {
+    const relevantCourses = selectedLevel === 'all'
+      ? CURATED_COURSES 
+      : CURATED_COURSES.filter(c => c.academicLevel === selectedLevel);
+    
+    const counts: Record<string, number> = { all: relevantCourses.length };
+    relevantCourses.forEach(course => {
+      counts[course.category] = (counts[course.category] || 0) + 1;
+    });
+    return counts;
+  }, [selectedLevel]);
 
   const handleEnrollOrResume = async (course: CuratedCourse) => {
     // 1. If already enrolled, jump directly to study desk
@@ -191,6 +231,34 @@ export default function CoursesCatalogPage() {
     }
   };
 
+  const getLevelIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'BookOpen':
+        return <BookOpen className="h-4 w-4" />;
+      case 'GraduationCap':
+        return <GraduationCap className="h-4 w-4" />;
+      case 'Cpu':
+        return <Cpu className="h-4 w-4" />;
+      case 'Code':
+        return <Code className="h-4 w-4" />;
+      default:
+        return <Sparkles className="h-4 w-4" />;
+    }
+  };
+
+  const getLevelBadgeLabel = (lvl: CuratedCourse['academicLevel']) => {
+    switch (lvl) {
+      case 'ssc':
+        return 'এসএসসি (Class 9-10)';
+      case 'hsc':
+        return 'এইচএসসি ও এডমিশন';
+      case 'university':
+        return 'বিশ্ববিদ্যালয় ও ইঞ্জিনিয়ারিং';
+      case 'skills':
+        return 'ক্যারিয়ার স্কিলস';
+    }
+  };
+
   if (!mounted) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-canvas)]">
@@ -227,37 +295,37 @@ export default function CoursesCatalogPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400 mb-4">
               <Compass className="h-3.5 w-3.5" />
-              <span>Curated Video Roadmaps • 100% Free & Distraction-Free</span>
+              <span>Curated Video Roadmaps • SSC, HSC, University & Professional Skills</span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--text-primary)] mb-3">
               Explore High-Value Courses <br className="hidden sm:inline" />
               <span className="text-[var(--text-secondary)] font-medium text-xl sm:text-2xl">
-                শীর্ষস্থানীয় শিক্ষকদের সেরা ইউটিউব প্লেলিস্টসমূহ
+                শীর্ষস্থানীয় শিক্ষকদের বাছাইকৃত গভীর ও প্রামাণ্য প্লেলিস্টসমূহ
               </span>
             </h1>
 
             <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed mb-6">
-              আমরা ইউটিউবের অগভীর ও বিভ্রান্তিকর ভিডিও বাদ দিয়ে শুধুমাত্র শীর্ষ মেন্টরদের দীর্ঘমেয়াদী, গভীর ও পরীক্ষিত প্লেলিস্টগুলো একত্রিত করেছি। বিজ্ঞাপনবিহীন লার্নিং, চ্যাপ্টার ট্র্যাকিং, অটো-কুইজ ও কনসেপ্ট নোট সহ শিখুন।
+              ইউটিউবের বিভ্রান্তিকর অগভীর ভিডিওর ভিড়ে সময় নষ্ট না করে সরাসরি শীর্ষ মেন্টরদের সুশৃঙ্খল প্লেলিস্ট থেকে শিখুন। এসএসসি, এইচএসসি, ইঞ্জিনিয়ারিং (CSE, EEE, Mechanical), ভার্সিটি ম্যাথ ও ক্যারিয়ার স্কিলসের সম্পূর্ণ সিলেবাস এক ছাদের নিচে।
             </p>
 
             {/* Quick Feature Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[var(--border-subtle)]">
               <div>
                 <p className="text-lg font-bold text-[var(--text-primary)]">{CURATED_COURSES.length}+</p>
-                <p className="text-[11px] text-[var(--text-secondary)]">Deep-Dive Courses</p>
+                <p className="text-[11px] text-[var(--text-secondary)]">Curated Courses</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-[var(--text-primary)]">8</p>
-                <p className="text-[11px] text-[var(--text-secondary)]">Distinct Tracks</p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">4 Levels</p>
+                <p className="text-[11px] text-[var(--text-secondary)]">SSC, HSC, Uni & Skills</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">100% Free</p>
-                <p className="text-[11px] text-[var(--text-secondary)]">No Paywalls</p>
+                <p className="text-[11px] text-[var(--text-secondary)]">Zero Paywalls</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-amber-500">Zero Ads</p>
-                <p className="text-[11px] text-[var(--text-secondary)]">Isolation Mode</p>
+                <p className="text-[11px] text-[var(--text-secondary)]">Distraction-Free Mode</p>
               </div>
             </div>
           </div>
@@ -285,6 +353,54 @@ export default function CoursesCatalogPage() {
           </div>
         )}
 
+        {/* Primary Filter: Academic Levels Selector (Tabs) */}
+        <div className="mb-6">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2.5 flex items-center gap-1.5">
+            <Layers className="h-3.5 w-3.5 text-blue-500" />
+            <span>Select Academic Track (লেভেল বেছে নিন):</span>
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            {ACADEMIC_LEVELS.map(lvl => {
+              const isActive = selectedLevel === lvl.id;
+              const count = levelCounts[lvl.id] || 0;
+              return (
+                <button
+                  key={lvl.id}
+                  onClick={() => handleLevelChange(lvl.id)}
+                  className={`flex flex-col items-start p-3.5 rounded-xl border transition-all text-left cursor-pointer ${
+                    isActive
+                      ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-surface)] shadow-sm'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-subtle)]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-1">
+                    <span className={isActive ? 'text-[var(--bg-surface)]' : 'text-blue-500'}>
+                      {getLevelIcon(lvl.iconName)}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        isActive
+                          ? 'bg-[var(--bg-surface)]/20 text-[var(--bg-surface)]'
+                          : 'bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)]'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold leading-tight">{lvl.nameBn}</span>
+                  <span
+                    className={`text-[10px] truncate max-w-full mt-0.5 ${
+                      isActive ? 'opacity-80' : 'text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    {lvl.nameEn}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Controls Bar: Search & Language & Sort */}
         <div className="mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           {/* Search Box */}
@@ -292,7 +408,7 @@ export default function CoursesCatalogPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-secondary)]" />
             <input
               type="text"
-              placeholder="Search by topic, instructor, or language (e.g. Chinmoy, C++, DSA, React, ফিজিক্স)..."
+              placeholder="Search by topic, instructor, or subject (e.g. Apurbo, Leonard, DLD, Circuits, Thermodynamics, SSC, HSC)..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 focus:border-[var(--text-primary)] focus:outline-none transition-colors shadow-2xs"
@@ -351,7 +467,7 @@ export default function CoursesCatalogPage() {
 
         {/* Category Horizontal Filter Pills */}
         <div className="mb-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {COURSE_CATEGORIES.map(category => {
+          {visibleCategories.map(category => {
             const isSelected = selectedCategory === category.id;
             const count = categoryCounts[category.id] || 0;
             return (
@@ -384,20 +500,22 @@ export default function CoursesCatalogPage() {
         <div className="mb-4 flex items-center justify-between text-xs text-[var(--text-secondary)]">
           <p>
             Showing <strong className="text-[var(--text-primary)]">{filteredCourses.length}</strong> curated courses
-            {selectedCategory !== 'all' && ` in "${COURSE_CATEGORIES.find(c => c.id === selectedCategory)?.nameBn}"`}
+            {selectedLevel !== 'all' && ` in "${ACADEMIC_LEVELS.find(l => l.id === selectedLevel)?.nameBn}"`}
+            {selectedCategory !== 'all' && ` • "${COURSE_CATEGORIES.find(c => c.id === selectedCategory)?.nameBn}"`}
             {searchQuery && ` matching "${searchQuery}"`}
           </p>
 
-          {(selectedCategory !== 'all' || selectedLanguage !== 'all' || searchQuery) && (
+          {(selectedLevel !== 'all' || selectedCategory !== 'all' || selectedLanguage !== 'all' || searchQuery) && (
             <button
               onClick={() => {
+                setSelectedLevel('all');
                 setSelectedCategory('all');
                 setSelectedLanguage('all');
                 setSearchQuery('');
               }}
               className="text-xs font-semibold text-blue-500 hover:underline cursor-pointer"
             >
-              Reset Filters
+              Reset All Filters
             </button>
           )}
         </div>
@@ -410,10 +528,11 @@ export default function CoursesCatalogPage() {
               No matching courses found
             </h3>
             <p className="text-xs text-[var(--text-secondary)] max-w-sm mb-4">
-              We couldn’t find any playlists matching your current search or category filters. Try searching for a broader term like &quot;Physics&quot; or &quot;C++&quot;.
+              We couldn’t find any playlists matching your current search or category filters. Try switching tracks or resetting the filters.
             </p>
             <button
               onClick={() => {
+                setSelectedLevel('all');
                 setSelectedCategory('all');
                 setSelectedLanguage('all');
                 setSearchQuery('');
@@ -451,8 +570,8 @@ export default function CoursesCatalogPage() {
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
-                      <span className="rounded-full bg-black/70 backdrop-blur-xs px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                        {course.categoryNameBn}
+                      <span className="rounded-full bg-blue-600/90 backdrop-blur-xs px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                        {getLevelBadgeLabel(course.academicLevel)}
                       </span>
                       {course.badge && (
                         <span className="flex items-center gap-1 rounded-full bg-amber-500/90 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-black">
