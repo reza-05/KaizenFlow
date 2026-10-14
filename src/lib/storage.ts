@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   NOTES: 'study_notes',
   THEME: 'theme_mode',
   CERTIFICATES: 'downloaded_certificates',
+  STARRED: 'starred_videos',
 };
 
 const LEGACY_STORAGE_KEYS = {
@@ -21,6 +22,7 @@ const LEGACY_STORAGE_KEYS = {
   NOTES: 'kizen_study_notes',
   THEME: 'kizen_theme_mode',
   CERTIFICATES: 'kaizenflow_downloaded_certificates',
+  STARRED: 'kaizenflow_starred_videos',
 };
 
 let inMemoryActiveScope: string | null = null;
@@ -651,3 +653,35 @@ export function isCertificateDownloaded(id: string): boolean {
   if (typeof window === 'undefined' || !id) return false;
   return getDownloadedCertificateIds().includes(id);
 }
+
+// Starred / Bookmarked Videos Registry (Scoped per playlist & user)
+export function getStarredVideoIds(playlistId?: string): string[] {
+  if (typeof window === 'undefined') return [];
+  const stored = getStoredValue('STARRED', playlistId || '');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {}
+  }
+  return [];
+}
+
+export function saveStarredVideoIds(ids: string[], playlistId?: string): void {
+  if (typeof window === 'undefined') return;
+  setStoredValue('STARRED', JSON.stringify(ids), playlistId || '');
+}
+
+export function toggleStarredVideo(videoId: string, playlistId?: string): boolean {
+  if (typeof window === 'undefined' || !videoId) return false;
+  const current = getStarredVideoIds(playlistId);
+  const exists = current.includes(videoId);
+  const updated = exists ? current.filter(id => id !== videoId) : [...current, videoId];
+  saveStarredVideoIds(updated, playlistId);
+  return !exists;
+}
+
+export function isVideoStarred(videoId: string, playlistId?: string): boolean {
+  if (typeof window === 'undefined' || !videoId) return false;
+  return getStarredVideoIds(playlistId).includes(videoId);
+}
+

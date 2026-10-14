@@ -40,7 +40,9 @@ import {
   getAiNotesQuotaStatus, 
   consumeAiNotesQuota, 
   setSubscriptionTier, 
-  AiNotesQuotaStatus 
+  AiNotesQuotaStatus,
+  getStarredVideoIds,
+  toggleStarredVideo
 } from '@/lib/storage';
 import { BkashNagadCheckoutModal } from '@/components/payment/BkashNagadCheckoutModal';
 import { ShareNoteModal } from '@/components/player/ShareNoteModal';
@@ -89,6 +91,25 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   };
 
   const [newNoteContent, setNewNoteContent] = useState<string>('');
+
+  // Queue Search & Star Filter State
+  const [starredVideoIds, setStarredVideoIds] = useState<string[]>([]);
+  const [queueSearchQuery, setQueueSearchQuery] = useState<string>('');
+  const [showStarredOnly, setShowStarredOnly] = useState<boolean>(false);
+
+  // Load starred videos for this playlist
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setStarredVideoIds(getStarredVideoIds(playlistId));
+    }
+  }, [playlistId]);
+
+  const handleToggleStar = (ytVideoId: string) => {
+    const isNowStarred = toggleStarredVideo(ytVideoId, playlistId);
+    setStarredVideoIds(prev => 
+      isNowStarred ? [...prev, ytVideoId] : prev.filter(id => id !== ytVideoId)
+    );
+  };
 
   // AI Notes State
   const [aiNotes, setAiNotes] = useState<AILectureNotes | null>(null);
@@ -609,67 +630,169 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
       </div>
 
       {/* TAB 1: Course Queue */}
-      {activeTab === 'queue' && (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {onOpenReviews && (
-            <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs shrink-0">
-              <span className="text-[11px] text-[var(--text-muted)] font-medium">কোর্স মতামত ও অভিজ্ঞতা</span>
+      {activeTab === 'queue' && (() => {
+        const filteredVideos = videos.filter(vid => {
+          const matchesSearch = !queueSearchQuery.trim() || 
+            vid.title.toLowerCase().includes(queueSearchQuery.toLowerCase());
+          const matchesStar = !showStarredOnly || starredVideoIds.includes(vid.ytVideoId);
+          return matchesSearch && matchesStar;
+        });
+
+        return (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Header Toolbar: Course Review Button & Quick Stats */}
+            {onOpenReviews && (
+              <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs shrink-0">
+                <span className="text-[11px] text-[var(--text-muted)] font-medium">কোর্স মতামত ও অভিজ্ঞতা</span>
+                <button
+                  type="button"
+                  onClick={onOpenReviews}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[11px] font-bold border border-amber-500/30 transition-colors cursor-pointer"
+                >
+                  <Star className="h-3 w-3 fill-current" />
+                  <span>রেটিং ও রিভিউ</span>
+                </button>
+              </div>
+            )}
+
+            {/* Queue Search & Star Filter Bar */}
+            <div className="p-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] flex items-center gap-2 shrink-0">
+              {/* Search Input */}
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-muted)]" />
+                <input
+                  type="text"
+                  value={queueSearchQuery}
+                  onChange={e => setQueueSearchQuery(e.target.value)}
+                  placeholder="ভিডিও খুঁজুন..."
+                  className="w-full pl-8 pr-6 py-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--text-primary)] transition-colors"
+                />
+                {queueSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setQueueSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Starred Filter Button */}
               <button
                 type="button"
-                onClick={onOpenReviews}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[11px] font-bold border border-amber-500/30 transition-colors cursor-pointer"
-              >
-                <Star className="h-3 w-3 fill-current" />
-                <span>রেটিং ও রিভিউ</span>
-              </button>
-            </div>
-          )}
-          <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]">
-          {videos.map((vid, idx) => {
-            const isPlaying = vid.ytVideoId === currentVideoId;
-            const isVerified = Boolean(verifiedMap[`${playlistId}_${vid.ytVideoId}`] || verifiedMap[vid.ytVideoId]);
-
-            return (
-              <button
-                key={vid.id || idx}
-                onClick={() => onSelectVideo(vid)}
-                className={`w-full text-left p-3.5 flex items-start gap-3 transition-colors ${
-                  isPlaying 
-                    ? 'bg-[var(--bg-surface-subtle)] font-medium' 
-                    : 'hover:bg-[var(--bg-surface-subtle)]/50'
+                onClick={() => setShowStarredOnly(prev => !prev)}
+                title={showStarredOnly ? 'সব লেকচার দেখান' : 'শুধুমাত্র স্টার করা লেকচার দেখান'}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
+                  showStarredOnly
+                    ? 'border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold shadow-2xs'
+                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
                 }`}
               >
-                <div className="mt-0.5 flex-shrink-0">
-                  {isVerified ? (
-                    <CheckCircle2 className="h-4 w-4 text-[#059669]" />
-                  ) : isPlaying ? (
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-canvas)]">
-                      <Play className="h-2.5 w-2.5 fill-current" />
-                    </div>
-                  ) : (
-                    <span className="flex h-4 w-4 items-center justify-center font-mono text-[10px] text-[var(--text-muted)]">
-                      {idx + 1}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs leading-snug truncate ${
-                    isPlaying ? 'font-semibold text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
-                  }`}>
-                    {vid.title}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] text-[var(--text-muted)] font-mono">
-                    <span>{vid.durationFormatted}</span>
-                    {isVerified && <span className="text-[#059669] font-medium font-sans">&bull; Verified</span>}
-                  </div>
-                </div>
+                <Star className={`h-3.5 w-3.5 ${showStarredOnly || starredVideoIds.length > 0 ? 'text-amber-500 fill-amber-500' : ''}`} />
+                <span>{starredVideoIds.length}</span>
               </button>
-            );
-          })}
+            </div>
+
+            {/* Video List or Empty Filter State */}
+            {filteredVideos.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-surface-subtle)] text-amber-500 mb-2.5">
+                  <Star className="h-5 w-5" />
+                </div>
+                <p className="text-xs font-semibold text-[var(--text-primary)]">
+                  {showStarredOnly ? 'কোনো স্টার করা লেকচার নেই' : 'কোনো ভিডিও পাওয়া যায়নি'}
+                </p>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-1 max-w-[210px] leading-relaxed">
+                  {showStarredOnly
+                    ? 'গুরুত্বপূর্ণ বা পরীক্ষার রিভিশন লেকচারের পাশের ★ আইকনে ক্লিক করে বুকমার্ক করুন।'
+                    : 'অন্য কোনো কি-ওয়ার্ড দিয়ে সার্চ করে দেখুন।'}
+                </p>
+                {showStarredOnly && (
+                  <button
+                    type="button"
+                    onClick={() => setShowStarredOnly(false)}
+                    className="mt-3 text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                  >
+                    সব লেকচার দেখান ({videos.length})
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]">
+                {filteredVideos.map((vid, idx) => {
+                  const originalIdx = videos.findIndex(v => v.ytVideoId === vid.ytVideoId);
+                  const isPlaying = vid.ytVideoId === currentVideoId;
+                  const isVerified = Boolean(verifiedMap[`${playlistId}_${vid.ytVideoId}`] || verifiedMap[vid.ytVideoId]);
+                  const isStarred = starredVideoIds.includes(vid.ytVideoId);
+
+                  return (
+                    <div
+                      key={vid.id || vid.ytVideoId || idx}
+                      onClick={() => onSelectVideo(vid)}
+                      className={`w-full text-left p-3 flex items-start gap-2.5 transition-colors group cursor-pointer ${
+                        isPlaying 
+                          ? 'bg-[var(--bg-surface-subtle)] font-medium' 
+                          : 'hover:bg-[var(--bg-surface-subtle)]/50'
+                      }`}
+                    >
+                      {/* Playhead / Checkmark / Number Indicator */}
+                      <div className="mt-0.5 flex-shrink-0">
+                        {isVerified ? (
+                          <CheckCircle2 className="h-4 w-4 text-[#059669]" />
+                        ) : isPlaying ? (
+                          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--text-primary)] text-[var(--bg-canvas)]">
+                            <Play className="h-2.5 w-2.5 fill-current" />
+                          </div>
+                        ) : (
+                          <span className="flex h-4 w-4 items-center justify-center font-mono text-[10px] text-[var(--text-muted)]">
+                            {originalIdx >= 0 ? originalIdx + 1 : idx + 1}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Video Title & Metadata */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs leading-snug line-clamp-2 ${
+                          isPlaying ? 'font-semibold text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
+                        }`}>
+                          {vid.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-[var(--text-muted)] font-mono">
+                          <span>{vid.durationFormatted}</span>
+                          {isVerified && <span className="text-[#059669] font-medium font-sans">&bull; Verified</span>}
+                          {isStarred && (
+                            <span className="inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-400 font-sans font-semibold text-[10px]">
+                              &bull; ★ Starred
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Star / Bookmark Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleStar(vid.ytVideoId);
+                        }}
+                        title={isStarred ? "স্টার রিমুভ করুন" : "রিভিশন লেকচার হিসেবে স্টার করুন"}
+                        className={`p-1.5 rounded-md transition-all cursor-pointer shrink-0 ${
+                          isStarred
+                            ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-500/10'
+                            : 'text-[var(--text-muted)] hover:text-amber-500 hover:bg-[var(--bg-surface-subtle)] opacity-40 group-hover:opacity-100'
+                        }`}
+                      >
+                        <Star className={`h-4 w-4 ${isStarred ? 'fill-amber-500 text-amber-500' : ''}`} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB 2: AI Smart Lecture Notes */}
       {activeTab === 'ai_notes' && (
