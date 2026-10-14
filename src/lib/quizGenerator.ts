@@ -18,8 +18,7 @@ export interface QuizFetchResponse {
 export async function fetchAiQuizForVideo(
   video: VideoItem,
   courseTitle?: string,
-  forceFresh: boolean = false,
-  forceGenerate: boolean = false
+  forceFresh: boolean = false
 ): Promise<QuizFetchResponse> {
   const cacheKey = `kaizenflow_quiz_data_${video.ytVideoId}`;
 
@@ -46,7 +45,6 @@ export async function fetchAiQuizForVideo(
         videoTitle: video.title,
         courseTitle: courseTitle || '',
         language: 'bn',
-        forceGenerate: Boolean(forceGenerate),
       }),
     });
 

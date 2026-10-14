@@ -13,8 +13,7 @@ import {
   Play,
   ArrowRight,
   Music,
-  Tv,
-  FileText
+  Tv
 } from 'lucide-react';
 import { VideoItem, LectureQuizQuestion } from '@/types';
 import { 
@@ -83,7 +82,7 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
   }, [video.ytVideoId, video.title, courseTitle]);
 
   // Handle "Take Quiz" click
-  const handleTakeQuiz = async (forceFresh: boolean = false, forceGenerate: boolean = false) => {
+  const handleTakeQuiz = async (forceFresh: boolean = false) => {
     setIsLoadingQuiz(true);
     setErrorMessage(null);
 
@@ -94,12 +93,12 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
         setIsSubmitted(false);
       }
 
-      const res = await fetchAiQuizForVideo(video, courseTitle, forceFresh, forceGenerate);
+      const res = await fetchAiQuizForVideo(video, courseTitle, forceFresh);
 
-      // If backend detected non-educational content and not forced
+      // If backend detected non-educational content
       if (res.isEducational === false) {
         setIsNonEduBlocked(true);
-        setNonEduReason(res.reason || 'এই ভিডিওটি বিনোদনমূলক বা অ-শিক্ষামূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে।');
+        setNonEduReason(res.reason || 'এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।');
         if (res.contentType) {
           setNonEduContentType(res.contentType);
         }
@@ -119,20 +118,6 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
       setErrorMessage(err.message || 'কুইজ লোড করতে সমস্যা হয়েছে।');
     } finally {
       setIsLoadingQuiz(false);
-    }
-  };
-
-  const handleGoToPersonalNotes = () => {
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('kaizenflow-switch-tab', {
-          detail: { tab: 'notes' },
-        })
-      );
-      const notesEl = document.getElementById('study-notes-section');
-      if (notesEl) {
-        notesEl.scrollIntoView({ behavior: 'smooth' });
-      }
     }
   };
 
@@ -288,36 +273,17 @@ export const LessonQuizSection: React.FC<LessonQuizSectionProps> = ({
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
             <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-              নন-এডুকেশনাল কনটেন্ট শনাক্ত হয়েছে
+              নন-এডুকেশনাল কনটেন্ট
             </h4>
             <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed">
-              {renderFormattedText(nonEduReason || 'এই ভিডিওটি বিনোদনমূলক বা অ-শিক্ষামূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শিক্ষামূলক বিষয়ের কনসেপ্ট যাচাইয়ের জন্য তৈরি। আপনি চাইলে ব্যক্তিগত নোট নিতে পারেন অথবা ফোর্স করে কুইজ জেনারেট করতে পারেন।')}
+              {renderFormattedText(nonEduReason || 'এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।')}
             </p>
           </div>
 
-          {errorMessage && (
-            <p className="text-xs text-red-500 font-medium">
-              {errorMessage}
-            </p>
-          )}
-
-          <div className="w-full max-w-xs sm:max-w-sm pt-1 space-y-2">
-            <button
-              type="button"
-              onClick={handleGoToPersonalNotes}
-              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-canvas)] px-3.5 py-2.5 text-xs sm:text-sm font-semibold hover:opacity-90 shadow-xs transition-opacity cursor-pointer"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Take Personal Notes Instead</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTakeQuiz(true, true)}
-              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 py-2 text-xs sm:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-subtle)] transition-colors cursor-pointer"
-            >
-              <BookOpen className="h-3.5 w-3.5" />
-              <span>Force Generate Quiz Anyway</span>
-            </button>
+          <div className="pt-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[11px] font-medium text-[var(--text-muted)]">
+              কুইজ শুধুমাত্র শিক্ষামূলক ভিডিওর জন্য প্রযোজ্য
+            </span>
           </div>
         </div>
       )}

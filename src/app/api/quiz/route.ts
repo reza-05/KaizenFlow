@@ -107,7 +107,6 @@ export async function POST(req: NextRequest) {
     const courseTitle = (body.courseTitle || '').trim();
     const language = (body.language || 'bn').trim(); // 'bn' or 'en'
     const customApiKey = (body.customApiKey || '').trim();
-    const forceGenerate = Boolean(body.forceGenerate);
 
     if (!videoId) {
       return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
@@ -123,21 +122,21 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
-    // Check for non-educational content upfront unless explicitly forced
+    // Check for non-educational content upfront with comprehensive academic safeguards
     const combinedTitle = `${videoTitle} ${courseTitle}`.toLowerCase();
-    const hasExplicitEducationalKeywords = /\b(tutorial|lecture|class|lesson|course|chapter|learn|introduction\s+to|basics\s+of|crash\s+course|full\s+course|problem\s+solving|solution|formula|derivation|chemistry|physics|biology|math|mathematics|calculus|algebra|programming|coding|algorithm|data\s+structure|web\s+dev|frontend|backend|software|how\s+to|guide|explained|explanation|syllabus|hsc|ssc|admission|buet|du|medical|exam|question\s+bank)\b/i.test(combinedTitle);
+    const hasExplicitEducationalKeywords = /\b(tutorial|lecture|class|lesson|course|chapter|learn|study|introduction\s+to|intro\s+to|basics\s+of|fundamentals\s+of|crash\s+course|full\s+course|complete\s+course|masterclass|bootcamp|workshop|walkthrough|guide|how\s+to|explained|explanation|deep\s+dive|problem\s+solving|solution|solved|formula|derivation|concept|notes|syllabus|question\s+bank|board\s+exam|model\s+test|test\s+paper|hsc|ssc|jsc|psc|admission|buet|du|medical|bcs|iit|jee|neet|sat|ielts|toefl|gre|gmat|gate|upsc|chemistry|physics|biology|botany|zoology|anatomy|physiology|biochemistry|math|mathematics|calculus|algebra|geometry|trigonometry|statistics|probability|programming|coding|software|developer|computer\s+science|algorithm|algorithms|data\s+structure|data\s+structures|\bdsa\b|web\s+dev|frontend|backend|full\s*stack|html|css|javascript|typescript|react|next\.?js|node\.?js|angular|vue|python|django|flask|java|spring|c\+\+|cpp|golang|rust|swift|kotlin|flutter|dart|php|laravel|sql|database|docker|kubernetes|devops|aws|git|github|linux|api|machine\s+learning|deep\s+learning|\bai\b|artificial\s+intelligence|data\s+science|cybersecurity|networking|ui\/ux|figma|photoshop|illustrator|blender|accounting|finance|economics)\b/i.test(combinedTitle);
 
-    const hasStrongEntertainmentTitle = !hasExplicitEducationalKeywords && /\b(official\s+music\s+video|official\s+video|official\s+audio|lyric\s+video|lyrics\s+video|full\s+album|lofi\s+beats|dj\s+remix|original\s+soundtrack|\bost\b|movie\s+trailer|teaser\s+trailer|teaser|full\s+movie|movie\s+scene|gameplay|playthrough|let's\s+play|gaming\s+montage|funny\s+moments|prank\s+video|prank|comedy\s+sketch|standup\s+comedy|roast\s+video|reaction\s+video|daily\s+vlog|travel\s+vlog|food\s+vlog|mukbang|24\s+hour\s+challenge|natok|telefilm|drama\s+serial|web\s+series|match\s+highlights|full\s+match|goals|knockout|\bwwe\b|\bipl\b|\bbpl\b|band\s+song|bangla\s+song|music\s+video|audio\s+song|album\s+song|artcell|oniket\s+prantor)\b/i.test(combinedTitle);
+    const hasStrongEntertainmentTitle = !hasExplicitEducationalKeywords && /\b(official\s+music\s+video|official\s+video|official\s+audio|lyric\s+video|lyrics\s+video|audio\s+track|audio\s+jukebox|full\s+album|album\s+song|band\s+song|bangla\s+song|hindi\s+song|english\s+song|music\s+video|audio\s+song|lofi\s+beats|lofi\s+remix|dj\s+remix|slowed\s*\+\s*reverb|slowed\s+and\s+reverb|bass\s+boosted|original\s+soundtrack|\bost\b|artcell|oniket\s+prantor|aurthohin|warfaze|miles|shironamhin|nagar\s+baul|habib\s+wahid|tahsan|arijit\s+singh|atif\s+aslam|anupam\s+roy|taylor\s+swift|ed\s+sheeran|eminem|drake|the\s+weeknd|k-?pop|bts|blackpink|singing\s+cover|guitar\s+cover|acoustic\s+cover|unplugged|live\s+concert|concert\s+performance|movie\s+trailer|teaser\s+trailer|official\s+trailer|\bteaser\b|full\s+movie|movie\s+scene|bangla\s+natok|eid\s+natok|\bnatok\b|telefilm|drama\s+serial|web\s+series|short\s+film|blockbuster\s+movie|match\s+highlights|full\s+match|goals\s+and\s+highlights|\bwwe\b|\bipl\b|\bbpl\b|penalty\s+shootout|knockout\s+highlights|gameplay|playthrough|let's\s+play|gaming\s+montage|funny\s+moments|pubg\s+mobile|\bpubg\b|free\s+fire|valorant|gta\s+5|gta\s+v|minecraft\s+gameplay|roblox\s+gameplay|prank\s+video|prank\s+call|\bprank\b|comedy\s+sketch|standup\s+comedy|stand\s+up\s+comedy|roast\s+video|\broast\b|reaction\s+video|reacts\s+to|daily\s+vlog|lifestyle\s+vlog|travel\s+vlog|food\s+vlog|family\s+vlog|mukbang|eating\s+show|24\s+hour\s+challenge|24\s+hours\s+in|meme\s+compilation)\b/i.test(combinedTitle);
 
     const totalSubs = subtitles.length;
     const musicSubCount = subtitles.filter(s => /\[(?:Music|Applause|Singing|Cheering)\]|[♪♫]/i.test(s.text)).length;
-    const isAlmostExclusivelyMusicSubs = totalSubs > 0 && (musicSubCount / totalSubs) >= 0.65;
+    const isAlmostExclusivelyMusicSubs = totalSubs > 0 && (musicSubCount / totalSubs) >= 0.60;
 
-    if (!forceGenerate && (hasStrongEntertainmentTitle || isAlmostExclusivelyMusicSubs)) {
+    if (hasStrongEntertainmentTitle || isAlmostExclusivelyMusicSubs) {
       return NextResponse.json({
         isEducational: false,
         contentType: 'music_entertainment',
-        reason: 'এই ভিডিওটি মনে হচ্ছে বিনোদনমূলক বা অ-শিক্ষামূলক কনটেন্ট, যেমন গেমিং, ড্রামা, মিউজিক বা ব্লগের মতো। KaizenFlow কুইজ শিক্ষামূলক টিউটোরিয়ালের বিষয়বস্তু যাচাইয়ের জন্য সবচেয়ে উপযোগী, তাই আপনি যদি তবুও কুইজ দিতে চান তাহলে ‘Force Generate’ অপশনটি ব্যবহার করতে পারেন।',
+        reason: 'এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।',
         quiz: []
       });
     }
@@ -162,14 +161,25 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = `
-Generate EXACTLY 5 high-yield, challenging, and strictly conceptual Multiple Choice Questions (MCQ) testing the core subject matter taught in this video lecture.
-${forceGenerate ? '- USER OVERRIDE: The user explicitly requested "FORCE GENERATE". Generate questions testing key concepts, lyrics, or themes from the video regardless of genre.' : ''}
+You are an expert academic evaluator and master tutor (প্যাশনেট শিক্ষক ও মেন্টর).
+Evaluate the following video content and generate a high-quality conceptual lecture quiz:
 
 VIDEO TITLE: "${videoTitle}"
 ${courseTitle ? `COURSE / PLAYLIST: "${courseTitle}"` : ''}
 
 ${chaptersText ? `OFFICIAL CHAPTER OUTLINE:\n${chaptersText}\n` : ''}
 ${cleanWords ? `TRANSCRIPT EXCERPT:\n${cleanWords}\n` : ''}
+
+TASK & EDUCATIONAL ASSESSMENT:
+1. EDUCATIONAL ASSESSMENT:
+   First evaluate whether this video is an EDUCATIONAL, INSTRUCTIONAL, ACADEMIC, or SKILL-LEARNING lesson (e.g. computer science, coding, sciences, math, engineering, humanities, business, tutorials, lectures, how-to guides).
+   - If this video is clearly ENTERTAINMENT / NON-EDUCATIONAL (such as music songs, music videos, movie/drama clips, gaming streams/let's plays, comedy pranks, daily vlogs, sports match highlights):
+     * Set "isEducational": false
+     * Set "contentType": "music_entertainment" (or "gaming" / "vlog" / "drama")
+     * Set "reason": "এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।"
+     * Set "quiz": []
+     * Respond with this JSON structure and STOP.
+   - Otherwise, set "isEducational": true, "contentType": "educational", and generate EXACTLY 5 high-yield, challenging, and strictly conceptual Multiple Choice Questions (MCQ) testing the core subject matter taught in this video lecture.
 
 CRITICAL RULES & ZERO-TOLERANCE GUIDELINES:
 1. STRICTLY FORBIDDEN QUESTIONS:
@@ -191,14 +201,12 @@ CRITICAL RULES & ZERO-TOLERANCE GUIDELINES:
 
 3. OPTION QUALITY:
    - Provide 4 realistic, plausible options for each question (A, B, C, D).
-   - DO NOT write silly, obvious joke options (e.g. NEVER write "class ended with no solution", "rules were canceled", "nothing happened"). Every distractor must look like a credible answer or common misconception.
+   - DO NOT write silly, obvious joke options. Every distractor must look like a credible answer or common misconception.
    - Randomly distribute the correct answer index across 0, 1, 2, and 3. DO NOT set all questions to index 0.
 
 4. MANDATORY SELF-CONTAINEDNESS (সম্পূর্ণ ও স্বয়ংসম্পূর্ণ প্রশ্ন):
    - Every question MUST be 100% self-contained with all code snippets, inputs, and context explicitly written inside the question text.
    - If a question asks for a specific numerical value, return value, or output, the EXACT code snippet, variable names, or string literal MUST be explicitly shown inside the question.
-   - FATAL ERROR TO AVOID: Asking 'C তে একটি string literal এর উপর sizeof ব্যবহার করলে কী মান পাওয়া যায়?' without giving the string literal in the question! (Without knowing whether the string is "Hello" or "A", nobody can answer!).
-   - CORRECT WAY: 'C তে sizeof("Hello") এর মান কত বাইট হবে?' (Here the string literal "Hello" is explicitly specified).
    - If asking about code execution or output, ALWAYS put the exact code snippet inside the question text formatted with code or quotes.
    - NEVER introduce a variable, string, or number in the explanation that was not explicitly present in the question!
 
@@ -209,6 +217,9 @@ CRITICAL RULES & ZERO-TOLERANCE GUIDELINES:
 
 RESPOND STRICTLY IN VALID JSON with this exact schema:
 {
+  "isEducational": true,
+  "contentType": "educational",
+  "reason": null,
   "quiz": [
     {
       "question": "C তে sizeof(\"Hello\") এর মান কত বাইট হবে?",
@@ -230,6 +241,16 @@ RESPOND STRICTLY IN VALID JSON with this exact schema:
       if (jsonMatch) {
         parsed = JSON.parse(jsonMatch[0]);
       }
+    }
+
+    // Check if the LLM flagged the video as non-educational
+    if (parsed.isEducational === false) {
+      return NextResponse.json({
+        isEducational: false,
+        contentType: parsed.contentType || 'music_entertainment',
+        reason: parsed.reason || 'এই ভিডিওটি একটি গান বা বিনোদনমূলক কনটেন্ট হিসেবে শনাক্ত হয়েছে। KaizenFlow কুইজ শুধুমাত্র শিক্ষামূলক লেকচার ও টিউটোরিয়ালের বিষয়বস্তু মূল্যায়নের জন্য তৈরি।',
+        quiz: []
+      });
     }
 
     const rawQuiz = Array.isArray(parsed.quiz) ? parsed.quiz : [];
