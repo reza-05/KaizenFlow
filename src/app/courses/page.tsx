@@ -440,6 +440,11 @@ export default function CoursesCatalogPage() {
                       src={course.thumbnailUrl}
                       alt={course.title}
                       loading="lazy"
+                      onError={e => {
+                        const target = e.currentTarget;
+                        target.onerror = null;
+                        target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80';
+                      }}
                       className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

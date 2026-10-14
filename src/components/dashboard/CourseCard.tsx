@@ -45,6 +45,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <img
           src={course.thumbnailUrl}
           alt={course.customTitle}
+          onError={e => {
+            const target = e.currentTarget;
+            target.onerror = null;
+            target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80';
+          }}
           className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
