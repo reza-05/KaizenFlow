@@ -271,39 +271,42 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         </div>
       </div>
 
-      {/* Codeforces-Style Continuous Heatmap Grid (Left to Right timeline) */}
-      <div className="overflow-x-auto pb-3 pt-1 scrollbar-thin">
-        <div className="min-w-[780px] select-none">
-          {/* Top Month Labels aligned with weeks */}
-          <div className="flex ml-7 sm:ml-8 gap-1 sm:gap-1.25 text-[11px] font-medium text-[var(--text-muted)] h-5 mb-1 select-none">
-            {weeks.map((week, idx) => (
-              <div key={idx} className="w-3 sm:w-3.5 flex-shrink-0 relative">
-                {week.monthLabel && (
-                  <span className="absolute left-0 top-0 text-[10px] font-semibold text-[var(--text-secondary)] whitespace-nowrap">
-                    {week.monthLabel}
-                  </span>
-                )}
-              </div>
-            ))}
+      {/* Full Width Responsive Heatmap Grid */}
+      <div className="overflow-x-auto pb-3 pt-1 scrollbar-thin w-full">
+        <div className="min-w-[760px] w-full select-none">
+          {/* Top Month Labels aligned with 53 columns */}
+          <div className="flex items-center w-full mb-1.5 h-4">
+            <div className="w-6 sm:w-7 shrink-0" />
+            <div className="grid grid-cols-[repeat(53,minmax(0,1fr))] gap-1 sm:gap-1.5 w-full text-[10px] font-medium text-[var(--text-muted)]">
+              {weeks.map((week, idx) => (
+                <div key={idx} className="relative">
+                  {week.monthLabel && (
+                    <span className="absolute left-0 top-0 text-[10px] font-semibold text-[var(--text-secondary)] whitespace-nowrap">
+                      {week.monthLabel}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Grid with Weekday Labels on Left (Mon, Wed, Fri) */}
-          <div className="flex items-start">
-            {/* Weekday Labels (Mon, Wed, Fri) */}
-            <div className="flex flex-col gap-1 sm:gap-1.25 w-7 text-[9px] font-mono text-[var(--text-muted)] pt-0.5 pr-1 text-right select-none">
-              <span className="h-3 sm:h-3.5 leading-3"></span>
-              <span className="h-3 sm:h-3.5 leading-3">Mon</span>
-              <span className="h-3 sm:h-3.5 leading-3"></span>
-              <span className="h-3 sm:h-3.5 leading-3">Wed</span>
-              <span className="h-3 sm:h-3.5 leading-3"></span>
-              <span className="h-3 sm:h-3.5 leading-3">Fri</span>
-              <span className="h-3 sm:h-3.5 leading-3"></span>
+          {/* Grid with Weekday Labels on Left (Mon, Wed, Fri) and 53 columns */}
+          <div className="flex items-start w-full">
+            {/* Weekday Labels (Mon, Wed, Fri) aligned with 7 rows */}
+            <div className="grid grid-rows-7 gap-1 sm:gap-1.5 w-6 sm:w-7 shrink-0 text-[9px] font-mono text-[var(--text-muted)] pr-1.5 text-right select-none">
+              <span className="flex items-center justify-end leading-none"></span>
+              <span className="flex items-center justify-end leading-none">Mon</span>
+              <span className="flex items-center justify-end leading-none"></span>
+              <span className="flex items-center justify-end leading-none">Wed</span>
+              <span className="flex items-center justify-end leading-none"></span>
+              <span className="flex items-center justify-end leading-none">Fri</span>
+              <span className="flex items-center justify-end leading-none"></span>
             </div>
 
-            {/* 53 Columns of Weeks (7 rows each) */}
-            <div className="flex gap-1 sm:gap-1.25">
+            {/* 53 Columns spanning 100% of the card */}
+            <div className="grid grid-cols-[repeat(53,minmax(0,1fr))] gap-1 sm:gap-1.5 w-full">
               {weeks.map((week) => (
-                <div key={week.weekIndex} className="flex flex-col gap-1 sm:gap-1.25 flex-shrink-0">
+                <div key={week.weekIndex} className="grid grid-rows-7 gap-1 sm:gap-1.5 w-full">
                   {week.days.map((cell, dayIdx) => {
                     const details = getCellDetails(cell);
 
@@ -322,11 +325,11 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                           });
                         }}
                         onMouseLeave={() => setHoveredCell(null)}
-                        className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-[2px] transition-all duration-150 flex items-center justify-center relative cursor-pointer ${details.className}`}
+                        className={`aspect-square w-full rounded-[2px] sm:rounded-[3px] transition-all duration-150 flex items-center justify-center relative cursor-pointer ${details.className}`}
                       >
                         {details.hasFlame && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <ClashFlame size={13} />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none scale-75 sm:scale-90">
+                            <ClashFlame size={12} />
                           </div>
                         )}
                       </div>
